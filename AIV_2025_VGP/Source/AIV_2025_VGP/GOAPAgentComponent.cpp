@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Marco Pungillo
 #include "GOAPAction.h"
-//#include "GOAPWorldModel.h"
+#include "GOAPWorldModel.h"
 #include "GOAPAgentComponent.h"
 
 // Sets default values for this component's properties
@@ -88,7 +88,7 @@ UGOAPAction* UGOAPAgentComponent::ChooseAction()
 
 float UGOAPAgentComponent::Discontentment(const UGOAPAction* Action)
 {
-	float discontentementValue = 0;
+	float DiscontentementValue = 0;
 
 	for (FGOAPGoal goal : Goals)
 	{
@@ -96,10 +96,67 @@ float UGOAPAgentComponent::Discontentment(const UGOAPAction* Action)
 		float newValue = goal.Value + Action->GetGoalChange(goal);
 
 		// Get the discontentment of this value
-		discontentementValue += goal.GetDiscontentment(newValue);
+		DiscontentementValue += goal.GetDiscontentment(newValue);
 	}
 	
-	return discontentementValue;
+	return DiscontentementValue;
+}
+
+UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int maxDepth)
+{
+	TArray<UGOAPWorldModel*> Models;
+
+	// Setup datas
+	Models[0] = wdModel;
+	int CurrentDepth = 0;
+
+	UGOAPAction* BestAction = nullptr;
+	float BestValue = INFINITY;
+
+	// Iteration of the zero-depth actions
+	while (CurrentDepth >= 0)
+	{
+
+		//Check if we are at maximum depth
+		if (CurrentDepth >= maxDepth)
+		{
+			// Discontentment calculation at deepest level
+			float currentValue = Models[CurrentDepth]->calculateDiscontentment();
+
+			if (currentValue < BestValue)
+			{
+				BestValue = currentValue;
+				BestAction = Actions[0];
+			}
+			
+			CurrentDepth -= 1;
+		}
+		// Otherwise we need to try the next action
+		else
+		{
+			UGOAPAction* NextAction = Models[CurrentDepth]->NextAction();
+			if (NextAction)
+			{
+				// We have an action to apply, copy the current model
+				Models[CurrentDepth + 1] = DuplicateObject(Models[CurrentDepth], GetTransientPackage());
+
+				// Apply the action to the copy
+				Actions.Insert(NextAction, CurrentDepth);
+				(*Models[CurrentDepth + 1]).ApplyAction(NextAction);
+
+				// process it on the next iteration
+				CurrentDepth += 1;
+			}
+			// Otherwise we have no action to try, so we're done for this level
+			else 
+			{
+				CurrentDepth -= 1;
+			}
+		}
+
+	}
+
+	return BestAction;
 }
 
 

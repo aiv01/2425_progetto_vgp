@@ -23,7 +23,7 @@ public:
 };
 
 class UGOAPAction;
-//class UGOAPWorldModel;
+class UGOAPWorldModel;
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AIV_2025_VGP_API UGOAPAgentComponent : public UActorComponent
 {
@@ -50,5 +50,7 @@ public:
 	UGOAPAction* ChooseAction();
 	UFUNCTION(BlueprintCallable)
 	float Discontentment(const UGOAPAction* Action);
-	//virtual UGOAPAction* PlanAction(UGOAPWorldModel wdModel, const int maxDepth);
+
+	UFUNCTION(BlueprintCallable)
+	virtual UGOAPAction* PlanAction(UGOAPWorldModel* wdModel, const int maxDepth);
 };
