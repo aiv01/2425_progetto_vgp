@@ -5,6 +5,8 @@
 
 #define LOCTEXT_NAMESPACE "FP_NetworkingModule"
 
+IOnlineSubsystem* FP_NetworkingModule::onlineSubsystemReference = nullptr;
+
 void FP_NetworkingModule::StartupModule()
 {
     UE_LOG(LogTemp, Warning, TEXT("MyOnlineSubsystemPlugin initializing OnlineSubsystem..."));
@@ -26,8 +28,10 @@ void FP_NetworkingModule::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-IOnlineSubsystem* FP_NetworkingModule::GetOnlineSubsystemReference() const
+IOnlineSubsystem* FP_NetworkingModule::GetOnlineSubsystemReference()
 {
+    // TODO checks
+
     return onlineSubsystemReference;
 }
 

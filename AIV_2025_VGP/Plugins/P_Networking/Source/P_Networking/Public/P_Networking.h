@@ -5,13 +5,15 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FP_NetworkingModule : public IModuleInterface
+class P_NETWORKING_API FP_NetworkingModule : public IModuleInterface
 {
-public:
-
 	/** IModuleInterface implementation */
-	class IOnlineSubsystem* onlineSubsystemReference = nullptr;
+
+public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-	IOnlineSubsystem* GetOnlineSubsystemReference() const;
+	static class IOnlineSubsystem* GetOnlineSubsystemReference();
+
+private:
+	static class IOnlineSubsystem* onlineSubsystemReference;
 };

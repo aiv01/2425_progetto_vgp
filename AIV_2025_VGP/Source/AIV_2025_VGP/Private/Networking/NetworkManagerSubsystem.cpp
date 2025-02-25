@@ -4,6 +4,7 @@
 
 #include "Networking/NetworkManagerSubsystem.h"
 #include "OnlineSubsystem.h"
+#include "P_Networking.h"
 #include "NETGameInstance.h"
 
 UNetworkManagerSubsystem::UNetworkManagerSubsystem()
@@ -35,7 +36,7 @@ FString UNetworkManagerSubsystem::GetAppID() const
 {
     FString currentGameID = "gameInstance invalid";
 
-    if (gameInstance)
+ /*   if (gameInstance)
     {
         IOnlineSubsystem* onlineSubsystem = gameInstance->GetOnlineSubsystem();
         if (onlineSubsystem)
@@ -43,7 +44,9 @@ FString UNetworkManagerSubsystem::GetAppID() const
             currentGameID = onlineSubsystem->GetAppId();
             UE_LOG(LogTemp, Warning, TEXT("Online subsystem is valid and using AppID: %s"), *currentGameID);
         }
-    }
+    }*/
+
+    currentGameID = FP_NetworkingModule::GetOnlineSubsystemReference()->GetAppId();
 
     return currentGameID;
 }
