@@ -7,8 +7,18 @@
 // Sets default values
 ABasePlayer::ABasePlayer()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+
+	FString SkeletalMeshPath = "/Game/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny";
+	USkeletalMesh* SkeletalMesh = LoadObject<USkeletalMesh>(nullptr, *SkeletalMeshPath);
+	if (SkeletalMesh)
+	{
+		GetMesh()->SetSkeletalMesh(SkeletalMesh);
+		UE_LOG(LogTemp, Warning, TEXT("BasePlayer::ABasePlayer mesh found!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BasePlayer::ABasePlayer mesh NOT found!"));
+	}
 }
 
 // Called when the game starts or when spawned
