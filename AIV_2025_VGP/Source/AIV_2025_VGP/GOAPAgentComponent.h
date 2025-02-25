@@ -15,6 +15,11 @@ public:
 	FName Name;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Value;
+
+	float GetDiscontentment(float newValue)
+	{
+		return newValue * newValue;
+	}
 };
 
 class UGOAPAction;
@@ -43,6 +48,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UGOAPAction* ChooseAction();
-
+	UFUNCTION(BlueprintCallable)
+	float Discontentment(const UGOAPAction* Action);
 	//virtual UGOAPAction* PlanAction(UGOAPWorldModel wdModel, const int maxDepth);
 };

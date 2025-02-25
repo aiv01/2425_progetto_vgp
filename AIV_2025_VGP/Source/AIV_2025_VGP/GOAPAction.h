@@ -26,5 +26,5 @@ public:
 	void ExecAction();
 
 	UFUNCTION(BlueprintCallable)
-	float GetGoalChange(const FGOAPGoal goal);
+	float GetGoalChange(const FGOAPGoal goal) const;
 };

@@ -3,13 +3,13 @@
 
 #include "GOAPAction.h"
 
-float UGOAPAction::GetGoalChange(const FGOAPGoal goal)
+float UGOAPAction::GetGoalChange(const FGOAPGoal goal) const
 {
 	float total = 0;
 
 	if (Satisfiers.Contains(goal.Name))
 	{
-		float* valueptr = Satisfiers.Find(goal.Name);
+		const float* valueptr = Satisfiers.Find(goal.Name);
 		if (valueptr)
 		{
 			total += *valueptr;
