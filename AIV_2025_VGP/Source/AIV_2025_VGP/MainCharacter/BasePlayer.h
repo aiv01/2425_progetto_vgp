@@ -51,12 +51,17 @@ public:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	virtual void Move_Implementation(const FVector2D& Value) override;
+	virtual void Look_Implementation(const FVector2D& Value) override;
+
 protected:
 	// APawn interface
 	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	
 
 public:
 	/* Returns CameraBoom subobject */

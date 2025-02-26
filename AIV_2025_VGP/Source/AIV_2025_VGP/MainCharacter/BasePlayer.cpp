@@ -103,6 +103,20 @@ void ABasePlayer::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	Move_Implementation(MovementVector);
+	
+}
+
+void ABasePlayer::Look(const FInputActionValue& Value)
+{
+	// input is a Vector2D
+	FVector2D LookVector = Value.Get<FVector2D>();
+    Look_Implementation(LookVector);
+}
+
+void ABasePlayer::Move_Implementation(const FVector2D& Value)
+{
+	UE_LOG(LogTemp,Warning, TEXT("Movement Vector Value: %s"), *Value.ToString());
 
 	if (Controller != nullptr)
 	{
@@ -117,20 +131,18 @@ void ABasePlayer::Move(const FInputActionValue& Value)
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(ForwardDirection, Value.Y);
+		AddMovementInput(RightDirection, Value.X);
 	}
 }
 
-void ABasePlayer::Look(const FInputActionValue& Value)
+void ABasePlayer::Look_Implementation(const FVector2D& Value)
 {
-	// input is a Vector2D
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
+	
 	if (Controller != nullptr)
 	{
 		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerYawInput(Value.X);
+		AddControllerPitchInput(Value.Y);
 	}
 }
