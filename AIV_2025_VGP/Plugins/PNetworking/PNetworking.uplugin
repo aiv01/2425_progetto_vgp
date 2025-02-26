@@ -2,10 +2,10 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "P_Networking",
-	"Description": "NetworkingPlugin",
+	"FriendlyName": "PNetworking",
+	"Description": "",
 	"Category": "Other",
-	"CreatedBy": "Claudio-Alessandro-Manuel",
+	"CreatedBy": "Alessandro-Claudio-Manuel",
 	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "P_Networking",
+			"Name": "PNetworking",
 			"Type": "Runtime",
 			"LoadingPhase": "PostEngineInit"
 		}

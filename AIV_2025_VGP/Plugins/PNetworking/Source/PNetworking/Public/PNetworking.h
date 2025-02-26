@@ -2,18 +2,15 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class P_NETWORKING_API FP_NetworkingModule : public IModuleInterface
+class PNETWORKING_API FPNetworkingModule : public IModuleInterface
 {
-	/** IModuleInterface implementation */
-
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
 
 private:
-	static class IOnlineSubsystem* onlineSubsystemReference;
+	static class IOnlineSubsystem* OnlineSubsystemReference;
 };
