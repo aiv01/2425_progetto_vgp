@@ -1,5 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+// © Manuel Solano
+// © Alessandro Caccamo
+// © Claudio Dallai
+
 #pragma once
 
 #include "Modules/ModuleManager.h"

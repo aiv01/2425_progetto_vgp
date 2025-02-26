@@ -1,6 +1,6 @@
-// Manuel Solano
-// Alessandro Caccamo
-// Claudio Dallai
+// © Manuel Solano
+// © Alessandro Caccamo
+// © Claudio Dallai
 
 #pragma once
 

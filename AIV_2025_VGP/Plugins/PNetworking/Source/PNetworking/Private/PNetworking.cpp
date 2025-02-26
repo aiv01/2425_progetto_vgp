@@ -1,5 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+// © Manuel Solano
+// © Alessandro Caccamo
+// © Claudio Dallai
+
 #include "PNetworking.h"
 #include "OnlineSubsystem.h"
 
@@ -14,7 +18,7 @@ void FPNetworkingModule::StartupModule()
 
 void FPNetworkingModule::ShutdownModule()
 {
-	delete OnlineSubsystemReference;
+
 }
 
 IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemReference()

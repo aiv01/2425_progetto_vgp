@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// © Manuel Solano
+// © Alessandro Caccamo
+// © Claudio Dallai
 
 #include "NetworkingTestActor.h"
-#include "OnlineSubsystem.h"
-#include "PNetworking.h"
 
 // Sets default values
 ANetworkingTestActor::ANetworkingTestActor()
@@ -18,13 +17,6 @@ void ANetworkingTestActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (FPNetworkingModule::GetOnlineSubsystemReference())
-	{
-#pragma region LOGS
-		//UE_LOG(LogTemp, Warning, TEXT("Initialized!"));
-		//UE_LOG(LogTemp, Warning, TEXT("App ID: %s"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetAppId());
-#pragma endregion LOGS
-	}
 }
 
 // Called every frame
