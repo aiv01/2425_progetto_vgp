@@ -44,7 +44,7 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 		return false;
 	}
 
-	FUniqueNetIdPtr UniqueNetId = OnlineIdentityPtr->GetUniquePlayerId(0); // Local Player.
+	FUniqueNetIdPtr UniqueNetId = OnlineIdentityPtr->GetUniquePlayerId(UserID); // Local Player.
 
 	if (!UniqueNetId.IsValid())
 	{
@@ -56,7 +56,7 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 	return true;
 }
 
-bool UPNetworkingBPLibrary::GetFriendsList(TArray<FString>& FriendsListNames, const int32 LocalUserNum)
+bool UPNetworkingBPLibrary::GetFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
 {
 	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
 
@@ -71,21 +71,39 @@ bool UPNetworkingBPLibrary::GetFriendsList(TArray<FString>& FriendsListNames, co
 		return false;
 	}
 
-	// All friends into friendslist.
-	TArray<TSharedRef<FOnlineFriend>> FriendsList;
-	FriendsInterface->GetFriendsList(LocalUserNum, EFriendsLists::ToString(EFriendsLists::Default), FriendsList); // NOT WORKING
+	// Read the friends list before get all the names.
+	const bool bGetFriendsSuccessful = FriendsInterface->ReadFriendsList(LocalUserNum, EFriendsLists::ToString(EFriendsLists::Default), FOnReadFriendsListComplete::CreateLambda([Callback](int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr) mutable
+		{
+			TArray<FString> FriendsListNames;
 
-#pragma region LOGS
-	UE_LOG(LogTemp, Warning, TEXT("Friends List Size: %d"), FriendsList.Num());
-#pragma endregion LOGS
+			if (!bWasSuccessful)
+			{
+				return;
+			}
 
-	// In order to make one syscall.
-	FriendsListNames.Reserve(FriendsList.Num());
+			IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
 
-	for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
-	{
-		FriendsListNames.Add(Friend->GetDisplayName());
-	}
+			if (!OnlineSubsystemReference)
+			{
+				return;
+			}
 
-	return true;
+			IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
+			if (!OnlineFriendsPtr.IsValid())
+			{
+				return;
+			}
+
+			TArray<TSharedRef<FOnlineFriend>> FriendsList;
+			OnlineFriendsPtr->GetFriendsList(LocalUserNum, ListName, FriendsList); // Getting all friends.
+
+			for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
+			{
+				FriendsListNames.Add(Friend->GetDisplayName()); // Adding all friend's names.
+			}
+
+			Callback.ExecuteIfBound(FriendsListNames); // Invoking the delegate: the function is ready!
+		}));
+
+	return bGetFriendsSuccessful;
 }

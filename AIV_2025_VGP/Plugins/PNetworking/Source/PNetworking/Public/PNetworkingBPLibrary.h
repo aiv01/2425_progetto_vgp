@@ -9,6 +9,8 @@
 
 class FOnlineFriend;
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
+
 UCLASS()
 class PNETWORKING_API UPNetworkingBPLibrary : public UBlueprintFunctionLibrary
 {
@@ -22,5 +24,6 @@ public:
 	static bool GetAccountName(FString& AccountName, const int32 UserID = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static bool GetFriendsList(TArray<FString>& FriendsListNames, const int32 LocalUserNum = 0);
+	static bool GetFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+
 };
