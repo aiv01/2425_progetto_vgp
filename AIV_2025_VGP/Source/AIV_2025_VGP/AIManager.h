@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "AIManager.generated.h"
 
+class ABaseEnemy;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWorldStateUpdate, const UGOAPWorldModel*, WorldState);
 UCLASS(Blueprintable)
 class AIV_2025_VGP_API AAIManager : public AActor
@@ -28,4 +29,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void BindToWorldUpdate(const ABaseEnemy* Agent);
 };

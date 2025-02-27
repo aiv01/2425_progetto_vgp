@@ -1,18 +1,43 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GOAPAction.h"
+#include "GOAPAgentComponent.h"
 #include "GOAPWorldModel.h"
 
-float UGOAPWorldModel::calculateDiscontentment()
+float UGOAPWorldModel::CalculateDiscontentment()
 {
-	return 0.0f;
+	float discontentment = 0;
+	for (FGOAPGoal Goal : Model.DistanceModel)
+	{
+		discontentment += Goal.GetDiscontentment(Goal.Value);
+	}
+	return discontentment;
+
 }
 
 UGOAPAction* UGOAPWorldModel::NextAction()
 {
-	return nullptr;
+	UGOAPAction* returnValue = nullptr;
+
+	if (CurrentActionIndex < UsableActions.Num())
+	{
+		returnValue = UsableActions[CurrentActionIndex];
+	}
+	CurrentActionIndex++;
+
+	return returnValue;
 }
 
-void UGOAPWorldModel::ApplyAction(const UGOAPAction* action)
+void UGOAPWorldModel::ApplyAction(const UGOAPAction* Action)
 {
+	CurrentActionIndex = 0;
+	for (FGOAPGoal& Goal : Model.DistanceModel)
+	{
+		if(Action->Satisfiers.Contains(Goal.Name))
+		{
+			Goal.Value += Action->GetGoalChange(Goal);
+			Goal.Value = FMath::Clamp(Goal.Value, 0, Model.MaxParameterInsistence);
+
+		}
+	}
 }

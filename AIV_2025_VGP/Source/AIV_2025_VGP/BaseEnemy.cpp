@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "GOAPWorldModel.h"
 #include "BaseEnemy.h"
 
 // Sets default values
@@ -31,4 +31,6 @@ void ABaseEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
+
+
 

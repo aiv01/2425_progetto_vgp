@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "BaseEnemy.h"
 #include "AIManager.h"
 
 // Sets default values
@@ -23,5 +23,10 @@ void AAIManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AAIManager::BindToWorldUpdate(const ABaseEnemy* Agent)
+{
+	NotifyWorldUpdate.AddDynamic(Agent, &ABaseEnemy::UpdateWorldState);
 }
 

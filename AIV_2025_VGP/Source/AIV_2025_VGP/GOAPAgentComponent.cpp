@@ -105,8 +105,13 @@ float UGOAPAgentComponent::Discontentment(const UGOAPAction* Action)
 UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int maxDepth)
 {
 	TArray<UGOAPWorldModel*> Models;
+	Models.SetNum(maxDepth + 1);
+	TArray<UGOAPAction*> ActionsToUse;
+	ActionsToUse.SetNum(maxDepth);
 
 	// Setup datas
+	wdModel->UsableActions = Actions;
+	wdModel->CurrentActionIndex = 0;
 	Models[0] = wdModel;
 	int CurrentDepth = 0;
 
@@ -116,17 +121,20 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 	// Iteration of the zero-depth actions
 	while (CurrentDepth >= 0)
 	{
-
+		if (CurrentDepth == 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Sul primo livello"));
+		}
 		//Check if we are at maximum depth
 		if (CurrentDepth >= maxDepth)
 		{
 			// Discontentment calculation at deepest level
-			float currentValue = Models[CurrentDepth]->calculateDiscontentment();
+			float currentValue = Models[CurrentDepth]->CalculateDiscontentment();
 
 			if (currentValue < BestValue)
 			{
 				BestValue = currentValue;
-				BestAction = Actions[0];
+				BestAction = ActionsToUse[0];
 			}
 			
 			CurrentDepth -= 1;
@@ -138,11 +146,11 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 			if (NextAction)
 			{
 				// We have an action to apply, copy the current model
-				Models[CurrentDepth + 1] = DuplicateObject(Models[CurrentDepth], GetTransientPackage());
+				Models[CurrentDepth+1] = DuplicateObject(Models[CurrentDepth], GetTransientPackage());
 
 				// Apply the action to the copy
-				Actions.Insert(NextAction, CurrentDepth);
-				(*Models[CurrentDepth + 1]).ApplyAction(NextAction);
+				ActionsToUse[CurrentDepth] = NextAction;
+				Models[CurrentDepth + 1]->ApplyAction(NextAction);
 
 				// process it on the next iteration
 				CurrentDepth += 1;
@@ -158,64 +166,3 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 
 	return BestAction;
 }
-
-
-//UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel wdModel, const int maxDepth)
-//{
-//	TArray<UGOAPWorldModel> models;
-//	TArray<UGOAPAction*> actions;
-//
-//	// Setting up the initial datas
-//	models.Insert(wdModel, 0);
-//	int currentDepth = 0;
-//
-//	UGOAPAction* bestAction = nullptr;
-//	float bestValue = INFINITY;
-//
-//	// Iteration of all action at depth zero
-//	while (currentDepth >= 0)
-//	{
-//		// Are we on maximum search depth?
-//		if (currentDepth >= maxDepth)
-//		{
-//			// Calculate discontentment at the deepest level
-//			float currentValue = models[currentDepth].calculateDiscontentment();
-//
-//			// If the current value is the best, store the first step of the actions path
-//			if (currentValue < bestValue)
-//			{
-//				bestValue = currentValue;
-//				bestAction = actions[0];
-//			}
-//
-//			// Depth completed, drop back
-//			currentDepth -= 1;
-//		}
-//		else // otherwise, we need to try the next action
-//		{
-//			UGOAPAction* nextAction = models[currentDepth].NextAction();
-//			if (nextAction)
-//			{
-//				// We have an action to Apply, so we copy the current model
-//				models.Insert(models[currentDepth], currentDepth + 1);
-//
-//				// Apply the action to the copy
-//				actions.Insert(nextAction, currentDepth);
-//				models[currentDepth+1].ApplyAction(nextAction);
-//
-//				// Go to next iteration
-//				currentDepth += 1;
-//			}
-//			// Otherwise we have no action to try, so we're done at this level
-//			else
-//			{
-//				// drop back to the next highest level
-//				currentDepth -= 1;
-//			}
-//		}
-//	}
-//
-//
-//	return nullptr;
-//}
-
