@@ -1,66 +1,80 @@
-//FABIO GIANNINO
-
+// FABIO GIANNINO
+// LUCA CASAMENTI
 
 #include "BaseWeaponComponent.h"
 
-// Sets default values for this component's properties
 UBaseWeaponComponent::UBaseWeaponComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
 }
 
-
-// Called when the game starts
 void UBaseWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	AActor* Owner = GetOwner();  // Otteniamo il player che possiede questo componente
-	if (Owner && WeaponClass)
-	{
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			// Spawn dell'arma dall'Inspector
-			CurrentWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass);
 
-			if (CurrentWeapon)
-			{
-				USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
-				if (PlayerMesh)
-				{
-					EquipWeapon(CurrentWeapon, PlayerMesh);
-				}
-			}
+	AActor* Owner = GetOwner();
+	if (Owner)
+	{
+		USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
+		if (PlayerMesh)
+		{
+			SpawnWeapons(PlayerMesh);
+			EquipWeapon(0);
 		}
 	}
 }
 
-
-void UBaseWeaponComponent::EquipWeapon(ABaseWeapon* NewWeapon, USkeletalMeshComponent* PlayerMesh)
+void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 {
-	if (NewWeapon && PlayerMesh)
+	if (indexToEquip < 0 || indexToEquip > Weapons.Num())
 	{
-		CurrentWeapon = NewWeapon;
-		CurrentWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
+		return;
 	}
+	//hide current
+	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
+	//show next
+	CurrentWeaponIndex = indexToEquip;
+	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
 }
 
-void UBaseWeaponComponent::ChangeWeapon()
+void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 {
-	AActor* Owner = GetOwner();
-	UWorld* World = GetWorld();
-	if (World)
+	if (Weapons.Num() < 2)
 	{
-		// Spawn dell'arma dall'Inspector
-		CurrentWeapon = World->SpawnActor<ABaseWeapon>(SecondaryWeaponClass);
+		return;
+	}
+	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
+	CurrentWeaponIndex = CurrentWeaponIndex % Weapons.Num();
+	EquipWeapon(CurrentWeaponIndex);
+}
 
-		if (CurrentWeapon)
+void UBaseWeaponComponent::SpawnWeapons(USkeletalMeshComponent* PlayerMesh)
+{
+	if (!PlayerMesh || WeaponClasses.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No weapons to spawn or PlayerMesh is null!"));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("World is null!"));
+		return;
+	}
+
+	for (TSubclassOf<ABaseWeapon> WeaponClass : WeaponClasses)
+	{
+		if (WeaponClass)
 		{
-			USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
-			if (PlayerMesh)
+			ABaseWeapon* SpawnedWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass);
+			if (SpawnedWeapon)
 			{
-				EquipWeapon(CurrentWeapon, PlayerMesh);
+				Weapons.Add(SpawnedWeapon);
+				SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+				SpawnedWeapon->SetActorHiddenInGame(true);
+				UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *SpawnedWeapon->GetName());
 			}
 		}
 	}

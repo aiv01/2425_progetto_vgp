@@ -1,4 +1,5 @@
-// FABIOGIANNINO
+// FABIO GIANNINO
+// LUCA CASAMENTI
 
 #pragma once
 
@@ -23,19 +24,21 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category="Weapon")
-	TSubclassOf<ABaseWeapon> WeaponClass;
-
-	UPROPERTY(EditAnywhere, Category="Weapon")
-	TSubclassOf<ABaseWeapon> SecondaryWeaponClass;
+	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
 	ABaseWeapon* CurrentWeapon;
 
-	void EquipWeapon(ABaseWeapon* NewWeapon, USkeletalMeshComponent* PlayerMesh);
+	UFUNCTION(BlueprintCallable)
+	void EquipWeapon(int32 indexToEquip);
 
 	UFUNCTION(BlueprintCallable)
-	void ChangeWeapon();
+	void ChangeWeapon(bool bForward);
 
-	
-	
+	UFUNCTION(BlueprintCallable)
+	void SpawnWeapons(USkeletalMeshComponent* PlayerMesh);
+
+private:
+	TArray<ABaseWeapon*> Weapons;
+	int32 CurrentWeaponIndex = 0;
 };
