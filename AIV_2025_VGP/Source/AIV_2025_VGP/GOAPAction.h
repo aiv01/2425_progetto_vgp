@@ -21,6 +21,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	APawn* Executer;
+	
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	UGOAPWorldModel* ElaborateWorldModel(UGOAPWorldModel* Wm);
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void ExecAction();

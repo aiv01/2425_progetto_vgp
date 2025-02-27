@@ -7,7 +7,7 @@
 float UGOAPWorldModel::CalculateDiscontentment()
 {
 	float discontentment = 0;
-	for (FGOAPGoal Goal : Model.DistanceModel)
+	for (FGOAPGoal Goal : Model.Insistences)
 	{
 		discontentment += Goal.GetDiscontentment(Goal.Value);
 	}
@@ -31,7 +31,7 @@ UGOAPAction* UGOAPWorldModel::NextAction()
 void UGOAPWorldModel::ApplyAction(const UGOAPAction* Action)
 {
 	CurrentActionIndex = 0;
-	for (FGOAPGoal& Goal : Model.DistanceModel)
+	for (FGOAPGoal& Goal : Model.Insistences)
 	{
 		if(Action->Satisfiers.Contains(Goal.Name))
 		{

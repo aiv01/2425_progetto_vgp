@@ -12,8 +12,10 @@ struct FWorldModel
 {
 	float MaxParameterInsistence = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FGOAPGoal> DistanceModel;
+	TMap<FName,FVector> DistanceModel;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FGOAPGoal> Insistences;
 
 	GENERATED_BODY()
 };
