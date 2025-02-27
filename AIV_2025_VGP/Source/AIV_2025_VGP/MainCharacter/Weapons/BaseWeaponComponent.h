@@ -1,8 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// FABIOGIANNINO
 
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseWeapon.h"
 #include "Components/ActorComponent.h"
 #include "BaseWeaponComponent.generated.h"
 
@@ -21,9 +22,20 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UPROPERTY(EditAnywhere, Category="Weapon")
+	TSubclassOf<ABaseWeapon> WeaponClass;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-	UStaticMesh* WeaponMesh;
+	UPROPERTY(EditAnywhere, Category="Weapon")
+	TSubclassOf<ABaseWeapon> SecondaryWeaponClass;
 
-		
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
+	ABaseWeapon* CurrentWeapon;
+
+	void EquipWeapon(ABaseWeapon* NewWeapon, USkeletalMeshComponent* PlayerMesh);
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeWeapon();
+
+	
+	
 };

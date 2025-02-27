@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//FABIO GIANNINO
 
 
 #include "BaseWeaponComponent.h"
@@ -6,11 +6,8 @@
 // Sets default values for this component's properties
 UBaseWeaponComponent::UBaseWeaponComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-
-	// ...
+	
 }
 
 
@@ -18,8 +15,53 @@ UBaseWeaponComponent::UBaseWeaponComponent()
 void UBaseWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	AActor* Owner = GetOwner();  // Otteniamo il player che possiede questo componente
+	if (Owner && WeaponClass)
+	{
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			// Spawn dell'arma dall'Inspector
+			CurrentWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass);
 
-	// ...
-	
+			if (CurrentWeapon)
+			{
+				USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
+				if (PlayerMesh)
+				{
+					EquipWeapon(CurrentWeapon, PlayerMesh);
+				}
+			}
+		}
+	}
 }
 
+
+void UBaseWeaponComponent::EquipWeapon(ABaseWeapon* NewWeapon, USkeletalMeshComponent* PlayerMesh)
+{
+	if (NewWeapon && PlayerMesh)
+	{
+		CurrentWeapon = NewWeapon;
+		CurrentWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+	}
+}
+
+void UBaseWeaponComponent::ChangeWeapon()
+{
+	AActor* Owner = GetOwner();
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		// Spawn dell'arma dall'Inspector
+		CurrentWeapon = World->SpawnActor<ABaseWeapon>(SecondaryWeaponClass);
+
+		if (CurrentWeapon)
+		{
+			USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
+			if (PlayerMesh)
+			{
+				EquipWeapon(CurrentWeapon, PlayerMesh);
+			}
+		}
+	}
+}
