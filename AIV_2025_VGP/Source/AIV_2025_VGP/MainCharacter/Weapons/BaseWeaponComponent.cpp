@@ -24,6 +24,7 @@ void UBaseWeaponComponent::BeginPlay()
 	}
 }
 
+//Blueprint Callable Overload function with index param
 void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 {
 	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), indexToEquip);
@@ -32,9 +33,26 @@ void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
 		return;
 	}
+
+	//Current Weapon
+	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true); 
 	
-	//show next
+	//New Weapon
 	CurrentWeaponIndex = indexToEquip;
+	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+}
+
+//Internal Overload function with no index param
+void UBaseWeaponComponent::EquipWeapon()
+{
+	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
+	if (CurrentWeaponIndex < 0 || CurrentWeaponIndex >= Weapons.Num())
+	{
+		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
+		return;
+	}
+
+	//New Weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
 }
 
@@ -46,7 +64,10 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 		return;
 	}
 
+	//Hide current weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
+
+	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
 
 	// Assicura che l'indice sia circolare anche per valori negativi
@@ -58,7 +79,9 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 	{
 		CurrentWeaponIndex = CurrentWeaponIndex % Weapons.Num();
 	}
-	EquipWeapon(CurrentWeaponIndex);
+
+	//Call overload with no param
+	EquipWeapon();
 }
 
 void UBaseWeaponComponent::SpawnWeapons(USkeletalMeshComponent* PlayerMesh)

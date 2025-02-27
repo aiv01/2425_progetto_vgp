@@ -31,6 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(int32 indexToEquip);
+	void EquipWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeapon(bool bForward);
