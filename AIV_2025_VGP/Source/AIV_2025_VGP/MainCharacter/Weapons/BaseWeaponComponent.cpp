@@ -27,13 +27,12 @@ void UBaseWeaponComponent::BeginPlay()
 void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 {
 	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), indexToEquip);
-	if (indexToEquip < 0 || indexToEquip > Weapons.Num())
+	if (indexToEquip < 0 || indexToEquip >= Weapons.Num())
 	{
 		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
 		return;
 	}
-	//hide current
-	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
+	
 	//show next
 	CurrentWeaponIndex = indexToEquip;
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
@@ -46,6 +45,8 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 	{
 		return;
 	}
+
+	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
 
 	// Assicura che l'indice sia circolare anche per valori negativi
