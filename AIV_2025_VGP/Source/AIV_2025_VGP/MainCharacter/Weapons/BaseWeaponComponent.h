@@ -39,6 +39,8 @@ public:
 	void SpawnWeapons(USkeletalMeshComponent* PlayerMesh);
 
 private:
+	UPROPERTY(VisibleAnywhere)
 	TArray<ABaseWeapon*> Weapons;
+	UPROPERTY(VisibleAnywhere)
 	int32 CurrentWeaponIndex = 0;
 };
