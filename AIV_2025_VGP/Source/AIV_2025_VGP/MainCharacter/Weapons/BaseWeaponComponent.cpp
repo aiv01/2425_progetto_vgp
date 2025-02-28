@@ -36,10 +36,12 @@ void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 
 	//Current Weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true); 
+	Weapons[CurrentWeaponIndex]->OnWeaponHit.RemoveDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 	
 	//New Weapon
 	CurrentWeaponIndex = indexToEquip;
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+	Weapons[CurrentWeaponIndex]->OnWeaponHit.AddDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 }
 
 //Internal Overload function with no index param
@@ -54,6 +56,7 @@ void UBaseWeaponComponent::EquipWeapon()
 
 	//New Weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+	Weapons[CurrentWeaponIndex]->OnWeaponHit.AddDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 }
 
 void UBaseWeaponComponent::ChangeWeapon(bool bForward)
@@ -66,6 +69,7 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 
 	//Hide current weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
+	Weapons[CurrentWeaponIndex]->OnWeaponHit.RemoveDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 
 	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
@@ -113,4 +117,9 @@ void UBaseWeaponComponent::SpawnWeapons(USkeletalMeshComponent* PlayerMesh)
 			}
 		}
 	}
+}
+
+void UBaseWeaponComponent::OnWeaponHit()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Weapon %s hit something!"), *Weapons[CurrentWeaponIndex]->GetName());
 }

@@ -116,7 +116,7 @@ void ABasePlayer::Look(const FInputActionValue& Value)
 
 void ABasePlayer::Move_Implementation(const FVector2D& Value)
 {
-	UE_LOG(LogTemp,Warning, TEXT("Movement Vector Value: %s"), *Value.ToString());
+	//UE_LOG(LogTemp,Warning, TEXT("Movement Vector Value: %s"), *Value.ToString());
 
 	if (Controller != nullptr)
 	{

@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnWeapons(USkeletalMeshComponent* PlayerMesh);
 
+	UFUNCTION()
+	void OnWeaponHit();
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	TArray<ABaseWeapon*> Weapons;

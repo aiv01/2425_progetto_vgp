@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponHit);
+
 UCLASS(Blueprintable,BlueprintType)
 class AIV_2025_VGP_API ABaseWeapon : public AActor
 {
@@ -21,4 +23,7 @@ protected:
 public:
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USkeletalMeshComponent* WeaponMesh;
+
+	UPROPERTY(BlueprintAssignable,BlueprintCallable, Category = "Weapon")
+	FOnWeaponHit OnWeaponHit;
 };
