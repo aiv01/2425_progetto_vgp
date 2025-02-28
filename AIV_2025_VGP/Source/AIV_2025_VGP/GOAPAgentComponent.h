@@ -33,8 +33,6 @@ public:
 	// Sets default values for this component's properties
 	UGOAPAgentComponent();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GOAP Goals")
-	TArray<FGOAPGoal> Goals;
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category = "GOAP Actions")
 	TArray<UGOAPAction*> Actions;
 
@@ -45,11 +43,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	UFUNCTION(BlueprintCallable)
-	UGOAPAction* ChooseAction();
-	UFUNCTION(BlueprintCallable)
-	float Discontentment(const UGOAPAction* Action);
 
 	UFUNCTION(BlueprintCallable)
 	virtual UGOAPAction* PlanAction(UGOAPWorldModel* wdModel, const int maxDepth);

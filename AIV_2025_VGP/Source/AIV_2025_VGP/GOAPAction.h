@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// Marco Pungillo
 
 #pragma once
 
@@ -18,8 +19,9 @@ class AIV_2025_VGP_API UGOAPAction : public UObject
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, float> Satisfiers;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxInsistence = 10.0f;
+	UPROPERTY(BlueprintReadWrite)
 	APawn* Executer;
 	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)

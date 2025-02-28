@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// Marco Pungillo
 
 #pragma once
 
@@ -8,11 +9,12 @@
 
 struct FGOAPGoal;
 USTRUCT(Blueprintable)
-struct FWorldModel
+struct FWorldModel : public FTableRowBase
 {
+	UPROPERTY()
 	float MaxParameterInsistence = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FName,FVector> DistanceModel;
+	TMap<FName,FVector> PositionsModel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FGOAPGoal> Insistences;
