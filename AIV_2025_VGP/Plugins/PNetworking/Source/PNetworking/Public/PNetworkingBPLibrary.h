@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Interfaces/OnlineFriendsInterface.h"
 #include "PNetworkingBPLibrary.generated.h"
 
 class FOnlineFriend;
@@ -23,7 +24,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool GetAccountName(FString& AccountName, const int32 UserID = 0);
 
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static bool GetFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+    UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+    static bool GetOnlineFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+
+    UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+    static bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+
+private:
+    static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 
 };

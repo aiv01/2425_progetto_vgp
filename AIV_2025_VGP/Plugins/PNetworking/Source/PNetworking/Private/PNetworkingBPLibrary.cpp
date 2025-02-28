@@ -7,7 +7,6 @@
 #include "PNetworkingBPLibrary.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineIdentityInterface.h"
-#include "Interfaces/OnlineFriendsInterface.h"
 #include "PNetworking.h"
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -56,7 +55,7 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 	return true;
 }
 
-bool UPNetworkingBPLibrary::GetFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
+bool UPNetworkingBPLibrary::GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum)
 {
 	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
 
@@ -72,38 +71,51 @@ bool UPNetworkingBPLibrary::GetFriendsList(const FOnFriendsListReady& Callback, 
 	}
 
 	// Read the friends list before get all the names.
-	const bool bGetFriendsSuccessful = FriendsInterface->ReadFriendsList(LocalUserNum, EFriendsLists::ToString(EFriendsLists::Default), FOnReadFriendsListComplete::CreateLambda([Callback](int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr) mutable
-		{
-			TArray<FString> FriendsListNames;
-
-			if (!bWasSuccessful)
+	const bool bGetFriendsSuccessful = FriendsInterface->ReadFriendsList(
+		LocalUserNum,
+		EFriendsLists::ToString(Query),
+		FOnReadFriendsListComplete::CreateLambda([Callback](int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr) mutable
 			{
-				return;
-			}
+				TArray<FString> FriendsListNames;
 
-			IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+				if (!bWasSuccessful)
+				{
+					return;
+				}
 
-			if (!OnlineSubsystemReference)
-			{
-				return;
-			}
+				IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
 
-			IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
-			if (!OnlineFriendsPtr.IsValid())
-			{
-				return;
-			}
+				if (!OnlineSubsystemReference)
+				{
+					return;
+				}
 
-			TArray<TSharedRef<FOnlineFriend>> FriendsList;
-			OnlineFriendsPtr->GetFriendsList(LocalUserNum, ListName, FriendsList); // Getting all friends.
+				IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
+				if (!OnlineFriendsPtr.IsValid())
+				{
+					return;
+				}
 
-			for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
-			{
-				FriendsListNames.Add(Friend->GetDisplayName()); // Adding all friend's names.
-			}
+				TArray<TSharedRef<FOnlineFriend>> FriendsList;
+				OnlineFriendsPtr->GetFriendsList(LocalUserNum, ListName, FriendsList); // Getting all friends.
 
-			Callback.ExecuteIfBound(FriendsListNames); // Invoking the delegate: the function is ready!
-		}));
+				for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
+				{
+					FriendsListNames.Add(Friend->GetDisplayName()); // Adding all friend's names.
+				}
+
+				Callback.ExecuteIfBound(FriendsListNames); // Invoking the delegate: the function is ready!
+			}));
 
 	return bGetFriendsSuccessful;
+}
+
+bool UPNetworkingBPLibrary::GetOnlineFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
+{
+	return GetFriendsList(Callback, EFriendsLists::OnlinePlayers, LocalUserNum);
+}
+
+bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
+{
+	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
 }
