@@ -125,3 +125,47 @@ bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callbac
 {
 	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
 }
+
+UTexture2D* UPNetworkingBPLibrary::GetAvatar()
+{
+	CSteamID SteamID = SteamUser()->GetSteamID();
+	int32 AvatarID = SteamFriends()->GetLargeFriendAvatar(SteamID);
+
+	if (AvatarID < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar ID!"));
+		return nullptr;
+	}
+
+	uint32 Width, Height;
+	if (!SteamUtils()->GetImageSize(AvatarID, &Width, &Height))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: GetImageSize()"));
+		return nullptr;
+	}
+
+	TArray<uint8> AvatarData;
+	const uint32 BufferSize = Width * Height * 4;
+	AvatarData.Reserve(BufferSize);
+	
+	if (!SteamUtils()->GetImageRGBA(AvatarID, AvatarData.GetData(), BufferSize))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: GetImageRGBA()"));
+		return nullptr;
+	}
+
+	UTexture2D* AvatarTexture = UTexture2D::CreateTransient(Width, Height, EPixelFormat::PF_R8G8B8A8);
+	if (!AvatarTexture)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar Texture!"));
+		return nullptr;
+	}
+
+	void* TextureData = AvatarTexture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+	FMemory::Memcpy(TextureData, AvatarData.GetData(), BufferSize);
+	AvatarTexture->GetPlatformData()->Mips[0].BulkData.Unlock();
+
+	AvatarTexture->UpdateResource();
+
+	return AvatarTexture;
+}

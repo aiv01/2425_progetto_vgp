@@ -30,6 +30,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
     static bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
 
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static UTexture2D* GetAvatar();
+
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 
