@@ -11,6 +11,7 @@
 /**
  * 
  */
+class UGOAPWorldModel;
 UCLASS(Blueprintable, EditInlineNew)
 class AIV_2025_VGP_API UGOAPAction : public UObject
 {
@@ -18,12 +19,20 @@ class AIV_2025_VGP_API UGOAPAction : public UObject
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FName, bool> PreConditions;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, float> Satisfiers;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxInsistence = 10.0f;
 	UPROPERTY(BlueprintReadWrite)
-	APawn* Executer;
+	ACharacter* Executer;
 	
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	bool EvaluateFeasibility(UGOAPWorldModel* Wm);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsFeasable(UGOAPWorldModel* Wm);
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	UGOAPWorldModel* ElaborateWorldModel(UGOAPWorldModel* Wm);
 

@@ -35,6 +35,7 @@ void UGOAPAgentComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int maxDepth)
 {
+	// Models and Actions Array Initialization 
 	TArray<UGOAPWorldModel*> Models;
 	Models.SetNum(maxDepth + 1);
 	TArray<UGOAPAction*> ActionsToUse;
@@ -46,6 +47,7 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 	Models[0] = wdModel;
 	int CurrentDepth = 0;
 
+	// Setup of the comparison variables
 	UGOAPAction* BestAction = nullptr;
 	float BestValue = INFINITY;
 
@@ -73,19 +75,28 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 		// Otherwise we need to try the next action
 		else
 		{
+
 			UGOAPAction* NextAction = Models[CurrentDepth]->NextAction();
+
 			if (NextAction)
 			{
-				// We have an action to apply, copy the current model
-				Models[CurrentDepth+1] = DuplicateObject(Models[CurrentDepth], GetTransientPackage());
+				if (NextAction->IsFeasable(Models[CurrentDepth]))
+				{
+					if (NextAction->EvaluateFeasibility(Models[CurrentDepth]))
+					{
+						// We have an action to apply, copy the current model
+						Models[CurrentDepth + 1] = DuplicateObject(Models[CurrentDepth], GetTransientPackage());
 
-				// Apply the action to the copy
-				ActionsToUse[CurrentDepth] = NextAction;
-				Models[CurrentDepth + 1]->ApplyAction(NextAction);
+						// Apply the action to the copy
+						ActionsToUse[CurrentDepth] = NextAction;
+						Models[CurrentDepth + 1]->ApplyAction(NextAction);
 
-				// process it on the next iteration
-				CurrentDepth += 1;
+						// process it on the next iteration
+						CurrentDepth += 1;
+					}
+				}
 			}
+
 			// Otherwise we have no action to try, so we're done for this level
 			else 
 			{

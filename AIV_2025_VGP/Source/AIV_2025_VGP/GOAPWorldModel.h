@@ -15,6 +15,8 @@ struct FWorldModel : public FTableRowBase
 	float MaxParameterInsistence = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName,FVector> PositionsModel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FName, bool> ConditionsModel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FGOAPGoal> Insistences;
