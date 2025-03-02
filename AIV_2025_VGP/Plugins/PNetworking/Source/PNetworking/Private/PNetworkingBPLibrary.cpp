@@ -12,12 +12,12 @@
 // To disable "strncpy" security warnings.
 #pragma warning(push)
 #pragma warning(disable:4996)
-#include "../Public/steam/steam_api.h"
 #include "steam/steam_api.h"
 #pragma warning(pop)
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	
 }
 
 bool UPNetworkingBPLibrary::GetAppID(FString& AppID)
@@ -124,19 +124,4 @@ bool UPNetworkingBPLibrary::GetOnlineFriendsList(const FOnFriendsListReady& Call
 bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
 {
 	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
-}
-
-// TEST
-bool UPNetworkingBPLibrary::InitSteam(FString& PersonaName)
-{
-	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
-
-	if (!OnlineSubsystemReference)
-	{
-		return false;
-	}
-
-	PersonaName = FString(SteamFriends()->GetPersonaName());
-
-	return true;
 }

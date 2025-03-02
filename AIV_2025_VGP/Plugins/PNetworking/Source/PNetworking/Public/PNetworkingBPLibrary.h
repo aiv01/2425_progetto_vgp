@@ -29,9 +29,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
     static bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
-	
-	UFUNCTION(BlueprintCallable, Category = "TEST")
-	static bool InitSteam(FString& PersonaName);
 
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
