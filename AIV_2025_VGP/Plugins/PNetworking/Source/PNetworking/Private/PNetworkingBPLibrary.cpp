@@ -126,9 +126,8 @@ bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callbac
 	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
 }
 
-UTexture2D* UPNetworkingBPLibrary::GetAvatar()
+UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 {
-	CSteamID SteamID = SteamUser()->GetSteamID();
 	int32 AvatarID = SteamFriends()->GetLargeFriendAvatar(SteamID);
 
 	if (AvatarID < 0)
@@ -137,6 +136,7 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar()
 		return nullptr;
 	}
 
+	// Avatar size.
 	uint32 Width, Height;
 	if (!SteamUtils()->GetImageSize(AvatarID, &Width, &Height))
 	{
@@ -144,16 +144,17 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar()
 		return nullptr;
 	}
 
+	// Avatar RGBA datas.
 	TArray<uint8> AvatarData;
 	const uint32 BufferSize = Width * Height * 4;
 	AvatarData.Reserve(BufferSize);
-	
 	if (!SteamUtils()->GetImageRGBA(AvatarID, AvatarData.GetData(), BufferSize))
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: GetImageRGBA()"));
 		return nullptr;
 	}
 
+	// Apply RGBA datas into texture.
 	UTexture2D* AvatarTexture = UTexture2D::CreateTransient(Width, Height, EPixelFormat::PF_R8G8B8A8);
 	if (!AvatarTexture)
 	{
@@ -168,4 +169,30 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar()
 	AvatarTexture->UpdateResource();
 
 	return AvatarTexture;
+}
+
+UTexture2D* UPNetworkingBPLibrary::GetLocalUserAvatar()
+{
+	const CSteamID SteamID = SteamUser()->GetSteamID(); // Local user.
+	return GetAvatar(SteamID);
+}
+
+TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
+{
+	// Get friend's amount.
+	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
+	if (FriendsCount < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
+		FriendsCount = 0;
+	}
+
+	TArray<UTexture2D*> FriendsAvatar; // Array of avatars.
+	for (int32 Index = 0; Index < FriendsCount; Index++)
+	{
+		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
+		FriendsAvatar.Add(GetAvatar(CurrentSteamID));
+	}
+
+	return FriendsAvatar;
 }
