@@ -1,17 +1,23 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// © Manuel Solano
-// © Alessandro Caccamo
-// © Claudio Dallai
+// ï¿½ Manuel Solano
+// ï¿½ Alessandro Caccamo
+// ï¿½ Claudio Dallai
 
 #include "PNetworkingBPLibrary.h"
-#include "OnlineSubsystem.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "OnlineSubsystem.h"
 #include "PNetworking.h"
+
+// To disable "strncpy" security warnings.
+#pragma warning(push)
+#pragma warning(disable:4996)
+#include "../Public/steam/steam_api.h"
+#include "steam/steam_api.h"
+#pragma warning(pop)
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }
 
 bool UPNetworkingBPLibrary::GetAppID(FString& AppID)
@@ -43,7 +49,7 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 		return false;
 	}
 
-	FUniqueNetIdPtr UniqueNetId = OnlineIdentityPtr->GetUniquePlayerId(UserID); // Local Player.
+	FUniqueNetIdPtr UniqueNetId = OnlineIdentityPtr->GetUniquePlayerId(UserID); // Local Player (client).
 
 	if (!UniqueNetId.IsValid())
 	{
@@ -75,37 +81,37 @@ bool UPNetworkingBPLibrary::GetFriendsList(const FOnFriendsListReady& Callback, 
 		LocalUserNum,
 		EFriendsLists::ToString(Query),
 		FOnReadFriendsListComplete::CreateLambda([Callback](int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr) mutable
+		{
+			TArray<FString> FriendsListNames;
+
+			if (!bWasSuccessful)
 			{
-				TArray<FString> FriendsListNames;
+				return;
+			}
 
-				if (!bWasSuccessful)
-				{
-					return;
-				}
+			IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
 
-				IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+			if (!OnlineSubsystemReference)
+			{
+				return;
+			}
 
-				if (!OnlineSubsystemReference)
-				{
-					return;
-				}
+			IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
+			if (!OnlineFriendsPtr.IsValid())
+			{
+				return;
+			}
 
-				IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
-				if (!OnlineFriendsPtr.IsValid())
-				{
-					return;
-				}
+			TArray<TSharedRef<FOnlineFriend>> FriendsList;
+			OnlineFriendsPtr->GetFriendsList(LocalUserNum, ListName, FriendsList); // Getting all friends.
 
-				TArray<TSharedRef<FOnlineFriend>> FriendsList;
-				OnlineFriendsPtr->GetFriendsList(LocalUserNum, ListName, FriendsList); // Getting all friends.
+			for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
+			{
+				FriendsListNames.Add(Friend->GetDisplayName()); // Adding all friend's names.
+			}
 
-				for (const TSharedRef<FOnlineFriend>& Friend : FriendsList)
-				{
-					FriendsListNames.Add(Friend->GetDisplayName()); // Adding all friend's names.
-				}
-
-				Callback.ExecuteIfBound(FriendsListNames); // Invoking the delegate: the function is ready!
-			}));
+			Callback.ExecuteIfBound(FriendsListNames); // Invoking the delegate: the function is ready!
+		}));
 
 	return bGetFriendsSuccessful;
 }
@@ -118,4 +124,19 @@ bool UPNetworkingBPLibrary::GetOnlineFriendsList(const FOnFriendsListReady& Call
 bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
 {
 	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
+}
+
+// TEST
+bool UPNetworkingBPLibrary::InitSteam(FString& PersonaName)
+{
+	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+
+	if (!OnlineSubsystemReference)
+	{
+		return false;
+	}
+
+	PersonaName = FString(SteamFriends()->GetPersonaName());
+
+	return true;
 }

@@ -1,6 +1,11 @@
 // Some copyright should be here...
 
+// � Manuel Solano
+// � Alessandro Caccamo
+// � Claudio Dallai
+
 using UnrealBuildTool;
+using System.IO;
 
 public class PNetworking : ModuleRules
 {
@@ -25,11 +30,13 @@ public class PNetworking : ModuleRules
             {
                 "Core",
                 "OnlineSubsystem",
-                "OnlineSubsystemUtils"
+                "OnlineSubsystemUtils",
             }
         );
-
-
+        
+        // To add .lib files
+        PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "Public", "steam", "lib", "steam_api64.lib"));
+        
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {

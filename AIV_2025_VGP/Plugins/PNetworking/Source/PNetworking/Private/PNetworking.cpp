@@ -1,10 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// © Manuel Solano
-// © Alessandro Caccamo
-// © Claudio Dallai
+// ï¿½ Manuel Solano
+// ï¿½ Alessandro Caccamo
+// ï¿½ Claudio Dallai
 
 #include "PNetworking.h"
+#include "steam/steam_api.h"
 #include "OnlineSubsystem.h"
 
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
@@ -23,13 +24,25 @@ void FPNetworkingModule::ShutdownModule()
 
 IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemReference()
 {
-	if (!OnlineSubsystemReference)
+	// The game must be run in standalone!
+	if (GIsEditor)
 	{
-#pragma region LOGS
-		UE_LOG(LogTemp, Error, TEXT("Online Subsystem Not Initialized!"));
-#pragma endregion LOGS
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
+		return nullptr;
 	}
 
+	// The Steam client must be opened!
+	if (!SteamAPI_IsSteamRunning())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Online Subsystem doesn't work because Steam isn't opened on the client!"));
+		return nullptr;
+	}
+
+	if (!OnlineSubsystemReference)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Online Subsystem isn't initialized!"));
+	}
+	
 	return OnlineSubsystemReference;
 }
 
