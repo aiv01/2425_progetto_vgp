@@ -88,11 +88,9 @@ struct LeaderboardEntry_t
 class ISteamUserStats
 {
 public:
-
-	// Note: this call is no longer required as it is managed by the Steam client
-	// The game stats and achievements will be synchronized with Steam before
-	// the game process begins.
-	// virtual bool RequestCurrentStats() = 0;
+	// Ask the server to send down this user's data and achievements for this game
+	STEAM_CALL_BACK( UserStatsReceived_t )
+	virtual bool RequestCurrentStats() = 0;
 
 	// Data accessors
 	STEAM_FLAT_NAME( GetStatInt32 )
@@ -305,7 +303,7 @@ public:
 
 };
 
-#define STEAMUSERSTATS_INTERFACE_VERSION "STEAMUSERSTATS_INTERFACE_VERSION013"
+#define STEAMUSERSTATS_INTERFACE_VERSION "STEAMUSERSTATS_INTERFACE_VERSION012"
 
 // Global interface accessor
 inline ISteamUserStats *SteamUserStats();
