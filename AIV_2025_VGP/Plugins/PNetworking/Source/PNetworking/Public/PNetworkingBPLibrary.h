@@ -39,6 +39,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static TArray<UTexture2D*> GetFriendsAvatar();
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static TMap<FString, UTexture2D*> GetPlayersData(); // TODO an actual implementation to stor CSteamID in order to invite (maybe returning a struct?)
 #pragma endregion Friends
 
 private:

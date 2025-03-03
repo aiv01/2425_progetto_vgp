@@ -196,3 +196,29 @@ TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 
 	return FriendsAvatar;
 }
+
+TMap<FString, UTexture2D*> UPNetworkingBPLibrary::GetPlayersData()
+{
+	TMap<FString, UTexture2D*> PlayersData;
+
+	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
+	if (FriendsCount < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
+		FriendsCount = 0;
+	}
+
+	for (int32 Index = 0; Index < FriendsCount; Index++)
+	{
+		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
+		const EPersonaState CurrentPlayerState = SteamFriends()->GetFriendPersonaState(CurrentSteamID);
+		if ((CurrentPlayerState != EPersonaState::k_EPersonaStateOffline))
+		{
+			const FString CurrentNickname(SteamFriends()->GetFriendPersonaName(CurrentSteamID));
+			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID);
+			PlayersData.Add(CurrentNickname, CurrentTexture);
+		}
+	}
+
+	return PlayersData;
+}
