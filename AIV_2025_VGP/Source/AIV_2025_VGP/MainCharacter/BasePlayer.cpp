@@ -1,4 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #include "BasePlayer.h"
 #include "Engine/LocalPlayer.h"
@@ -7,8 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -64,60 +65,10 @@ void ABasePlayer::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
-	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-/*void ABasePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABasePlayer::Move);
-
-		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABasePlayer::Look);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
-}*/
-
-void ABasePlayer::Move(const FInputActionValue& Value)
-{
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
-	Move_Implementation(MovementVector);
-	
-}
-
-void ABasePlayer::Look(const FInputActionValue& Value)
-{
-	// input is a Vector2D
-	FVector2D LookVector = Value.Get<FVector2D>();
-    Look_Implementation(LookVector);
 }
 
 void ABasePlayer::Move_Implementation(const FVector2D& Value)
 {
-	//UE_LOG(LogTemp,Warning, TEXT("Movement Vector Value: %s"), *Value.ToString());
-
 	if (Controller != nullptr)
 	{
 		// find out which way is forward

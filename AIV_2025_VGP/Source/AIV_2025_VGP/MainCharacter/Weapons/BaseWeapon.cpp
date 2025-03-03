@@ -1,8 +1,9 @@
-// FABIO
-
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #include "BaseWeapon.h"
-
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -17,8 +18,7 @@ ABaseWeapon::ABaseWeapon()
 // Called when the game starts or when spawned
 void ABaseWeapon::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 

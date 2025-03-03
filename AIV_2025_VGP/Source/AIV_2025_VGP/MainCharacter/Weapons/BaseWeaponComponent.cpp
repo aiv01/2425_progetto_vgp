@@ -15,20 +15,22 @@ void UBaseWeaponComponent::BeginPlay()
 	AActor* Owner = GetOwner();
 	if (Owner)
 	{
-		USkeletalMeshComponent* PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
+		PlayerMesh = Owner->FindComponentByClass<USkeletalMeshComponent>();
 		if (PlayerMesh)
 		{
-			SpawnWeapons(PlayerMesh);
-			EquipWeapon(0);
+			SpawnWeapons();
+			EquipWeapon();
 		}
 	}
+	
+	World = GetWorld();
 }
 
 //Blueprint Callable Overload function with index param
-void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
+void UBaseWeaponComponent::EquipWeapon(int32 IndexToEquip)
 {
-	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), indexToEquip);
-	if (indexToEquip < 0 || indexToEquip >= Weapons.Num())
+	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), IndexToEquip);
+	if (IndexToEquip < 0 || IndexToEquip >= Weapons.Num())
 	{
 		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
 		return;
@@ -36,12 +38,10 @@ void UBaseWeaponComponent::EquipWeapon(int32 indexToEquip)
 
 	//Current Weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true); 
-	Weapons[CurrentWeaponIndex]->OnWeaponHit.RemoveDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 	
 	//New Weapon
-	CurrentWeaponIndex = indexToEquip;
-	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
-	Weapons[CurrentWeaponIndex]->OnWeaponHit.AddDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
+	CurrentWeaponIndex = IndexToEquip;
+	EquipWeapon();
 }
 
 //Internal Overload function with no index param
@@ -56,7 +56,7 @@ void UBaseWeaponComponent::EquipWeapon()
 
 	//New Weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(false);
-	Weapons[CurrentWeaponIndex]->OnWeaponHit.AddDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
+	CurrentWeaponName = Weapons[CurrentWeaponIndex]->WeaponName;
 }
 
 void UBaseWeaponComponent::ChangeWeapon(bool bForward)
@@ -69,7 +69,6 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 
 	//Hide current weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
-	Weapons[CurrentWeaponIndex]->OnWeaponHit.RemoveDynamic(this, &UBaseWeaponComponent::OnWeaponHit);
 
 	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
@@ -88,38 +87,46 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 	EquipWeapon();
 }
 
-void UBaseWeaponComponent::SpawnWeapons(USkeletalMeshComponent* PlayerMesh)
+void UBaseWeaponComponent::AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon)
+{
+	if (!World)
+	{
+		World = GetWorld();
+		if (!World)
+		{
+			UE_LOG(LogTemp, Error, TEXT("World is null!"));
+			return;
+		}
+	}
+	
+	ABaseWeapon* SpawnedWeapon = World->SpawnActor<ABaseWeapon>(NewWeapon);
+	if (SpawnedWeapon && PlayerMesh)
+	{
+		Weapons.Add(SpawnedWeapon);
+		SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+		SpawnedWeapon->SetActorHiddenInGame(true);
+		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *SpawnedWeapon->GetName());
+	}
+}
+
+void UBaseWeaponComponent::SpawnWeapons()
 {
 	if (!PlayerMesh || WeaponClasses.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No weapons to spawn or PlayerMesh is null!"));
 		return;
 	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Error, TEXT("World is null!"));
-		return;
-	}
-
+	
 	for (TSubclassOf<ABaseWeapon> WeaponClass : WeaponClasses)
 	{
-		if (WeaponClass)
-		{
-			ABaseWeapon* SpawnedWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass);
-			if (SpawnedWeapon)
-			{
-				Weapons.Add(SpawnedWeapon);
-				SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
-				SpawnedWeapon->SetActorHiddenInGame(true);
-				UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *SpawnedWeapon->GetName());
-			}
-		}
+		AddNewWeapon(WeaponClass);
 	}
 }
 
-void UBaseWeaponComponent::OnWeaponHit()
+void UBaseWeaponComponent::AttackWithCurrentWeapon()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Weapon %s hit something!"), *Weapons[CurrentWeaponIndex]->GetName());
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->AttackEvent();
+	}
 }

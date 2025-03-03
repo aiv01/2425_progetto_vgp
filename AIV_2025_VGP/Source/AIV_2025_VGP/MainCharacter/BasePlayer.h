@@ -1,3 +1,8 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
+
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -25,43 +30,17 @@ class ABasePlayer : public ACharacter, public II_PlayerInput
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
-
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
 
 public:
 	ABasePlayer();
-
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
 
 	virtual void Move_Implementation(const FVector2D& Value) override;
 	virtual void Look_Implementation(const FVector2D& Value) override;
 
 protected:
-	// APawn interface
-	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
 	virtual void BeginPlay();
-
-	
 
 public:
 	/* Returns CameraBoom subobject */

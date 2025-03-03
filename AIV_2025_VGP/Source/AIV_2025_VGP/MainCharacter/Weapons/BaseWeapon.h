@@ -1,12 +1,13 @@
-// FABIO GIANNINO
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponHit);
 
 UCLASS(Blueprintable,BlueprintType)
 class AIV_2025_VGP_API ABaseWeapon : public AActor
@@ -16,14 +17,24 @@ class AIV_2025_VGP_API ABaseWeapon : public AActor
 public:
 	ABaseWeapon();
 
+#pragma region Properties
+public:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Components")
+	USkeletalMeshComponent* WeaponMesh;
+
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
+	FString WeaponName;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
+	FString WeaponDamage;
+	
+#pragma endregion Properties
+
+#pragma region Functions
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 public:
-	UPROPERTY(VisibleAnywhere, Category="Components")
-	USkeletalMeshComponent* WeaponMesh;
-
-	UPROPERTY(BlueprintAssignable,BlueprintCallable, Category = "Weapon")
-	FOnWeaponHit OnWeaponHit;
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
+	void AttackEvent();
+#pragma endregion Functions
 };

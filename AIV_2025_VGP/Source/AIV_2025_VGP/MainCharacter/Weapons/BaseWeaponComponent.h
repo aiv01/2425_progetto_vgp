@@ -1,5 +1,7 @@
-// FABIO GIANNINO
-// LUCA CASAMENTI
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #pragma once
 
@@ -22,29 +24,38 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+#pragma region Properties
+private:
+	TArray<ABaseWeapon*> Weapons;
+	int32 CurrentWeaponIndex = 0;	
+	USkeletalMeshComponent* PlayerMesh;
+	UWorld* World;
+	
 public:
 	UPROPERTY(EditAnywhere, Category="Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
-
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
-	ABaseWeapon* CurrentWeapon;
+	FString CurrentWeaponName = FString("");
+	
+#pragma endregion
 
-	UFUNCTION(BlueprintCallable)
-	void EquipWeapon(int32 indexToEquip);
+	
+#pragma region Functions
+private:
 	void EquipWeapon();
-
+	void SpawnWeapons();
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void EquipWeapon(int32 IndexToEquip);
+	
 	UFUNCTION(BlueprintCallable)
 	void ChangeWeapon(bool bForward);
+	
+	UFUNCTION(BlueprintCallable)
+	void AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon);
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnWeapons(USkeletalMeshComponent* PlayerMesh);
-
-	UFUNCTION()
-	void OnWeaponHit();
-
-private:
-	UPROPERTY(VisibleAnywhere)
-	TArray<ABaseWeapon*> Weapons;
-	UPROPERTY(VisibleAnywhere)
-	int32 CurrentWeaponIndex = 0;
+	void AttackWithCurrentWeapon();
+#pragma endregion Functions
 };
