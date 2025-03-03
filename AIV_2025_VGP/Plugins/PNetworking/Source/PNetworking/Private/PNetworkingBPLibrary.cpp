@@ -7,6 +7,7 @@
 #include "PNetworkingBPLibrary.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
+#include "UserSteamData.h"
 #include "PNetworking.h"
 
 // To disable "strncpy" security warnings.
@@ -171,6 +172,8 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 	return AvatarTexture;
 }
 
+
+
 UTexture2D* UPNetworkingBPLibrary::GetLocalUserAvatar()
 {
 	const CSteamID SteamID = SteamUser()->GetSteamID(); // Local user.
@@ -197,9 +200,9 @@ TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 	return FriendsAvatar;
 }
 
-TMap<FString, UTexture2D*> UPNetworkingBPLibrary::GetPlayersData()
+TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData()
 {
-	TMap<FString, UTexture2D*> PlayersData;
+	TArray<FUserSteamData> UserSteamData;
 
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
@@ -207,6 +210,8 @@ TMap<FString, UTexture2D*> UPNetworkingBPLibrary::GetPlayersData()
 		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
 		FriendsCount = 0;
 	}
+
+	UserSteamData.Reserve(GetOnlineFriendsFromFriendCount(FriendsCount));
 
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
@@ -216,9 +221,39 @@ TMap<FString, UTexture2D*> UPNetworkingBPLibrary::GetPlayersData()
 		{
 			const FString CurrentNickname(SteamFriends()->GetFriendPersonaName(CurrentSteamID));
 			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID);
-			PlayersData.Add(CurrentNickname, CurrentTexture);
+			UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()), 
+							  FText::FromString(CurrentNickname), 
+							  CurrentTexture));
 		}
 	}
 
-	return PlayersData;
+	return UserSteamData;
 }
+
+int32 UPNetworkingBPLibrary::GetOnlineFriendsFromFriendCount(const int32 FriendsCount)
+{
+	int32 OnlineFriends = 0;
+
+	for (int32 Index = 0; Index < FriendsCount; Index++)
+	{
+		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
+		//UE_LOG(LogTemp, Warning, TEXT("ID: %u, NAME: %hs"), CurrentSteamID.GetAccountID(), SteamFriends()->GetFriendPersonaName(CurrentSteamID));
+		const EPersonaState CurrentPlayerState = SteamFriends()->GetFriendPersonaState(CurrentSteamID);
+		if ((CurrentPlayerState != EPersonaState::k_EPersonaStateOffline))
+		{
+			OnlineFriends++;
+		}
+	}
+
+	return OnlineFriends;
+}
+
+//// Debug
+//FString UPNetworkingBPLibrary::GetUserNameFromSteamID(int32 SteamID)
+//{
+//	uint32 SteamIDu32 = static_cast<uint32>(SteamID);
+//	CSteamID RealSteamID(SteamIDu32, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
+//	UE_LOG(LogTemp, Warning, TEXT("DEBUG ID: %u, NAME: %hs"), RealSteamID.GetAccountID(), SteamFriends()->GetFriendPersonaName(RealSteamID));
+//
+//	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
+//}

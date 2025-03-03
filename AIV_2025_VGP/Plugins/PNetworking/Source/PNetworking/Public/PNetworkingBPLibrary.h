@@ -10,6 +10,7 @@
 
 class FOnlineFriend;
 class CSteamID;
+struct FUserSteamData;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
 
@@ -41,11 +42,16 @@ public:
 	static TArray<UTexture2D*> GetFriendsAvatar();
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static TMap<FString, UTexture2D*> GetPlayersData(); // TODO an actual implementation to stor CSteamID in order to invite (maybe returning a struct?)
+	static TArray<FUserSteamData> GetPlayersData();
+
+	//// Debug
+	//UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	//static FString GetUserNameFromSteamID(int32 SteamID);
 #pragma endregion Friends
 
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
-	
+	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
+
 };
