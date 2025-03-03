@@ -40,14 +40,17 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static TArray<UTexture2D*> GetFriendsAvatar();
-
+#pragma endregion Friends
+	
+#pragma region General
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static TArray<FUserSteamData> GetPlayersData();
+#pragma endregion General
 
-	//// Debug
-	//UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	//static FString GetUserNameFromSteamID(int32 SteamID);
-#pragma endregion Friends
+#pragma region Debug
+	// UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	// static FString GetUserNameFromSteamID(const int32 SteamID);
+#pragma endregion Debug
 
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);

@@ -1,28 +1,28 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// � Manuel Solano
+// � Alessandro Caccamo
+// � Claudio Dallai
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UserSteamData.generated.h"
 
-
 USTRUCT(BlueprintType)
 struct FUserSteamData
 {
     GENERATED_BODY()
-
+    
     UPROPERTY(BlueprintReadOnly)
-    int32 SteamID;
+    int32 SteamID; // blueprint not supported "uint32", so we need to do some casts. 
+    
     UPROPERTY(BlueprintReadOnly)
     FText UserName;
+    
     UPROPERTY(BlueprintReadOnly)
     UTexture2D* UserAvatar;
 
+    FUserSteamData() = default;
 
-    FUserSteamData() : SteamID(0), UserName(FText::FromString(TEXT(""))), UserAvatar(nullptr) {}
+    FUserSteamData(const int32 NewSteamID, const FText NewUserName, UTexture2D* NewUserAvatar) : SteamID(NewSteamID), UserName(NewUserName), UserAvatar(NewUserAvatar) { }
 
-    FUserSteamData(int32 NewSteamID, FText NewUserName, UTexture2D* NewUserAvatar) :
-        SteamID(NewSteamID), UserName(NewUserName), UserAvatar(NewUserAvatar) 
-    {
-    }
 };
