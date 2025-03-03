@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "DataWaveContainer.h"
-#include "WaveManager.generated.h"
+#include "PDataWaveContainer.h"
+#include "PWaveManager.generated.h"
 
 class UDataAsset;
 class AEnemySpawner;
@@ -15,23 +15,21 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveStarted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveCompleted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDie, AActor*, EnemyDie);
 
-
-
 UCLASS(Blueprintable)
-class AIV_2025_VGP_API AWaveManager : public AActor
+class WAVETOOL_API APWaveManager : public AActor
 {
 	GENERATED_BODY()
 
 public:
 #pragma region Constructor
 	//Default
-	AWaveManager();
+	APWaveManager();
 	//Custom constructor for all the param
 	//explicit AWaveManager(UDataWaveContainer* NewWaveData, const TArray<FTransform>& SpawnerLocations, const float WaveInterval, const bool AutoStartWaveSystem);
 #pragma endregion
 
 	// Static instance pointer for the singleton pattern
-	static AWaveManager* Instance;
+	static APWaveManager* Instance;
 
 public:
 	virtual void BeginPlay() override;
@@ -39,7 +37,7 @@ public:
 #pragma region UI Configurable Variables
 	/** Wave Data Asset, contains all the wave settings */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
-	UDataWaveContainer* WaveDataAsset;
+	UPDataWaveContainer* WaveDataAsset;
 
 	/** Interval between waves (in seconds) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
@@ -138,14 +136,14 @@ public:
 #pragma region Public Wave Control Functions
 	// Function to initialize the manager after spawning
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Initialization")
-	void InitializeWaveManager(UDataWaveContainer* NewWaveData, const TArray<FTransform>& SpawnerLocations, const float NewWaveInterval, const bool bNewAutoStartWaveSystem);
+	void InitializeWaveManager(UPDataWaveContainer* NewWaveData, const TArray<FTransform>& SpawnerLocations, const float NewWaveInterval, const bool bNewAutoStartWaveSystem);
 	/** Starts the wave system */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Functions")
 	void StartWaveSystem();
 
 	/** Sets new wave data */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Functions")
-	void SetWaveData(UDataWaveContainer* NewWaveData, bool bInEditorMode);
+	void SetWaveData(UPDataWaveContainer* NewWaveData, bool bInEditorMode);
 
 	/** Handles the death of an enemy */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Functions")
@@ -182,4 +180,5 @@ public:
 		TArray<TSubclassOf<AActor>> GenerateWave(1000, 4, EnemyList);
 	*/
 #pragma endregion
+
 };

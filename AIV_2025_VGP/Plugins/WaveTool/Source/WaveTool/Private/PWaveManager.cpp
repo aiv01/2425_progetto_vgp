@@ -1,19 +1,24 @@
-#include "WaveManager.h"
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "PWaveManager.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
-#include "DataWaveContainer.h"
+#include "PDataWaveContainer.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #if  WITH_EDITOR
 #include "Editor.h"
 #endif
+
 /*
  *Using UE_BUILD_SHIPPING /DEBUG for compile in different build (Debug, Development, Shipping)
  *
  **/
-AWaveManager* AWaveManager::Instance = nullptr;
+APWaveManager* APWaveManager::Instance = nullptr;
 
-AWaveManager::AWaveManager() : WaveDataAsset(nullptr), WaveInterval(0), bAutoStartWaveSystem(false), CurrentWaveIndex(0),
+
+APWaveManager::APWaveManager() : WaveDataAsset(nullptr), WaveInterval(0), bAutoStartWaveSystem(false), CurrentWaveIndex(0),
 ActiveEnemies(0)
 {
 	//Disable tick 
@@ -26,7 +31,8 @@ ActiveEnemies(0)
 	PrimaryActorTick.bCanEverTick = false;
 }*/
 
-void AWaveManager::BeginPlay()
+// Called when the game starts or when spawned
+void APWaveManager::BeginPlay()
 {
 	Super::BeginPlay();
 	Instance = this; //Singleton
@@ -50,7 +56,8 @@ void AWaveManager::BeginPlay()
 		StartWaveSystem();
 	}
 }
-void AWaveManager::SetWaveData(UDataWaveContainer* NewWaveData, bool bInEditorMode)
+
+void APWaveManager::SetWaveData(UPDataWaveContainer* NewWaveData, bool bInEditorMode)
 {
 	if (!NewWaveData)
 	{
@@ -71,7 +78,7 @@ void AWaveManager::SetWaveData(UDataWaveContainer* NewWaveData, bool bInEditorMo
 	}
 }
 
-void AWaveManager::HandleEnemyDie(AActor* EnemyDie)
+void APWaveManager::HandleEnemyDie(AActor* EnemyDie)
 {
 	if (!EnemyDie)
 	{
@@ -91,7 +98,7 @@ void AWaveManager::HandleEnemyDie(AActor* EnemyDie)
 }
 
 
-void AWaveManager::ResetWaveSystem()
+void APWaveManager::ResetWaveSystem()
 {
 	CurrentWaveIndex = 0;
 	ActiveEnemies = 0;
@@ -105,7 +112,7 @@ void AWaveManager::ResetWaveSystem()
 #endif
 }
 
-void AWaveManager::SetWaveInterval(float NewInterval)
+void APWaveManager::SetWaveInterval(float NewInterval)
 {
 	if (NewInterval <= 0.0f)
 	{
@@ -119,19 +126,19 @@ void AWaveManager::SetWaveInterval(float NewInterval)
 #endif
 }
 
-void AWaveManager::PrintWaveInfo() const
+void APWaveManager::PrintWaveInfo() const
 {
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Current Wave Index: %d"), CurrentWaveIndex);
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Total Waves Loaded: %d"), WavesArray.Num());
 }
 
-void AWaveManager::ForceNextWave()
+void APWaveManager::ForceNextWave()
 {
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Forcing next wave."));
 	StartWave();
 }
 
-void AWaveManager::KillAllEnemies()
+void APWaveManager::KillAllEnemies()
 {
 	//TODO: Create event to bind the event kill
 }
@@ -194,7 +201,7 @@ void AWaveManager::KillAllEnemies()
 }
 */
 
-void AWaveManager::StartWaveSystem()
+void APWaveManager::StartWaveSystem()
 {
 	if (!WaveDataAsset)
 	{
@@ -219,7 +226,7 @@ void AWaveManager::StartWaveSystem()
 }
 
 
-void AWaveManager::StartWave()
+void APWaveManager::StartWave()
 {
 	if (CurrentWaveIndex >= WavesArray.Num())
 	{
@@ -304,7 +311,7 @@ void AWaveManager::StartWave()
 
 //--------------------------------------------------------------------------------
 
-void AWaveManager::NewStartWave()
+void APWaveManager::NewStartWave()
 {
 	if (CurrentWaveIndex >= WavesArray.Num())
 	{
@@ -366,7 +373,7 @@ void AWaveManager::NewStartWave()
 
 }
 
-TMap<TSubclassOf<AActor>, int32> AWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies)
+TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies)
 {
 	//creating the variable for the process
 	TMap<TSubclassOf<AActor>, int32> SelectedEnemies;	//an array to contains the enemies to return
@@ -433,7 +440,7 @@ TMap<TSubclassOf<AActor>, int32> AWaveManager::GenerateWave(const int32 WavePoin
 
 }
 
-void AWaveManager::CheckWaveCompletion()
+void APWaveManager::CheckWaveCompletion()
 {
 	if (ActiveEnemies <= 0)
 	{
@@ -444,7 +451,7 @@ void AWaveManager::CheckWaveCompletion()
 	}
 }
 
-void AWaveManager::OnWaveFinished()
+void APWaveManager::OnWaveFinished()
 {
 	//Notify to the listener
 	OnWaveCompleted.Broadcast(CurrentWaveIndex + 1);
@@ -458,7 +465,7 @@ void AWaveManager::OnWaveFinished()
 #endif
 		if (GetWorld())
 		{
-			GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &AWaveManager::StartWave, WaveInterval, false);
+			GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &APWaveManager::StartWave, WaveInterval, false);
 		}
 	}
 	else
@@ -470,13 +477,13 @@ void AWaveManager::OnWaveFinished()
 	}
 }
 
-void AWaveManager::EndLevel()
+void APWaveManager::EndLevel()
 {
 	// TODO: Implement Delegate
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Ending level."));
 }
 
-void AWaveManager::BindOnWaveStarted(UObject* Object, FName FunctionName)
+void APWaveManager::BindOnWaveStarted(UObject* Object, FName FunctionName)
 {
 	if (!Object) return;
 	if (FunctionName.IsNone()) return;
@@ -490,7 +497,7 @@ void AWaveManager::BindOnWaveStarted(UObject* Object, FName FunctionName)
 
 }
 
-void AWaveManager::UnbindOnWaveStarted(UObject* Object)
+void APWaveManager::UnbindOnWaveStarted(UObject* Object)
 {
 	if (!Object) return;
 
@@ -500,7 +507,7 @@ void AWaveManager::UnbindOnWaveStarted(UObject* Object)
 #endif
 }
 
-void AWaveManager::BindOnWaveCompleted(UObject* Object, FName FunctionName)
+void APWaveManager::BindOnWaveCompleted(UObject* Object, FName FunctionName)
 {
 	if (!Object) return;
 	if (FunctionName.IsNone()) return;
@@ -514,7 +521,7 @@ void AWaveManager::BindOnWaveCompleted(UObject* Object, FName FunctionName)
 #endif
 }
 
-void AWaveManager::UnbindOnWaveCompleted(UObject* Object)
+void APWaveManager::UnbindOnWaveCompleted(UObject* Object)
 {
 	if (!Object) return;
 
@@ -524,7 +531,7 @@ void AWaveManager::UnbindOnWaveCompleted(UObject* Object)
 #endif
 }
 
-void AWaveManager::BindOnEnemyDie(UObject* Object, FName FunctionName)
+void APWaveManager::BindOnEnemyDie(UObject* Object, FName FunctionName)
 {
 	if (!Object) return;
 	if (FunctionName.IsNone()) return;
@@ -539,7 +546,7 @@ void AWaveManager::BindOnEnemyDie(UObject* Object, FName FunctionName)
 
 }
 
-void AWaveManager::UnbindOnEnemyDie(UObject* Object)
+void APWaveManager::UnbindOnEnemyDie(UObject* Object)
 {
 	if (!Object) return;
 
@@ -549,7 +556,7 @@ void AWaveManager::UnbindOnEnemyDie(UObject* Object)
 #endif
 }
 
-void AWaveManager::StaticHandleEnemyDie(AActor* EnemyDie)
+void APWaveManager::StaticHandleEnemyDie(AActor* EnemyDie)
 {
 	if (Instance)
 	{
@@ -561,7 +568,7 @@ void AWaveManager::StaticHandleEnemyDie(AActor* EnemyDie)
 	}
 }
 
-void AWaveManager::InitializeWaveManager(UDataWaveContainer* NewWaveData,
+void APWaveManager::InitializeWaveManager(UPDataWaveContainer* NewWaveData,
 	const TArray<FTransform>& SpawnerLocations, const float NewWaveInterval, const bool bNewAutoStartWaveSystem)
 {
 	if (!NewWaveData)
@@ -578,3 +585,4 @@ void AWaveManager::InitializeWaveManager(UDataWaveContainer* NewWaveData,
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Initialized with new data. WaveInterval: %f, Spawners: %d"), WaveInterval, EnemySpawners.Num());
 #endif
 }
+

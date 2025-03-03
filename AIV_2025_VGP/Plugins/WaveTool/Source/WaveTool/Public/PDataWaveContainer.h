@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "DataWaveContainer.generated.h"
+#include "PDataWaveContainer.generated.h"
 
 //TO DO: "GETTER"
 
@@ -78,7 +78,7 @@ struct FDumbWave
 
 // This struct will be used to assign the waves to the desired spawner in the desired order
 USTRUCT(BlueprintType)
-struct AIV_2025_VGP_API FWaveOrder
+struct WAVETOOL_API FWaveOrder
 {
     GENERATED_BODY()
 
@@ -93,7 +93,7 @@ struct AIV_2025_VGP_API FWaveOrder
 
 // A Wave Container is basically a container of all waves of a level
 UCLASS(BlueprintType)
-class AIV_2025_VGP_API UDataWaveContainer : public UDataAsset
+class WAVETOOL_API UPDataWaveContainer : public UDataAsset
 {
     GENERATED_BODY()
 
@@ -109,4 +109,5 @@ public:
     // This array contains all the waves
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave Container Settings")
     TArray<FWaveOrder> WavesArray;
+	
 };
