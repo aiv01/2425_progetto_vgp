@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
-#include "InputActionValue.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 

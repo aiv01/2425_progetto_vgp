@@ -123,10 +123,26 @@ void UBaseWeaponComponent::SpawnWeapons()
 	}
 }
 
-void UBaseWeaponComponent::AttackWithCurrentWeapon()
+void UBaseWeaponComponent::StartAttackWithCurrentWeapon()
 {
 	if(Weapons[CurrentWeaponIndex])
 	{
-		Weapons[CurrentWeaponIndex]->AttackEvent();
+		Weapons[CurrentWeaponIndex]->AttackEventStart();
+	}
+}
+
+void UBaseWeaponComponent::EndAttackWithCurrentWeapon()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->AttackEventEnd();
+	}
+}
+
+void UBaseWeaponComponent::StartAnimationCurrentWeapon()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->WeaponAnimationStart();
 	}
 }

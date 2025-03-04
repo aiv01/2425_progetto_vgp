@@ -35,6 +35,10 @@ protected:
 	virtual void BeginPlay() override;
 public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
-	void AttackEvent();
+	void AttackEventStart();
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
+	void AttackEventEnd();
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
+	void WeaponAnimationStart();
 #pragma endregion Functions
 };

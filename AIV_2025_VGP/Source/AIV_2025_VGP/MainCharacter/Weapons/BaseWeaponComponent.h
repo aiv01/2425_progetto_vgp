@@ -36,8 +36,7 @@ public:
 	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
 	FString CurrentWeaponName = FString("");
-	
-#pragma endregion
+#pragma endregion Properties
 
 	
 #pragma region Functions
@@ -56,6 +55,10 @@ public:
 	void AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon);
 
 	UFUNCTION(BlueprintCallable)
-	void AttackWithCurrentWeapon();
+	void StartAttackWithCurrentWeapon();
+	UFUNCTION(BlueprintCallable)
+	void EndAttackWithCurrentWeapon();
+	UFUNCTION(BlueprintCallable)
+	void StartAnimationCurrentWeapon();
 #pragma endregion Functions
 };
