@@ -6,16 +6,15 @@
 
 bool UGOAPAction::IsFeasable(UGOAPWorldModel* Wm)
 {
-	bool Feasibility = true;
 	for (TPair condition : PreConditions)
 	{
-		if (Wm->Model.ConditionsModel.Contains(condition.Key))
+		if (Wm->Model.ConditionsModel.Contains(condition.Key) && (!(Wm->Model.ConditionsModel[condition.Key] == condition.Value)))
 		{
-			Feasibility = (Wm->Model.ConditionsModel[condition.Key] == condition.Value);
+			return false;
 		}
 	}
 
-	return Feasibility;
+	return true;
 }
 
 float UGOAPAction::GetGoalChange(const FGOAPGoal goal) const

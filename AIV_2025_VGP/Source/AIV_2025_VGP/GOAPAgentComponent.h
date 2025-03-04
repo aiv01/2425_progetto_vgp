@@ -18,6 +18,7 @@ public:
 
 	float GetDiscontentment(float newValue)
 	{
+		newValue = FMath::CeilToInt(newValue);
 		return newValue * newValue;
 	}
 };
