@@ -174,12 +174,22 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 
 UTexture2D* UPNetworkingBPLibrary::GetLocalUserAvatar()
 {
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return nullptr;
+	}
+
 	const CSteamID SteamID = SteamUser()->GetSteamID(); // Local user.
 	return GetAvatar(SteamID);
 }
 
 TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 {
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return TArray<UTexture2D*>();
+	}
+
 	// Get friend's amount.
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
@@ -201,6 +211,11 @@ TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort)
 {
 	TArray<FUserSteamData> UserSteamData;
+
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return UserSteamData;
+	}
 
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
@@ -241,6 +256,11 @@ int32 UPNetworkingBPLibrary::GetOnlineFriendsFromFriendCount(const int32 Friends
 {
 	int32 OnlineFriends = 0;
 
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return OnlineFriends;
+	}
+
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
 		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
@@ -263,6 +283,11 @@ void UPNetworkingBPLibrary::AlphabeticalSortFriends(TArray<FUserSteamData>& Frie
 #pragma region Debug
 FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 {
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return "";
+	}
+
 	const uint32 UnsignedSteamID = static_cast<uint32>(SteamID);
 	CSteamID RealSteamID(UnsignedSteamID, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
 

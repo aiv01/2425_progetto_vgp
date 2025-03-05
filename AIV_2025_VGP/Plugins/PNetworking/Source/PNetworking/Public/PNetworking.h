@@ -14,6 +14,7 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
+	static bool IsOnlineAvailable();
 
 private:
 	static class IOnlineSubsystem* OnlineSubsystemReference;
