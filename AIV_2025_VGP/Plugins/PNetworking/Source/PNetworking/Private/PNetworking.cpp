@@ -9,6 +9,7 @@
 #include "OnlineSubsystem.h"
 
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
+IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
 
@@ -30,6 +31,16 @@ IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemReference()
 	}
 	
 	return OnlineSubsystemReference;
+}
+
+IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionReference()
+{
+	if (!IsOnlineAvailable())
+	{
+		return nullptr;
+	}
+
+	return OnlineSessionReference;
 }
 
 bool FPNetworkingModule::IsOnlineAvailable()

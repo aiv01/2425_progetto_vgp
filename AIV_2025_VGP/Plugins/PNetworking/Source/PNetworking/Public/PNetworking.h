@@ -14,8 +14,10 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
+	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionReference();
 	static bool IsOnlineAvailable();
 
 private:
 	static class IOnlineSubsystem* OnlineSubsystemReference;
+	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;
 };
