@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 // Marco Pungillo
+
+#include "GOAPAgentComponent.h"
 #include "GOAPAction.h"
 #include "GOAPGoalDefiner.h"
 #include "GOAPWorldModel.h"
-#include "GOAPAgentComponent.h"
 
 // Sets default values for this component's properties
 UGOAPAgentComponent::UGOAPAgentComponent()
@@ -51,6 +52,7 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 	// Setup of the comparison variables
 	UGOAPAction* BestAction = nullptr;
 	float BestValue = INFINITY;
+	UGOAPWorldModel* BestStartingModel = nullptr;
 
 	// Iteration of the zero-depth actions
 	while (CurrentDepth >= 0)
@@ -69,12 +71,19 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 			{
 				BestValue = currentValue;
 				BestAction = ActionsToUse[0];
+				BestStartingModel = Models[1];
 			}
-			// TO IMPLEMENT: IF EQUAL, GO FOR THE BEST SINGLE ACTION
-			//else if (currentValue == BestValue)
-			//{
-			//	if (Best)
-			//}
+			else if (currentValue == BestValue)
+			{
+				float currentDiscontenment = Models[1]->CalculateDiscontentment();
+				float oldDiscontenment = BestStartingModel->CalculateDiscontentment();
+				if (currentDiscontenment < oldDiscontenment)
+				{
+					BestValue = currentValue;
+					BestAction = ActionsToUse[0];
+					BestStartingModel = Models[1];
+				}
+			}
 			
 			CurrentDepth -= 1;
 		}

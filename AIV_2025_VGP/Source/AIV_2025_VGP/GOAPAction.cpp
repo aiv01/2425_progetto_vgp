@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 // Marco Pungillo
 
-#include "GOAPWorldModel.h"
 #include "GOAPAction.h"
+#include "GOAPWorldModel.h"
+
 
 bool UGOAPAction::IsFeasable(UGOAPWorldModel* Wm)
 {
