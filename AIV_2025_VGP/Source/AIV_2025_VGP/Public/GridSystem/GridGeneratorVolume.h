@@ -6,7 +6,7 @@
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
 
-#define ERROR_MARGIN 0.5f
+#define ERROR_MARGIN 10.f
 
 struct FGridSurface;
 enum EObjectTypeQuery;
