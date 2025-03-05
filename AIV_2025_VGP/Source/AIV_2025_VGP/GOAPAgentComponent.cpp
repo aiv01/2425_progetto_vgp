@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 // Marco Pungillo
 #include "GOAPAction.h"
+#include "GOAPGoalDefiner.h"
 #include "GOAPWorldModel.h"
 #include "GOAPAgentComponent.h"
 
@@ -69,6 +70,11 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 				BestValue = currentValue;
 				BestAction = ActionsToUse[0];
 			}
+			// TO IMPLEMENT: IF EQUAL, GO FOR THE BEST SINGLE ACTION
+			//else if (currentValue == BestValue)
+			//{
+			//	if (Best)
+			//}
 			
 			CurrentDepth -= 1;
 		}

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "BaseEnemy.h"
 #include "GOAPAgentComponent.h"
 #include "GOAPAction.generated.h"
 
@@ -25,8 +26,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxInsistence = 10.0f;
 	UPROPERTY(BlueprintReadWrite)
-	ACharacter* Executer;
+	ABaseEnemy* Executer;
 	
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void InitializeAction();
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	bool EvaluateFeasibility(UGOAPWorldModel* Wm);
 

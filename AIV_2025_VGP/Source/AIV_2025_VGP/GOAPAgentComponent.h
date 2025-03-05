@@ -24,6 +24,7 @@ public:
 };
 
 class UGOAPAction;
+class UGOAPGoalDefiner;
 class UGOAPWorldModel;
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AIV_2025_VGP_API UGOAPAgentComponent : public UActorComponent
@@ -34,7 +35,10 @@ public:
 	// Sets default values for this component's properties
 	UGOAPAgentComponent();
 
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category = "GOAP Actions")
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category = "GOAP", meta = (DisplayPriority = 0))
+	TArray<UGOAPGoalDefiner*> Goals;
+
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category = "GOAP", meta = (DisplayPriority = 0))
 	TArray<UGOAPAction*> Actions;
 
 protected:
