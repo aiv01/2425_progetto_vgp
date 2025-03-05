@@ -56,13 +56,11 @@ void FWaveToolModule::ShutdownModule()
 
 TSharedRef<SDockTab> FWaveToolModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	FString DataAssetPath = TEXT("/Game/Custom/WaveSystem/NewDataAsset.NewDataAsset");
 	return SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab)
-		[
-			SNew(SWaveToolWidgetMenu).DataWaveContainer(
-				Cast<UPDataWaveContainer>(StaticLoadObject(UPDataWaveContainer::StaticClass(), nullptr, *DataAssetPath)))
-		];
+	.TabRole(ETabRole::NomadTab)
+	[
+		SNew(SWaveToolWidgetMenu)
+	];
 }
 
 void FWaveToolModule::PluginButtonClicked()
@@ -98,3 +96,16 @@ void FWaveToolModule::RegisterMenus()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FWaveToolModule, WaveTool)
+
+/*
+	data asset container viewer
+	window to create custom enemies (textfield
+	thing that shows all available enemies, and with button(s) make it create an
+	enemy, or minus button to destroy an enemy
+
+	editor time (asset waves)
+	runtime (wave data asset: drop down menu)
+
+	make it so certain values can be enabled or disabled via flag -> for cost in
+	wave data asset, you can disable the cost to input a certain amount of enemies
+*/

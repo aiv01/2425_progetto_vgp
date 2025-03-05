@@ -25,30 +25,39 @@ public class WaveTool : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
 				// ... add other public dependencies that you statically link with here ...
-			}
+				"Core",
+				"CoreUObject",
+				"Engine",
+				"Slate",
+				"SlateCore",
+				"InputCore",
+				"Projects"
+            }
 			);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Projects",
-				"InputCore",
-				"EditorFramework",
-				"UnrealEd",
-				"ToolMenus",
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
-			}
+            }
 			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
+
+        if (Target.bBuildEditor) {
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
+                "EditorFramework",
+                "UnrealEd",
+                "ToolMenus",
+                "EditorScriptingUtilities"
+            });
+
+            PublicDependencyModuleNames.Add("EditorScriptingUtilities"); // Needed in Public section
+        }
+
+
+        DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 				// ... add any modules that your module loads dynamically here ...
