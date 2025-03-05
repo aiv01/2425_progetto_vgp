@@ -44,17 +44,19 @@ public:
 	
 #pragma region General
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static TArray<FUserSteamData> GetPlayersData();
+	static TArray<FUserSteamData> GetPlayersData(const bool bAlphabeticalSort);
 #pragma endregion General
 
 #pragma region Debug
-	// UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	// static FString GetUserNameFromSteamID(const int32 SteamID);
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static FString GetUserNameFromSteamID(const int32 SteamID);
 #pragma endregion Debug
 
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
 	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
+	
+	static void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 
 };

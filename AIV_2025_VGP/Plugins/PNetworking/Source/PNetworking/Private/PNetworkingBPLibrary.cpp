@@ -198,7 +198,7 @@ TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 	return FriendsAvatar;
 }
 
-TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData()
+TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort)
 {
 	TArray<FUserSteamData> UserSteamData;
 
@@ -229,6 +229,11 @@ TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData()
 		}
 	}
 
+	if (bAlphabeticalSort)
+	{
+		AlphabeticalSortFriends(UserSteamData);
+	}
+
 	return UserSteamData;
 }
 
@@ -250,13 +255,17 @@ int32 UPNetworkingBPLibrary::GetOnlineFriendsFromFriendCount(const int32 Friends
 	return OnlineFriends;
 }
 
+void UPNetworkingBPLibrary::AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort)
+{
+	FriendsToSort.Sort([](const FUserSteamData& First, const FUserSteamData& Second){ return First.UserName.ToString() < Second.UserName.ToString(); });
+}
+
 #pragma region Debug
-// FString UPNetworkingBPLibrary::GetUserNameFromSteamID(int32 SteamID)
-// {
-//	 uint32 SteamIDu32 = static_cast<uint32>(SteamID);
-//	 CSteamID RealSteamID(SteamIDu32, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
-//	 UE_LOG(LogTemp, Warning, TEXT("DEBUG ID: %u, NAME: %hs"), RealSteamID.GetAccountID(), SteamFriends()->GetFriendPersonaName(RealSteamID));
-//
-//	 return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
-// }
+FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
+{
+	const uint32 UnsignedSteamID = static_cast<uint32>(SteamID);
+	CSteamID RealSteamID(UnsignedSteamID, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
+
+	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
+}
 #pragma endregion Debug

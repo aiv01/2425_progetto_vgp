@@ -22,7 +22,6 @@ struct FUserSteamData
     UTexture2D* UserAvatar;
 
     FUserSteamData() = default;
-
     FUserSteamData(const int32 NewSteamID, const FText NewUserName, UTexture2D* NewUserAvatar) : SteamID(NewSteamID), UserName(NewUserName), UserAvatar(NewUserAvatar) { }
-
+    
 };
