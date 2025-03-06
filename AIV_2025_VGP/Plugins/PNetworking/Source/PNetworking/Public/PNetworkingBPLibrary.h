@@ -13,6 +13,8 @@ class CSteamID;
 struct FUserSteamData;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
+
 
 UCLASS()
 class PNETWORKING_API UPNetworkingBPLibrary : public UBlueprintFunctionLibrary
@@ -47,6 +49,13 @@ public:
 	static TArray<FUserSteamData> GetPlayersData(const bool bAlphabeticalSort);
 #pragma endregion General
 
+#pragma region Session
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, const FName NewSessionName, 
+									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
+									   const bool bShouldAdvertise, const bool bIsLANMatch, const bool bUsesPresence);
+#pragma endregion Session
+
 #pragma region Debug
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static FString GetUserNameFromSteamID(const int32 SteamID);
@@ -56,7 +65,7 @@ private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
 	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
-	
 	static void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
+	static bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
 
 };

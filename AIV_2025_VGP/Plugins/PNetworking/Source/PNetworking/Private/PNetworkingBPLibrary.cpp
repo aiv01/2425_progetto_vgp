@@ -6,6 +6,8 @@
 
 #include "PNetworkingBPLibrary.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 #include "UserSteamData.h"
 #include "PNetworking.h"
@@ -293,4 +295,62 @@ FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 
 	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
 }
+
+bool UPNetworkingBPLibrary::ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID)
+{
+	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+
+	if (!OnlineSubsystemReference)
+	{
+		return false;
+	}
+
+	uint64 SteamID64 = SteamID.ConvertToUint64();
+	FString SteamIDString = FString::Printf(TEXT("%llu"), SteamID64);
+
+	IOnlineIdentityPtr IdentityInterface = OnlineSubsystemReference->GetIdentityInterface();
+	if (!IdentityInterface.IsValid())
+	{
+		return false;
+	}
+
+	FUniqueNetIdPtr UniqueNetId = IdentityInterface->CreateUniquePlayerId(SteamIDString);
+	if (UniqueNetId.IsValid())
+	{
+		CorrespondanceNetID = UniqueNetId;
+		return true;
+	}
+
+	return false;
+}
 #pragma endregion Debug
+
+bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
+												   const FName NewSessionName, 
+												   const int32 NumberPublicConnections, 
+												   const int32 NumberPrivateConnections, 
+												   const bool bShouldAdvertise, 
+												   const bool bIsLANMatch, 
+												   const bool bUsesPresence)
+{
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	if (!SessionInterface.IsValid())
+	{
+		return false;
+	}
+	 
+	FOnlineSessionSettings NewSessionSettings;
+	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
+	NewSessionSettings.NumPrivateConnections = NumberPrivateConnections;
+	NewSessionSettings.bShouldAdvertise = bShouldAdvertise;
+	NewSessionSettings.bIsLANMatch = bIsLANMatch;
+	NewSessionSettings.bUsesPresence = bUsesPresence;
+
+	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
+		{
+			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
+		}
+	));
+
+	return SessionInterface->CreateSession(0, NewSessionName, NewSessionSettings);
+}
