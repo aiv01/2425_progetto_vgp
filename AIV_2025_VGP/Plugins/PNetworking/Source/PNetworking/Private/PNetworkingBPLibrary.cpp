@@ -290,9 +290,7 @@ FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 		return "";
 	}
 
-	const uint32 UnsignedSteamID = static_cast<uint32>(SteamID);
-	CSteamID RealSteamID(UnsignedSteamID, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
-
+	CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
 	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
 }
 
