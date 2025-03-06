@@ -344,12 +344,14 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 {
 	if (FPNetworkingModule::bIsComputingNewSession)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SteamError: Already computing a session!"))
 		return false;
 	}
 
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
 	if (!SessionInterface.IsValid())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SteamError: Session interface not valid!"))
 		return false;
 	}
 
