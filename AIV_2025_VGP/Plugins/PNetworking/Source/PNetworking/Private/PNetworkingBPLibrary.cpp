@@ -394,6 +394,7 @@ bool UPNetworkingBPLibrary::InviteFriend(const int32 SteamID)
 		FOnlineSession* OnlineSession = SessionInterface->GetNamedSession(FPNetworkingModule::CurrentSessionName);
 		if (!OnlineSession)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Error: Session was not created!"));
 			return false;
 		}
 
