@@ -16,11 +16,16 @@ IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 void FPNetworkingModule::StartupModule()
 {
 	OnlineSubsystemReference = IOnlineSubsystem::Get();
+	if (OnlineSubsystemReference)
+	{
+		OnlineSessionReference = OnlineSubsystemReference->GetSessionInterface();
+	}
 }
 
 void FPNetworkingModule::ShutdownModule()
 {
-
+	OnlineSessionReference.Reset();
+	OnlineSubsystemReference = nullptr;
 }
 
 IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemReference()
@@ -62,6 +67,11 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	if (!OnlineSubsystemReference)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: Online Subsystem isn't initialized!"));
+		return false;
+	}
+	if (!OnlineSessionReference.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Online Session Interface isn't available!"));
 		return false;
 	}
 
