@@ -323,6 +323,17 @@ bool UPNetworkingBPLibrary::ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID
 
 	return false;
 }
+CSteamID UPNetworkingBPLibrary::ConvertInt32toCSteamID(const int32 SteamID)
+{
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return CSteamID();
+	}
+
+	const uint32 UnsignedSteamID = static_cast<uint32>(SteamID);
+	CSteamID RealSteamID(UnsignedSteamID, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
+	return RealSteamID;
+}
 #pragma endregion Debug
 
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
@@ -333,11 +344,18 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 												   const bool bIsLANMatch, 
 												   const bool bUsesPresence)
 {
+	if (FPNetworkingModule::bIsComputingNewSession)
+	{
+		return false;
+	}
+
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
 	if (!SessionInterface.IsValid())
 	{
 		return false;
 	}
+
+	FPNetworkingModule::bIsComputingNewSession = true;
 	 
 	FOnlineSessionSettings NewSessionSettings;
 	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
@@ -349,8 +367,40 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
 		{
 			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
+			FPNetworkingModule::bIsComputingNewSession = false;
+			FPNetworkingModule::CurrentSessionName = NewName;
 		}
 	));
 
 	return SessionInterface->CreateSession(0, NewSessionName, NewSessionSettings);
+}
+
+bool UPNetworkingBPLibrary::InviteFriend(const int32 SteamID)
+{
+	if (FPNetworkingModule::bIsComputingNewSession)
+	{
+		return false;
+	}
+
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	if (!SessionInterface.IsValid())
+	{
+		return false;
+	}
+
+	const CSteamID FriendSteamID = ConvertInt32toCSteamID(SteamID);
+	FUniqueNetIdPtr FriendUniqueNetID;
+	
+	if (ConvertCSteamIDToFUniqueNetID(FriendSteamID, FriendUniqueNetID))
+	{
+		FOnlineSession* OnlineSession = SessionInterface->GetNamedSession(FPNetworkingModule::CurrentSessionName);
+		if (!OnlineSession)
+		{
+			return false;
+		}
+
+		return SessionInterface->SendSessionInviteToFriend(0, FPNetworkingModule::CurrentSessionName, *FriendUniqueNetID);
+	}
+
+	return false;
 }

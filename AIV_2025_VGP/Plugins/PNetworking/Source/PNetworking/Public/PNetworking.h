@@ -11,6 +11,9 @@
 class PNETWORKING_API FPNetworkingModule : public IModuleInterface
 {
 public:
+	static bool bIsComputingNewSession;
+	static FName CurrentSessionName;
+
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();

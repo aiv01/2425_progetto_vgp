@@ -54,6 +54,9 @@ public:
 	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, const FName NewSessionName, 
 									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
 									   const bool bShouldAdvertise, const bool bIsLANMatch, const bool bUsesPresence);
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static bool InviteFriend(const int32 SteamID);
 #pragma endregion Session
 
 #pragma region Debug
@@ -67,5 +70,6 @@ private:
 	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
 	static void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 	static bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
+	static CSteamID ConvertInt32toCSteamID(const int32 SteamID);
 
 };

@@ -10,6 +10,8 @@
 
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
+bool FPNetworkingModule::bIsComputingNewSession = false;
+FName FPNetworkingModule::CurrentSessionName = TEXT("");
 
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
 
