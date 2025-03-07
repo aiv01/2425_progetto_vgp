@@ -69,10 +69,10 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 
 	//Hide current weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
-
+	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
 	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
-
+	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
 	// Assicura che l'indice sia circolare anche per valori negativi
 	if (CurrentWeaponIndex < 0)
 	{
@@ -80,9 +80,8 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 	}
 	else
 	{
-		CurrentWeaponIndex = CurrentWeaponIndex % Weapons.Num();
+		CurrentWeaponIndex = CurrentWeaponIndex % (Weapons.Num());
 	}
-
 	//Call overload with no param
 	EquipWeapon();
 }
@@ -116,9 +115,10 @@ void UBaseWeaponComponent::SpawnWeapons()
 		UE_LOG(LogTemp, Error, TEXT("No weapons to spawn or PlayerMesh is null!"));
 		return;
 	}
-	
+	UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %d"), WeaponClasses.Num());
 	for (TSubclassOf<ABaseWeapon> WeaponClass : WeaponClasses)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *WeaponClass->GetName());
 		AddNewWeapon(WeaponClass);
 	}
 }

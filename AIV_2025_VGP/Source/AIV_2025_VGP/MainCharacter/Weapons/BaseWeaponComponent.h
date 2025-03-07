@@ -26,6 +26,7 @@ protected:
 
 #pragma region Properties
 private:
+	UPROPERTY(VisibleAnywhere)
 	TArray<ABaseWeapon*> Weapons;
 	int32 CurrentWeaponIndex = 0;	
 	USkeletalMeshComponent* PlayerMesh;

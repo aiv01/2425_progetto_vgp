@@ -31,4 +31,10 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
 	void Look(const FVector2D& Value);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void Attack();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void ChangeWeapon(bool bForward);
 };

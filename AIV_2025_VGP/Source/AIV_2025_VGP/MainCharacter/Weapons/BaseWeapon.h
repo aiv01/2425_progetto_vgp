@@ -22,7 +22,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Components")
 	USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
+	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
 	FString WeaponName;
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
 	FString WeaponDamage;

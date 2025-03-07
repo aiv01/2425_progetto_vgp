@@ -36,6 +36,11 @@ public:
 
 	virtual void Move_Implementation(const FVector2D& Value) override;
 	virtual void Look_Implementation(const FVector2D& Value) override;
+	virtual void Attack_Implementation() override;
+	virtual void ChangeWeapon_Implementation(bool bForward) override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* MontageToPlay;
 
 protected:
 	
