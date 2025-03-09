@@ -24,6 +24,9 @@ public:
 	UFUNCTION(CallInEditor, Category="GridGenerator")
 	void Generate();
 
+	UFUNCTION(Blueprintable)
+	TArray<FGridSurface> GetGridData();
+	
 protected:
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")

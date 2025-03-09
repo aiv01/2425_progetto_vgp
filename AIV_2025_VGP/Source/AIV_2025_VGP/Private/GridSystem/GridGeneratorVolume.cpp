@@ -32,6 +32,11 @@ void AGridGeneratorVolume::Generate()
 	GenerateGrid(Origin);
 }
 
+TArray<FGridSurface> AGridGeneratorVolume::GetGridData ()
+{
+	return GridData;
+}
+
 void AGridGeneratorVolume::CalculateSizeInCells(const FVector& VolumeSize)
 {
 	// calculate size in cells. It's a vector composed by only ints so we use floor
