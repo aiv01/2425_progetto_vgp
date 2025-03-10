@@ -16,21 +16,7 @@ public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
 
-	FReply OnTestButtonClicked();
-	void OnTestCheckBoxChanged(ECheckBoxState NewState);
-	ECheckBoxState IsTestCheckBoxChecked() const;
-
 private:
-	bool bIsTestBoxChecked;
-	TArray<UPDataWaveContainer*> DataWaveContainersArray;
-	TSharedPtr<SVerticalBox> PropertyList;
-	void GenerateDataTableWidget();
-	FReply OnSetWaveDataButtonClicked();
-	FReply SaveWaveDataAsset();
-	TArray<FString> GetAllWaveDataAssetPaths();
-	TArray<UPDataWaveContainer*> GetDataWaveContainersFromPaths();
-	
-	// Since StaticCastSharedPtr does not work at runtime we need to add a manual way of checking
 	enum class ETreeNodeType
 	{
 		WaveContainer,
@@ -38,18 +24,19 @@ private:
 		EnemyType
 	};
 	struct FBaseTreeNode {
-		virtual ~FBaseTreeNode(){}
+		virtual ~FBaseTreeNode() {}
 		virtual ETreeNodeType GetNodeType() const = 0;
 	};
 	struct FEnemyTypesNode : public FBaseTreeNode
 	{
-		TSubclassOf<AActor>* EnemyClass;
+		TSubclassOf<AActor> EnemyClass;
 		int32 Cost;
 		EEnemyTypes EnemyType;
 
 		FEnemyTypesNode() {};
-		FEnemyTypesNode(TSubclassOf<AActor>* enemyClass, int32 cost, EEnemyTypes enemyType) :
-			EnemyClass(enemyClass), Cost(cost), EnemyType(enemyType) { }
+		FEnemyTypesNode(TSubclassOf<AActor> enemyClass, int32 cost, EEnemyTypes enemyType) :
+			EnemyClass(enemyClass), Cost(cost), EnemyType(enemyType) {
+		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -63,10 +50,12 @@ private:
 		int32 TotalPoints;
 		TArray<TSharedPtr<FEnemyTypesNode>> EnemyTypes;
 		TArray<TSharedPtr<FBaseTreeNode>> Children;
+		ESpawnOrder SpawnOrder;
 
 		FWavesArrayNode() {}
 		FWavesArrayNode(const int32 waveID, const FString& description, const int32 totalPoints) :
-			WaveID(waveID), Description(description), TotalPoints(totalPoints) { }
+			WaveID(waveID), Description(description), TotalPoints(totalPoints) {
+		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -82,8 +71,9 @@ private:
 		TArray<TSharedPtr<FBaseTreeNode>> Children;
 
 		FWaveContainerNode() {}
-		FWaveContainerNode(const FString& waveContainerName, const int32 waveContainerID, const FString& containerDescription) : 
-			WaveContainerName(waveContainerName), WaveContainerID(waveContainerID), ContainerDescription(containerDescription){ }
+		FWaveContainerNode(const FString& waveContainerName, const int32 waveContainerID, const FString& containerDescription) :
+			WaveContainerName(waveContainerName), WaveContainerID(waveContainerID), ContainerDescription(containerDescription) {
+		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -94,4 +84,55 @@ private:
 	TArray<TSharedPtr<FBaseTreeNode>> RootNodes;
 	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FBaseTreeNode> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 	void OnGetChildren(TSharedPtr<FBaseTreeNode> InItem, TArray<TSharedPtr<FBaseTreeNode>>& OutChildren);
+
+
+	bool bIsTestBoxChecked;
+	const FString WaveContainerPath = TEXT("/Game/Custom/WaveSystem/WaveContainers/");
+	TArray<UPDataWaveContainer*> DataWaveContainersArray;
+	TSharedPtr<SVerticalBox> PropertyList;
+	void GenerateDataTableWidget();
+	FReply OnSetWaveDataButtonClicked();
+	FReply OnMinusButtonPressed(FString assetName);
+	bool DeleteDataAsset(FString assetName);
+	void RefreshDisplayedDataAssets();
+	FReply SaveWaveDataAsset(UPDataWaveContainer* container);
+	TArray<FString> GetAllWaveDataAssetPaths();
+	TArray<UPDataWaveContainer*> GetDataWaveContainersFromPaths();
+	FReply OnWaveContainerSaveButtonClicked(TSharedPtr<FWaveContainerNode> ContainerNode);
+	FReply OnPlusButtonClicked();
+	FReply OnWavesArrayPlusButtonClicked();
+	FReply OnEnemyTypesPlusButtonclicked();
+
+
+	// Enum drop down menu //
+	/*TArray<TSharedPtr<EEnemyTypes>> Options;
+	TSharedPtr<EEnemyTypes> SelectedOption;
+	void OnEnemyTypeSelectionChanged(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo);
+	TSharedRef<SWidget> GenerateComboItem(TSharedPtr<EEnemyTypes> Item);
+	FText GetCurrentItemLabel() const;
+	FText EnumToText(EEnemyTypes EnumValue) const;*/
+		
+	
+	// Editables Texts //
+	//wave container
+	FText GetWaveContainerIDEditableText(const int32 containerIndex) const;
+	void OnWaveContainerIDChanged(const int32 NewValue, const int32 containerIndex);
+	FText GetWaveContainerDescriptionEditableText(const int32 containerIndex) const;
+	void OnWaveContainerDescriptionChanged(const FText& NewText, int32 containerIndex);
+	//wave
+	int32 GetWaveIDEditableText(const int32 containerIndex, const int32 waveIndex) const;
+	void OnWaveIDValueChange(const int32 NewValue, const int32 containerIndex, const int32 waveIndex);
+	FText GetWaveDescriptionEditableText(const int32 containerIndex, const int32 waveIndex) const;
+	void OnWaveDecriptionTextChanged(const FText& NewText, const int32 containerIndex, const int32 waveIndex);
+	int32 GetWaveTotalPointsEditableText(const int32 containerIndex, const int32 waveIndex) const;
+	void OnWaveTotalPointsTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex);
+	FText GetWaveSpawnOrderEditableText(int32 containerIndex, const int32 waveIndex) const;
+	void OnWaveSpawnOrdertextChanged(const ESpawnOrder NewValue, const int32 containerIndex, const int32 waveIndex); 
+	//enemy type
+	//FText GetWaveEnemyClassEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	//void OnWaveEnemyClassTextChanged(const TSubclassOf<AActor> NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
+	int32 GetWaveEnemyCostEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	void OnWaveEnemyCostTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
+	FText GetWaveEnemyTypeEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	void OnWaveEnemyTypeTextChanged(const EEnemyTypes NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
 };
