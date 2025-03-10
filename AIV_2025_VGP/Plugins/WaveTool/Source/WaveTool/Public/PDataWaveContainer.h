@@ -44,11 +44,24 @@ struct FInternalDumbEnemyType
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     TSubclassOf<AActor> EnemyClass;
 
-    // This field indicates the enemy Cost
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
-    int32 Cost = 0;
+    // This field allow further customisation. if true you'll use the Cost and Greedy Process, else you can choose how many you want with MaxEnemies and MinEnemies 
+    // (Note well, this values is part of a random, so if you want exactly 5 units just put 5 in both fields)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+    bool bUseEnemyCost = true;
 
-    // This 
+    // This field indicates the enemy Cost
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "bUseEnemyCost"))
+    int32 Cost = 0;    
+    
+    // This field indicates the meaximum enemy you want
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "!bUseEnemyCost"))
+    int32 MaxEnemies = 0;    
+    
+    // This field indicates the miminum enemy you want
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "!bUseEnemyCost"))
+    int32 MinEnemies = 0;
+
+    // This field indicates the Type of the Enemy
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     EEnemyTypes EnemyType;
 };
