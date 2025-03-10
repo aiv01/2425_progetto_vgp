@@ -20,10 +20,7 @@
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	if (FPNetworkingModule::IsOnlineAvailable())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
-	}
+	UE_LOG(LogTemp, Warning, TEXT("BPL Constructor Called"));
 }
 
 bool UPNetworkingBPLibrary::GetAppID(FString& AppID)
@@ -63,6 +60,12 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 	}
 
 	AccountName = OnlineIdentityPtr->GetPlayerNickname(*UniqueNetId);
+
+	if (FPNetworkingModule::IsOnlineAvailable())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Calback Initialized!!!"));
+		FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+	}
 
 	return true;
 }
