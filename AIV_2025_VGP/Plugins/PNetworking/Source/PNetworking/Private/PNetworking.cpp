@@ -12,6 +12,7 @@ IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 bool FPNetworkingModule::bIsComputingNewSession = false;
 FName FPNetworkingModule::CurrentSessionName = TEXT("");
+FName FPNetworkingModule::StandardSessionSettings = TEXT("HOST_STANDARD_KEY_SESSION");
 
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
 
@@ -78,6 +79,11 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	}
 
 	return true;
+}
+
+FName FPNetworkingModule::GetSessionSettingsKeyName()
+{
+	return StandardSessionSettings;
 }
 
 #undef LOCTEXT_NAMESPACE

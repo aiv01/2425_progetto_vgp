@@ -19,8 +19,11 @@ public:
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionReference();
 	static bool IsOnlineAvailable();
+	static FName GetSessionSettingsKeyName();
 
 private:
+	static FName StandardSessionSettings;
+
 	static class IOnlineSubsystem* OnlineSubsystemReference;
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;
 };

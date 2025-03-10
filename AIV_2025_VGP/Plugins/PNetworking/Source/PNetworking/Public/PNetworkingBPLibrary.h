@@ -53,10 +53,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, const FName NewSessionName, 
 									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
-									   const bool bShouldAdvertise, const bool bIsLANMatch, const bool bUsesPresence);
+									   const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
+									   const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool InviteFriend(const int32 SteamID);
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static bool InitializeOnlineCallbacks();
 #pragma endregion Session
 
 #pragma region Debug

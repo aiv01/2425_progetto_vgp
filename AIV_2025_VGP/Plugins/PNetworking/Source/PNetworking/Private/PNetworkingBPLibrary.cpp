@@ -7,6 +7,7 @@
 #include "PNetworkingBPLibrary.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSubsystemTypes.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 #include "UserSteamData.h"
@@ -60,13 +61,6 @@ bool UPNetworkingBPLibrary::GetAccountName(FString& AccountName, const int32 Use
 	}
 
 	AccountName = OnlineIdentityPtr->GetPlayerNickname(*UniqueNetId);
-
-	if (FPNetworkingModule::IsOnlineAvailable())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Calback Initialized!!!"));
-		FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
-	}
-
 	return true;
 }
 
@@ -343,11 +337,11 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 {
 	if (bWasSuccessful)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Invite Success!!!"))
+		UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success!"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Invite Error!!!"))
+		UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
 	}
 }
 
@@ -355,20 +349,23 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 												   const FName NewSessionName, 
 												   const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
-												   const bool bShouldAdvertise, 
-												   const bool bIsLANMatch, 
-												   const bool bUsesPresence)
+												   const bool bIsLANMatch,
+												   const bool bIsDedicated, 
+												   const bool bShouldAdvertise,
+												   const bool bUsesPresence,
+												   const bool bAllowJoinViaPresenceFriendsOnly,
+												   const bool bUseLobbiesIfAvailable)
 {
 	if (FPNetworkingModule::bIsComputingNewSession)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SteamError: Already computing a session!"))
+		UE_LOG(LogTemp, Warning, TEXT("SteamError: Already computing a session!"));
 		return false;
 	}
 
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
 	if (!SessionInterface.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SteamError: Session interface not valid!"))
+		UE_LOG(LogTemp, Warning, TEXT("SteamError: Session interface not valid!"));
 		return false;
 	}
 
@@ -377,9 +374,13 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 	FOnlineSessionSettings NewSessionSettings;
 	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
 	NewSessionSettings.NumPrivateConnections = NumberPrivateConnections;
-	NewSessionSettings.bShouldAdvertise = bShouldAdvertise;
 	NewSessionSettings.bIsLANMatch = bIsLANMatch;
+	NewSessionSettings.bIsDedicated = bIsDedicated;
+	NewSessionSettings.bShouldAdvertise = bShouldAdvertise;
 	NewSessionSettings.bUsesPresence = bUsesPresence;
+	NewSessionSettings.bAllowJoinViaPresenceFriendsOnly = bAllowJoinViaPresenceFriendsOnly;
+	NewSessionSettings.bUseLobbiesIfAvailable = bUseLobbiesIfAvailable;
+	NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
 		{
@@ -417,8 +418,22 @@ bool UPNetworkingBPLibrary::InviteFriend(const int32 SteamID)
 			return false;
 		}
 
+		UE_LOG(LogTemp, Warning, TEXT("SessionID created: %s"), *OnlineSession->GetSessionIdStr());
 		return SessionInterface->SendSessionInviteToFriend(0, FPNetworkingModule::CurrentSessionName, *FriendUniqueNetID);
 	}
 
 	return false;
+}
+
+bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
+{
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return false;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
+	FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+
+	return true;
 }
