@@ -1,0 +1,20 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "I_FunctionStrategy.generated.h"
+
+UINTERFACE(Blueprintable)
+class AIV_2025_VGP_API UI_FunctionStrategy: public UInterface
+{
+	GENERATED_BODY()
+};
+
+class AIV_2025_VGP_API II_FunctionStrategy
+{
+	GENERATED_BODY()
+public:
+	virtual void Execute() = 0;
+};

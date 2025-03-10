@@ -102,10 +102,14 @@ void ABasePlayer::Look_Implementation(const FVector2D& Value)
 
 void ABasePlayer::Attack_Implementation()
 {
-	if (MontageToPlay)
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		this->PlayAnimMontage(MontageToPlay);
+		II_PlayerInput::Execute_Attack(this);
 	}
+	// if (MontageToPlay)
+	// {
+	// 	this->PlayAnimMontage(MontageToPlay);
+	// }
 }
 
 void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
