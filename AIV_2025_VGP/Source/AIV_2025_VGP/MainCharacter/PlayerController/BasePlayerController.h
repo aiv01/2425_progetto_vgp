@@ -1,3 +1,8 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,18 +19,8 @@ class AIV_2025_VGP_API ABasePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
-protected:
-	
-	virtual void BeginPlay() override;
-	virtual void SetupInputComponent() override;
-
+#pragma region Properties
 private:
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Attack();
-	void Jump();
-	void ChangeWeapon(const FInputActionValue& Value);
-
 	UPROPERTY()
 	UInputMappingContext* IMC_MainCharacter;
 
@@ -43,7 +38,25 @@ private:
 
 	UPROPERTY()
 	UInputAction* IA_CstmChangeWeapon;
+#pragma endregion Properties
+
+#pragma region Functions
+protected:
+	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
+
+private:
+	//Input function
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Attack();
+	void Jump();
+	void ChangeWeapon(const FInputActionValue& Value);
+
+	//Init function
+	void FindInputActions();
 
 public:
 	ABasePlayerController();
+#pragma endregion Functions
 };

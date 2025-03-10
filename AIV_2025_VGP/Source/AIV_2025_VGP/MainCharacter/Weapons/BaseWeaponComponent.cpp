@@ -1,5 +1,7 @@
-// FABIO GIANNINO
-// LUCA CASAMENTI
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #include "BaseWeaponComponent.h"
 
