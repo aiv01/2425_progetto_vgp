@@ -71,5 +71,6 @@ private:
 	static void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 	static bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
 	static CSteamID ConvertInt32toCSteamID(const int32 SteamID);
+	static void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
 
 };

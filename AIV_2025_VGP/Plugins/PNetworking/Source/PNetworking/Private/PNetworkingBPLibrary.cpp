@@ -20,7 +20,10 @@
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	
+	if (FPNetworkingModule::IsOnlineAvailable())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+	}
 }
 
 bool UPNetworkingBPLibrary::GetAppID(FString& AppID)
@@ -333,6 +336,17 @@ CSteamID UPNetworkingBPLibrary::ConvertInt32toCSteamID(const int32 SteamID)
 	return RealSteamID;
 }
 #pragma endregion Debug
+void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult)
+{
+	if (bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invite Success!!!"))
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invite Error!!!"))
+	}
+}
 
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
 												   const FName NewSessionName, 
