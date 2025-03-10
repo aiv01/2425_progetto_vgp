@@ -25,6 +25,9 @@ public:
 	void Generate();
 
 	UFUNCTION(Blueprintable)
+	void GetCloserSurface(const FHitResult HitResult, UPARAM(ref) FGridSurface& CloserSurface);
+
+	UFUNCTION(Blueprintable)
 	TArray<FGridSurface> GetGridData();
 	
 protected:

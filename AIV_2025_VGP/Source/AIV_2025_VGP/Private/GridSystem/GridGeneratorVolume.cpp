@@ -32,6 +32,28 @@ void AGridGeneratorVolume::Generate()
 	GenerateGrid(Origin);
 }
 
+void AGridGeneratorVolume::GetCloserSurface (FHitResult HitResult, FGridSurface& CloserSurface)
+{
+	float DistanceCloserSurface = INT_MAX;
+	for (auto GridSurface : GridData)
+	{
+		//check if it has the same rotation has the normal of the FHitResult
+		if(FMath::IsNearlyEqual(FVector::DotProduct(HitResult.Normal, GridSurface.Orientation), 1.0f, KINDA_SMALL_NUMBER))
+		{
+			//check the distance 
+			float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
+			if(DistanceCloserSurface > DistanceGridSurface)
+			{
+				DistanceCloserSurface = DistanceGridSurface;
+				CloserSurface = GridSurface;
+			}
+			//rotation check?
+			//no closer pos if min distance > Trap Size
+		}
+		
+	}
+}
+
 TArray<FGridSurface> AGridGeneratorVolume::GetGridData ()
 {
 	return GridData;

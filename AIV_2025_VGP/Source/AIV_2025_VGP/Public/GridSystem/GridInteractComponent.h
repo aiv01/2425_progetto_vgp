@@ -3,29 +3,44 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ProcessorInterface.h"
+#include "GridGeneratorVolume.h"
 #include "Components/ActorComponent.h"
 #include "GridInteractComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent, public IProcessorInterface
+UCLASS(Blueprintable, BlueprintType, meta=(BlueprintSpawnableComponent))
+class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 {
 	GENERATED_BODY()
-	DECLARE_DELEGATE_OneParam(FShowPreview, FVector);
-	DECLARE_DELEGATE_OneParam(FPlaceTrap, FGridSurface*);
 
+	
+protected:
+	TArray<AGridGeneratorVolume*> GridVolumesRef;
+	AGridGeneratorVolume* ActualVolumeRef;
+	 
+	
+	UPROPERTY(EditInstanceOnly, Category="GridGenerator")
+	float InteractDistance;
 
+private:
+	AGridGeneratorVolume* GetCloserVolume(FVector Position);
 
 public:	
 	// Called every frame
-	FPlaceTrap OnPlaceTrapTriggered;
-	FShowPreview OnShowPreviewTriggered;
-	virtual void BindPreviewInteract(UGridPreviewComponent* GridPreviewComponent) override;
-	virtual void BindPlacementInteract(UGridPlacementComponent* GridPlacementComponent) override;
-
-	UFUNCTION(Blueprintable)
-	void ShowPreview(const FVector Point);
-	void PlaceTrap(FGridSurface* GridSurface);
+	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
+	void SetVolumeRef(AGridGeneratorVolume* OtherVolumeRef);
+	UFUNCTION(BlueprintPure)
+	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit, UPARAM(ref) FGridSurface& CloserGridSurface);
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsPositionWithinActualVolume(const FVector Position);
+	UFUNCTION(BlueprintCallable)
+	bool IsPositionWithinVolume(AGridGeneratorVolume* VolumeRef, const FVector Position);
+	
+	
+	UFUNCTION(BlueprintCallable)
+	void ShowPreview(UPARAM(ref) FGridSurface& GridSurface);
+	void PlaceTrap(UPARAM(ref)FGridSurface& GridSurface);
 		
 };

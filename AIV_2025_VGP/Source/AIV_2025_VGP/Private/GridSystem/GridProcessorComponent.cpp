@@ -19,3 +19,19 @@ void UGridProcessorComponent::InitializeComponent ()
 		UE_LOG(LogTemp, Warning, TEXT("Owner is not a 'AGridGeneratorVolume'"));
 	}
 }
+/*
+FGridSurface* UGridProcessorComponent::GetClosetGridPoint (FVector Position)
+{
+	if(!GridData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GRID DATA NULL"))
+		return NULL;
+	}
+
+	
+	//given the normal, check the surface direction
+	//given the surface direction check the closer point
+	//given the cell size check if there is point
+	
+}
+*/
