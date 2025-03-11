@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PDataWaveContainer.h"
+#include "WaveSpawner.h"
+#include "SpawnInstruction.h"
 #include "PWaveManager.generated.h"
 
 class UDataAsset;
@@ -14,6 +16,7 @@ class AEnemySpawner;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveStarted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveCompleted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDie, AActor*, EnemyDie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEndLevel);
 
 UCLASS(Blueprintable)
 class WAVETOOL_API APWaveManager : public AActor
@@ -22,27 +25,27 @@ class WAVETOOL_API APWaveManager : public AActor
 
 public:
 #pragma region Constructor
-	//Default
 	APWaveManager();
-	//Custom constructor for all the param
-	//explicit AWaveManager(UDataWaveContainer* NewWaveData, const TArray<FTransform>& SpawnerLocations, const float WaveInterval, const bool AutoStartWaveSystem);
+
 #pragma endregion
 
 	// Static instance pointer for the singleton pattern
 	static APWaveManager* Instance;
-
-public:
+	
 	virtual void BeginPlay() override;
 
 #pragma region UI Configurable Variables
 	/** Wave Data Asset, contains all the wave settings */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	UPDataWaveContainer* WaveDataAsset;
-
+	
 	/** Interval between waves (in seconds) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	float WaveInterval;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
+	float SpawnFrequency;
+	
 	/** Automatically starts the wave system at game start */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	bool bAutoStartWaveSystem;
@@ -51,8 +54,8 @@ public:
 #pragma region Wave System Variables
 	/** List of enemy spawner locations */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
-	TArray<FTransform> EnemySpawners;
-
+	TArray<AWaveSpawner*> Spawners;
+	
 	/** Current wave index */
 	int32 CurrentWaveIndex;
 
@@ -64,6 +67,9 @@ public:
 
 	/** Array of waves sorted by order */
 	TArray<FWaveOrder> WavesArray;
+
+	/** Queue fo r current enemy */
+	TArray<FSpawnInstruction> PendingSpawnQueue;
 #pragma endregion
 
 #pragma region Wave System Internal Functions
@@ -72,10 +78,7 @@ public:
 
 	/** Starts the next wave */
 	void NewStartWave();
-
-	/** Spawns enemies for the current wave */
-	void SpawnWave();
-
+	
 	/** Checks if the wave is completed */
 	void CheckWaveCompletion();
 
@@ -86,7 +89,10 @@ public:
 	void EndLevel();
 #pragma endregion
 
-public:
+#pragma region Spawner Functions
+	FVector GetSpawnerLocationByWeight() const;
+	void SpawnNextEnemy();
+#pragma endregion
 
 #pragma region Delegates
 	/** Event triggered when a wave starts */
@@ -100,6 +106,11 @@ public:
 	/** Event triggered when an enemy is killed */
 	UPROPERTY(BlueprintAssignable, Category = "Wave System | Events")
 	FOnEnemyDie OnEnemyDie;
+
+	/** Event triggered when level end */
+	UPROPERTY(BlueprintAssignable, Category = "Wave System | Events")
+	FOnEndLevel OnEndLevel;
+	
 #pragma region Event Binding Functions
 	/** Binds a function to OnWaveStarted */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
@@ -124,19 +135,30 @@ public:
 	/** Unbinds all functions from OnEnemyDie */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
 	void UnbindOnEnemyDie(UObject* Object);
+
+	/** Binds a function to OnEnemyDie */
+	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
+	void BindOnEndLevel(UObject* Object, FName FunctionName);
+
+	/** Unbinds all functions from OnEnemyDie */
+	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
+	void UnbindOnEndLevel(UObject* Object);
 #pragma endregion
 
 
 #pragma endregion
+
 #pragma region Static Functions
 	/** Static method to handle enemy death without needing a reference */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Functions")
 	static void StaticHandleEnemyDie(AActor* EnemyDie);
 #pragma endregion
-#pragma region Public Wave Control Functions
+
+#pragma region Wave System Functions
 	// Function to initialize the manager after spawning
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Initialization")
-	void InitializeWaveManager(UPDataWaveContainer* NewWaveData, const TArray<FTransform>& SpawnerLocations, const float NewWaveInterval, const bool bNewAutoStartWaveSystem);
+	void InitializeWaveManager(UPDataWaveContainer* NewWaveData, const TArray<AWaveSpawner*>& NewSpawners, const float NewWaveInterval, const bool
+	                           bNewAutoStartWaveSystem);
 	/** Starts the wave system */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Functions")
 	void StartWaveSystem();

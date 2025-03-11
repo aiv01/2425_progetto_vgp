@@ -32,7 +32,8 @@ public class WaveTool : ModuleRules
 				"Slate",
 				"SlateCore",
 				"InputCore",
-				"Projects"
+				"Projects",
+				"BlueprintGraph"	
             }
 			);
 			
