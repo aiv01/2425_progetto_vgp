@@ -1,8 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// © Manuel Solano
-// © Alessandro Caccamo
-// © Claudio Dallai
+// ï¿½ Manuel Solano
+// ï¿½ Alessandro Caccamo
+// ï¿½ Claudio Dallai
 
 #pragma once
 
@@ -12,17 +12,16 @@ class PNETWORKING_API FPNetworkingModule : public IModuleInterface
 {
 public:
 	static bool bIsComputingNewSession;
-	static FName CurrentSessionName;
 
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionReference();
 	static bool IsOnlineAvailable();
-	static FName GetSessionSettingsKeyName();
+	static FName GetSessionName();
 
 private:
-	static FName StandardSessionSettings;
+	static FName SessionName;
 
 	static class IOnlineSubsystem* OnlineSubsystemReference;
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;

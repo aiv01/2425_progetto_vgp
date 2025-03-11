@@ -11,8 +11,7 @@
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 bool FPNetworkingModule::bIsComputingNewSession = false;
-FName FPNetworkingModule::CurrentSessionName = TEXT("");
-FName FPNetworkingModule::StandardSessionSettings = TEXT("HOST_STANDARD_KEY_SESSION");
+FName FPNetworkingModule::SessionName = TEXT("AIV_VGP3_Server");
 
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
 
@@ -81,9 +80,9 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	return true;
 }
 
-FName FPNetworkingModule::GetSessionSettingsKeyName()
+FName FPNetworkingModule::GetSessionName()
 {
-	return StandardSessionSettings;
+	return SessionName;
 }
 
 #undef LOCTEXT_NAMESPACE
