@@ -15,7 +15,6 @@ struct FUserSteamData;
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
 
-
 UCLASS()
 class PNETWORKING_API UPNetworkingBPLibrary : public UBlueprintFunctionLibrary
 {
@@ -54,7 +53,7 @@ public:
 	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, 
 									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
 									   const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
-									   const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
+									   const bool bAllowJoinViaPresenceFriendsOnly, const APawn* Requester, const bool bUseLobbiesIfAvailable = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool InviteFriend(const int32 SteamID);

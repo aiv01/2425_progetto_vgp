@@ -16,6 +16,7 @@
 // To disable "strncpy" security warnings.
 #pragma warning(push)
 #pragma warning(disable:4996)
+#include "AI/NavigationSystemBase.h"
 #include "steam/steam_api.h"
 #pragma warning(pop)
 
@@ -343,6 +344,16 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 		if (bHasJoined)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
+
+			// const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen"));
+			// if (bServerTravelResult)
+			// {
+			// 	UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
+			// }
+			// else
+			// {
+			// 	UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+			// }
 		}
 		else
 		{
@@ -363,6 +374,7 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 												   const bool bShouldAdvertise,
 												   const bool bUsesPresence,
 												   const bool bAllowJoinViaPresenceFriendsOnly,
+												   const APawn* Requester,
 												   const bool bUseLobbiesIfAvailable)
 {
 	if (FPNetworkingModule::bIsComputingNewSession)
@@ -391,13 +403,23 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 	NewSessionSettings.bUseLobbiesIfAvailable = bUseLobbiesIfAvailable;
 	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
+	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback, Requester](FName NewName, bool bWasSuccessfull)
 		{
 			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
 			FPNetworkingModule::bIsComputingNewSession = false;
+
+			const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen"));
+			if (bServerTravelResult)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+			}
 		}
 	));
-
+	
 	return SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
 }
 
