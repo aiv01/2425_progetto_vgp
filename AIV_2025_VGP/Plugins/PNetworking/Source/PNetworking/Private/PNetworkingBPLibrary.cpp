@@ -367,6 +367,7 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 }
 
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
+												   const APawn* Requester,
 												   const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
 												   const bool bIsLANMatch,
@@ -374,7 +375,6 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 												   const bool bShouldAdvertise,
 												   const bool bUsesPresence,
 												   const bool bAllowJoinViaPresenceFriendsOnly,
-												   const APawn* Requester,
 												   const bool bUseLobbiesIfAvailable)
 {
 	if (FPNetworkingModule::bIsComputingNewSession)
@@ -408,7 +408,13 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
 			FPNetworkingModule::bIsComputingNewSession = false;
 
-			const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen"));
+			if (!Requester)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Server Travel Error, Invalid Requester!"));
+				return;
+			}
+
+			const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
 			if (bServerTravelResult)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));

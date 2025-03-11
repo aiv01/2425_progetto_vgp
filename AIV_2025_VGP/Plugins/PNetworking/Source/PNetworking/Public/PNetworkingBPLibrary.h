@@ -50,10 +50,10 @@ public:
 
 #pragma region Session
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, 
+	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, const APawn* Requester,
 									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
 									   const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
-									   const bool bAllowJoinViaPresenceFriendsOnly, const APawn* Requester, const bool bUseLobbiesIfAvailable = true);
+									   const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool InviteFriend(const int32 SteamID);
