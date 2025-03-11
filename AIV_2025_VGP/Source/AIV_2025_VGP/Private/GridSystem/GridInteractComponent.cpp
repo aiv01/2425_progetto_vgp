@@ -1,86 +1,54 @@
 #include "GridSystem/GridInteractComponent.h"
-
-#include "GridSystem/FGridSurface.h"
 #include "GridSystem/GridPlacementComponent.h"
 #include "GridSystem/GridPreviewComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UGridInteractComponent::BeginPlay ()
-{
-	//Parent BeginPlay
-	Super::BeginPlay();
 
-	//get all grid volume actor in the map
-	TArray<AActor*> AActorOfClass;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridGeneratorVolume::StaticClass(), AActorOfClass);
-	//TEMP, need to fine alternative for cast
-	for(auto actorRef : AActorOfClass)
-	{
-		GridVolumesRef.Add(Cast<AGridGeneratorVolume>(actorRef));
-	}
-
-	//set the volume ref for the first time
-	//GetCloserVolume(GetOwner()->GetActorLocation());
-}
-
-//set the actual volume ref
-void UGridInteractComponent::SetVolumeRef (AGridGeneratorVolume* OtherVolumeRef)
-{
-	if(ActualVolumeRef == OtherVolumeRef) return;
-	ActualVolumeRef = OtherVolumeRef;
-}
-
-void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& result, bool& Hit, FGridSurface& CloserGridSurface)
+void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& result, bool& Hit, AGridGeneratorVolume*& VolumeRef)
 {
 	//do a line trace between the player character and it's camera forward
 	const FVector ownerLocation = GetOwner()->GetActorLocation();
 	const FVector endLocation = ownerLocation + CameraForward * InteractDistance;
+	//Check if collide to wall or floor
+	if(bDebug)
+	{
+		DrawDebugLine(GetWorld(), ownerLocation, endLocation, DebugColor, false, 10, 0, 5);
+	}
 	if(GetWorld()->LineTraceSingleByChannel(result, ownerLocation, endLocation, ECollisionChannel::ECC_Visibility))
 	{
-		if(!IsPositionWithinActualVolume(result.Location))
+		if(bDebug)
 		{
-			SetVolumeRef(GetCloserVolume(result.Location));
-		}
-		if(!ActualVolumeRef)
-		{
-			Hit = false;
-			return;
+			UE_LOG(LogTemp, Warning, TEXT("HIT WITH SURFACE"));
+			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, 10, 0, 5);
 		}
 		
-		ActualVolumeRef->GetCloserSurface(result, CloserGridSurface);
-		Hit = true;
-		return;
+		//check the volume inside the SphereOverlapp 
+		TArray<AActor*> OverlappedActors;
+		TArray<AActor*> ignoreActor = { GetOwner() };
+		if(UKismetSystemLibrary::SphereOverlapActors(GetWorld(), result.Location, SphereCastRadius, ObjectTypeQuery, AGridGeneratorVolume::StaticClass(), ignoreActor, OverlappedActors))
+		{
+			if(bDebug)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("HIT WITH VOLUME"));
+				for (auto OverlappedActor : OverlappedActors)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("ACTOR OVERLAPPED: %s"), *OverlappedActor->GetName());
+				}
+			}
+			//get the first overlapped volume
+			if(!OverlappedActors.IsEmpty())
+			{
+				VolumeRef = Cast<AGridGeneratorVolume>(OverlappedActors[0]);
+				Hit = true;
+				return;
+			}
+		}
 	}
 	Hit = false;
 }
 
-/**
- * Given a World Position, check if it's inside any Grid Volume in the map
- * @param Position 
- * @return if inside a volume the AGridGeneratorVolume, else NULL
- */
-AGridGeneratorVolume* UGridInteractComponent::GetCloserVolume (FVector Position)
-{
-	for (auto GridVolume : GridVolumesRef)
-	{
-		if(IsPositionWithinActualVolume(Position))
-		{
-			return GridVolume;
-		}
-	}
-	return NULL;
-}
 
-/**
- * Given a World Position, check if it's Inside Referenced Box Volume Bounds (the volume is null, return false)
- * @param Position World Position to Check
- * @return bool
- */
-bool UGridInteractComponent::IsPositionWithinActualVolume (FVector Position)
-{
-	if(!ActualVolumeRef) return false;
-	return IsPositionWithinVolume(ActualVolumeRef, Position);
-}
+
 
 /**
  * Given a World Position and a volume, check if it's Inside the Box Volume Bounds (the volume is null, return false)
@@ -101,37 +69,49 @@ bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* Volum
  * Given a Grid Surface, Show the Trap mesh preview. 
  * @param GridSurface 
  */
-void UGridInteractComponent::ShowPreview (FGridSurface& GridSurface)
+void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface)
 {
-	if(!GridSurface.bOccupied)
+	FHitResult result;
+	AGridGeneratorVolume* GridVolumeRef;
+	GridRayCast(CameraForward, result, HitSurface, GridVolumeRef);
+	if(HitSurface && GridVolumeRef)
 	{
-		UGridPreviewComponent* UGridPreviewComp = ActualVolumeRef->FindComponentByClass<UGridPreviewComponent>();
+		UGridPreviewComponent* UGridPreviewComp = GridVolumeRef->FindComponentByClass<UGridPreviewComponent>();
 		if(UGridPreviewComp)
 		{
-			
-		}else
+			//UGridPreviewComp->ShowPreview()
+		}else if(bDebug)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("NO PREVIEW COMPONENT ATTACHED"));
 		}
+	}else if(bDebug)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO VOLUME FOUND"));
 	}
-	//VolumeRef.getcom
-	//getcloserr..sdasa
 }
 
 /**
  * Given a Grid Surface, Place the Trap and occupy the grid surface.
  * @param GridSurface 
  */
-void UGridInteractComponent::PlaceTrap (FGridSurface& GridSurface)
+void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
 {
-	
-	GridSurface.bOccupied = true;
-	UGridPlacementComponent* UGridPlaceComp = ActualVolumeRef->FindComponentByClass<UGridPlacementComponent>();
-	if(UGridPlaceComp)
+	FHitResult result;
+	AGridGeneratorVolume* GridVolumeRef;
+	GridRayCast(CameraForward, result, HitSurface, GridVolumeRef);
+	if(HitSurface && GridVolumeRef)
 	{
-		//place trap
-	}else
+		UGridPlacementComponent* UGridPlaceComp = GridVolumeRef->FindComponentByClass<UGridPlacementComponent>();
+		if(UGridPlaceComp)
+		{
+			//place trap
+			//UGridPlaceComp->PlaceTrap();
+		}else if(bDebug)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NO PLACE COMPONENT ATTACHED"));
+		}
+	}else if(bDebug)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NO PLACE COMPONENT ATTACHED"));
+		UE_LOG(LogTemp, Warning, TEXT("NO VOLUME FOUND"));
 	}
 }

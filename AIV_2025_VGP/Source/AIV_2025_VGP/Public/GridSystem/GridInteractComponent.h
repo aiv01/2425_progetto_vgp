@@ -13,34 +13,34 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+
 	
 protected:
-	TArray<AGridGeneratorVolume*> GridVolumesRef;
-	AGridGeneratorVolume* ActualVolumeRef;
-	 
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
+	float InteractDistance = 300.0;
 	
-	UPROPERTY(EditInstanceOnly, Category="GridGenerator")
-	float InteractDistance;
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
+	float SphereCastRadius = 100.0;
+	
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypeQuery;
 
-private:
-	AGridGeneratorVolume* GetCloserVolume(FVector Position);
-
-public:	
-	// Called every frame
-	virtual void BeginPlay() override;
-	UFUNCTION(BlueprintCallable)
-	void SetVolumeRef(AGridGeneratorVolume* OtherVolumeRef);
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Debug")
+	bool bDebug = false;
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Debug")
+	FColor DebugColor;
+	
+public:
 	UFUNCTION(BlueprintPure)
-	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit, UPARAM(ref) FGridSurface& CloserGridSurface);
-	
-	UFUNCTION(BlueprintCallable)
-	bool IsPositionWithinActualVolume(const FVector Position);
+	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit, AGridGeneratorVolume*& VolumeRef);
+
 	UFUNCTION(BlueprintCallable)
 	bool IsPositionWithinVolume(AGridGeneratorVolume* VolumeRef, const FVector Position);
-	
+
+	UFUNCTION(BlueprintCallable)
+	void ShowPreview(FVector CameraForward, bool& HitSurface);
 	
 	UFUNCTION(BlueprintCallable)
-	void ShowPreview(UPARAM(ref) FGridSurface& GridSurface);
-	void PlaceTrap(UPARAM(ref)FGridSurface& GridSurface);
+	void PlaceTrap(FVector CameraForward, bool& HitSurface);
 		
 };
