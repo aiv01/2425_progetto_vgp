@@ -75,7 +75,7 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
 	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
-	// Assicura che l'indice sia circolare anche per valori negativi
+	
 	if (CurrentWeaponIndex < 0)
 	{
 		CurrentWeaponIndex = Weapons.Num() - 1;
