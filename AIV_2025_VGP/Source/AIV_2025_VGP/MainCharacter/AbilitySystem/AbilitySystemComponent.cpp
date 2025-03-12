@@ -1,5 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #include "AbilitySystemComponent.h"
 DEFINE_LOG_CATEGORY_STATIC(LogStrategy, Log, All);
@@ -52,14 +54,13 @@ UBaseStrategy* UAbilitySystemComponent::ClassTypeGetExecutedStrategy(FName Strat
 	{
 		UBaseStrategy* StrategyInstance = StrategyInstances[StrategyName];
 
-		// Se esiste, restituisce il tipo della classe dell'istanza
 		if (StrategyInstance)
 		{
-			return StrategyInstance; // Restituisce il tipo di classe
+			return StrategyInstance;
 		}
 	}
 
-	return nullptr; // Se non trova nulla, restituisce nullptr
+	return nullptr;
 }
 
 bool UAbilitySystemComponent::GetStrategyParamGeneric(FName StrategyName, const FString& ParamName, FString& OutValue)
@@ -70,7 +71,6 @@ bool UAbilitySystemComponent::GetStrategyParamGeneric(FName StrategyName, const 
 
 		if (StrategyInstance)
 		{
-			// Trova la proprietà con riflessione
 			FProperty* Property = StrategyInstance->GetClass()->FindPropertyByName(*ParamName);
 			if (Property)
 			{
@@ -100,5 +100,5 @@ bool UAbilitySystemComponent::GetStrategyParamGeneric(FName StrategyName, const 
 		}
 	}
 
-	return false; // Se il parametro non è stato trovato
+	return false;
 }

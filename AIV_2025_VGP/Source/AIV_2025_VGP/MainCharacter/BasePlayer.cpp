@@ -106,16 +106,12 @@ void ABasePlayer::Attack_Implementation()
 	{
 		II_PlayerInput::Execute_Attack(this);
 	}
-	// if (MontageToPlay)
-	// {
-	// 	this->PlayAnimMontage(MontageToPlay);
-	// }
 }
 
 void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ChangeWeapon chiamato dal BASEPLAYER: %hhd"), bForward);
-	// Se c'è una versione Blueprint, la chiama
+	
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
 		II_PlayerInput::Execute_ChangeWeapon(this, bForward);

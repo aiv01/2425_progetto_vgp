@@ -1,5 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright Epic Games, Inc. All Rights Reserved.
+// Fabio Giannino
+// Fabrizio Conni
+// Luca Casamenti
 
 #include "PC_RifleAttackStrategy.h"
 #include "GameFramework/Character.h"
@@ -12,7 +14,7 @@ void UPC_RifleAttackStrategy::Execute()
 	{ 
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "MeleeStrategy");
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "RangedStrategy");
 		}
 
 		if (MontageToPlay)
