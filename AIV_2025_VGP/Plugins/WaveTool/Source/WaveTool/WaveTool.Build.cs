@@ -32,30 +32,36 @@ public class WaveTool : ModuleRules
 				"Slate",
 				"SlateCore",
 				"InputCore",
-				"Projects"
-            }
-			);
-			
-		
-		PrivateDependencyModuleNames.AddRange(
-			new string[]
-			{
-				// ... add private dependencies that you statically link with here ...	
+				"Projects",
             }
 			);
 
-        if (Target.bBuildEditor) {
-            PrivateDependencyModuleNames.AddRange(new string[]
+
+        PrivateDependencyModuleNames.AddRange(
+            new string[]
             {
-                "EditorFramework",
-                "UnrealEd",
-                "ToolMenus",
-                "EditorScriptingUtilities"
+                "Slate",
+				"SlateCore",
+				"PropertyEditor",
+				"EditorFramework",
+				"UnrealEd",
+				"ToolMenus",
+				"EditorScriptingUtilities"
             });
 
-            PublicDependencyModuleNames.Add("EditorScriptingUtilities"); // Needed in Public section
-        }
+        PrivateIncludePathModuleNames.AddRange(new string[] {
+            "PropertyEditor"
+        });
 
+        if (Target.bBuildEditor)
+        {
+            // Still keep UnrealEd or other Editor modules here if needed
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
+                "UnrealEd",
+                "EditorScriptingUtilities"
+            });
+        }
 
         DynamicallyLoadedModuleNames.AddRange(
 			new string[]

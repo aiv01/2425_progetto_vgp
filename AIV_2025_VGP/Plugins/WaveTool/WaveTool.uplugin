@@ -3,8 +3,8 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "WaveTool",
-	"Description": "",
-	"Category": "Other",
+	"Description": "A Tool to manually and procedurally create waves of enemies, display them, edit them",
+	"Category": "Tools",
 	"CreatedBy": "",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -19,6 +19,12 @@
 			"Name": "WaveTool",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
 		}
 	]
 }
