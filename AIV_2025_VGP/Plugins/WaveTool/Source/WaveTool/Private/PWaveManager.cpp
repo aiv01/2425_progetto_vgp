@@ -17,19 +17,13 @@
  **/
 APWaveManager* APWaveManager::Instance = nullptr;
 
-
-APWaveManager::APWaveManager() : WaveDataAsset(nullptr), WaveInterval(0), bAutoStartWaveSystem(false), CurrentWaveIndex(0),
-ActiveEnemies(0)
+APWaveManager::APWaveManager() : WaveDataAsset(nullptr), WaveInterval(0), SpawnFrequency(0),
+                                 bAutoStartWaveSystem(false), CurrentWaveIndex(0),
+                                 ActiveEnemies(0)
 {
 	//Disable tick 
 	PrimaryActorTick.bCanEverTick = false;
 }
-
-/*AWaveManager::AWaveManager(UDumbWavesContainerAsset* NewWaveData, const TArray<FTransform>& SpawnerLocations,
-						   const float WaveInterval, const bool AutoStartWaveSystem) : WaveDataAsset(NewWaveData), WaveInterval(WaveInterval), bAutoStartWaveSystem(AutoStartWaveSystem), EnemySpawners(SpawnerLocations), CurrentWaveIndex(0), ActiveEnemies(0)
-{
-	PrimaryActorTick.bCanEverTick = false;
-}*/
 
 // Called when the game starts or when spawned
 void APWaveManager::BeginPlay()
@@ -143,63 +137,6 @@ void APWaveManager::KillAllEnemies()
 	//TODO: Create event to bind the event kill
 }
 
-/*AWaveManager* AWaveManager::CreateWaveManagerInLevel(UDumbWavesContainerAsset* NewWaveData, bool bAutoStart, float WavesInterval)
-{
-#if !WITH_EDITOR
-	UE_LOG(LogTemp, Warning, TEXT("WaveManager: This function can only be called in Editor Mode!"));
-	return nullptr;
-#endif
-
-	// Get world istance using "Editor.h"
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Error, TEXT("WaveManager: Unable to access World in Editor!"));
-		return nullptr;
-	}
-
-	//Check if there's already one manager in the level
-	TArray<AActor*> FoundManagers;
-	UGameplayStatics::GetAllActorsOfClass(World, AWaveManager::StaticClass(), FoundManagers);
-
-	if (FoundManagers.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("WaveManager: An instance already exists in the level. Updating existing one."));
-		AWaveManager* ExistingManager = Cast<AWaveManager>(FoundManagers[0]);
-		if (ExistingManager)
-		{
-			ExistingManager->SetWaveData(NewWaveData, true);
-			ExistingManager->bAutoStartWaveSystem = bAutoStart;
-		}
-		return ExistingManager;
-	}
-
-	//Create new manager
-	 //*SpawnParameters is a struct used for assing param to the actor to spawn
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Name = TEXT("WaveManager");
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	AWaveManager* NewManager = World->SpawnActor<AWaveManager>(AWaveManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	if (!NewManager)
-	{
-		UE_LOG(LogTemp, Error, TEXT("WaveManager: Failed to spawn instance!"));
-		return nullptr;
-	}
-	//Set WaveMngrParams
-	NewManager->SetWaveData(NewWaveData, false);
-	NewManager->bAutoStartWaveSystem = bAutoStart;
-	NewManager->SetWaveInterval(WavesInterval);
-
-	//TODO: Function for assign manager param
-
-#if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Log, TEXT("WaveManager: Created successfully in the level."));
-#endif
-	return NewManager;
-}
-*/
 
 void APWaveManager::StartWaveSystem()
 {
@@ -222,7 +159,12 @@ void APWaveManager::StartWaveSystem()
 		});
 
 	CurrentWaveIndex = 0;
-	StartWave();
+	if (GetWorld())
+	{
+		// Using for handle the bind before the start. 
+		float InitialDelay = 1.0f;
+		GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &APWaveManager::StartWave, InitialDelay, false);
+	}
 }
 
 
@@ -246,71 +188,6 @@ void APWaveManager::StartWave()
 	OnWaveStarted.Broadcast(CurrentWaveIndex + 1);
 }
 
-//DEPRECATED
-
-//void AWaveManager::SpawnWave()
-//{
-//	if (CurrentWaveIndex >= WavesArray.Num())
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("WaveManager: No valid wave at index %d."), CurrentWaveIndex);
-//		return;
-//	}
-//	//Get current Wave
-//	const FWaveOrder& CurrentWaveOrder = WavesArray[CurrentWaveIndex];
-//#if UE_BUILD_DEVELOPMENT
-//	UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawning enemies for wave %d."), CurrentWaveIndex + 1);
-//	UE_LOG(LogTemp, Log, TEXT("WaveManager: Enemytypes -> %d."), CurrentWaveOrder.WaveSettings.EnemyTypes.Num());
-//#endif
-//	//Reset counter
-//	ActiveEnemies = 0;
-//
-//	//For every setting in currentWaveData && for every enemy define in setting, spawn 5 enemy
-//	//for (const FDumbWave& WaveSetting : CurrentWaveOrder.WaveSettings)
-//	//{
-//	for (const FInternalDumbEnemyType& EnemyType : CurrentWaveOrder.WaveSettings.EnemyTypes)
-//	{
-//		if (!EnemyType.EnemyClass)
-//		{
-//			UE_LOG(LogTemp, Warning, TEXT("WaveManager: Invalid enemy class in wave %d."), CurrentWaveOrder.WaveSettings.WaveID);
-//			continue;
-//		}
-//		const int32 SpawnCount = 5; //TODO: Create the algoritm for spawning enemies using the cost
-//		for (int32 i = 0; i < SpawnCount; ++i)
-//		{
-//			UE_LOG(LogTemp, Log, TEXT("SpawnCount for loop %d"), SpawnCount);
-//			FVector SpawnLocation = GetActorLocation();
-//			FRotator SpawnRotation = GetActorRotation();
-//			if (EnemySpawners.Num() > 0)
-//			{
-//				int32 RandomIndex = FMath::RandRange(0, EnemySpawners.Num() - 1);
-//				SpawnLocation = EnemySpawners[RandomIndex].GetLocation();
-//				SpawnRotation = EnemySpawners[RandomIndex].Rotator();
-//			}
-//			FActorSpawnParameters SpawnParams;
-//			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-//			AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyType.EnemyClass, SpawnLocation, SpawnRotation, SpawnParams);
-//			if (SpawnedEnemy)
-//			{
-//#if UE_BUILD_DEVELOPMENT
-//				UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawned enemy '%s' of type '%s'."), *SpawnedEnemy->GetName(), *EnemyType.EnemyClass->GetName());
-//#endif
-//				ActiveEnemies++;
-//				//TODO: Delegate for HandleEnemyDie()!
-//			}
-//			else
-//			{
-//				UE_LOG(LogTemp, Error, TEXT("WaveManager: Failed to spawn enemy of type '%s'."), *EnemyType.EnemyClass->GetName());
-//			}
-//		}
-//	}
-//	//}
-//#if UE_BUILD_DEVELOPMENT
-//	UE_LOG(LogTemp, Log, TEXT("WaveManager: Active enemies count set to %d."), ActiveEnemies);
-//#endif 
-//}
-
-//--------------------------------------------------------------------------------
-
 void APWaveManager::NewStartWave()
 {
 	if (CurrentWaveIndex >= WavesArray.Num())
@@ -318,60 +195,81 @@ void APWaveManager::NewStartWave()
 		UE_LOG(LogTemp, Warning, TEXT("WaveManager: No valid wave at index %d."), CurrentWaveIndex);
 		return;
 	}
-	//Get current Wave
+	//Get current wave
 	const FWaveOrder& CurrentWaveOrder = WavesArray[CurrentWaveIndex];
+	
 #if UE_BUILD_DEVELOPMENT
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawning enemies for wave %d."), CurrentWaveIndex + 1);
 #endif
-	//Reset counter
+	//Get the pair <enemy, number to spawn>
 	ActiveEnemies = 0;
-	TMap<TSubclassOf<AActor>, int32> EnemyList;
-	int poolOfPoint = WaveDataAsset->WavesArray[0].WaveSettings.TotalPoints;
+	int PoolOfPoints = WaveDataAsset->WavesArray[0].WaveSettings.TotalPoints;
 	TArray<FInternalDumbEnemyType> Enemies = WaveDataAsset->WavesArray[0].WaveSettings.EnemyTypes;
-	EnemyList = GenerateWave(poolOfPoint, 3, Enemies);
-#if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Log, TEXT("WaveManager: EnemyList Num -> %d"), EnemyList.Num());
-#endif
+	TMap<TSubclassOf<AActor>, int32> EnemyList = GenerateWave(PoolOfPoints, 3, Enemies);
 
+#if UE_BUILD_DEVELOPMENT
 	for (const TPair<TSubclassOf<AActor>, int32>& Pair : EnemyList)
 	{
-		TSubclassOf<AActor> EnemyClass = Pair.Key;
-		int32 SpawnCount = Pair.Value;
-
-		for (int32 i = 0; i < SpawnCount; ++i)
-		{
-			FVector SpawnLocation = GetActorLocation();
-			FRotator SpawnRotation = GetActorRotation();
-
-			if (EnemySpawners.Num() > 0)
-			{
-				int32 RandomIndex = FMath::RandRange(0, EnemySpawners.Num() - 1);
-				SpawnLocation = EnemySpawners[RandomIndex].GetLocation();
-				SpawnRotation = EnemySpawners[RandomIndex].Rotator();
-			}
-
-			SpawnLocation += FVector((double)FMath::RandRange(-300, 300), (double)FMath::RandRange(-300, 300), 0.0);
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, SpawnLocation, SpawnRotation, SpawnParams);
-			if (SpawnedEnemy)
-			{
-				UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawned enemy '%s' of type '%s'."), *SpawnedEnemy->GetName(), *EnemyClass->GetName());
-				ActiveEnemies++;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("WaveManager: Failed to spawn enemy of type '%s'."), *EnemyClass->GetName());
-			}
-		}
+		UE_LOG(LogTemp, Log, TEXT("WaveManager: For enemy class '%s', spawn count is %d"), *Pair.Key->GetName(), Pair.Value);
 	}
-#if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Log, TEXT("WaveManager: Active enemies count set to %d."), ActiveEnemies);
-#endif 
-
+#endif
+	//Queue for spawn
+	PendingSpawnQueue.Empty();
+	int32 TotalSpawns = 0;
+	for (const TPair<TSubclassOf<AActor>, int32>& Pair : EnemyList)
+	{
+		FSpawnInstruction Instruction;
+		Instruction.EnemyClass = Pair.Key;
+		Instruction.Count = Pair.Value;
+		PendingSpawnQueue.Add(Instruction);
+		TotalSpawns += Pair.Value;
+	}
+	ActiveEnemies = TotalSpawns;
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &APWaveManager::SpawnNextEnemy, SpawnFrequency, true);
+	}
 }
+void APWaveManager::SpawnNextEnemy()
+{
+    //Queue Empty
+    if (PendingSpawnQueue.Num() == 0)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
+#if UE_BUILD_DEVELOPMENT
+        UE_LOG(LogTemp, Log, TEXT("WaveManager: Finished spawning all enemies for wave %d."), CurrentWaveIndex + 1);
+#endif
+        return;
+    }
+	//Get first instruction
+    FSpawnInstruction& Instruction = PendingSpawnQueue[0];
+    if (Instruction.Count > 0)
+    {
+        FVector SpawnLocation = GetSpawnerLocationByWeight();
+        FRotator SpawnRotation = GetActorRotation();
+        
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+        
+        AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(Instruction.EnemyClass, SpawnLocation, SpawnRotation, SpawnParams);
+        if (SpawnedEnemy)
+        {
+#if UE_BUILD_DEVELOPMENT
+            UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawned enemy '%s' of type '%s'."), *SpawnedEnemy->GetName(), *Instruction.EnemyClass->GetName());
+#endif
+            Instruction.Count--;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("WaveManager: Failed to spawn enemy of type '%s'."), *Instruction.EnemyClass->GetName());
+        }
+    }
+    if (Instruction.Count <= 0)
+    {
+        PendingSpawnQueue.RemoveAt(0);
+    }
+}
+
 
 TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies)
 {
@@ -479,8 +377,39 @@ void APWaveManager::OnWaveFinished()
 
 void APWaveManager::EndLevel()
 {
-	// TODO: Implement Delegate
+	OnEndLevel.Broadcast();
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Ending level."));
+}
+
+FVector APWaveManager::GetSpawnerLocationByWeight() const
+{
+	if (Spawners.Num() == 0)
+	{
+		return GetActorLocation();
+	}
+
+	float TotalWeight = 0.0f;
+	for (const AWaveSpawner* Spawner : Spawners)
+	{
+		if (Spawner)
+		{
+			TotalWeight += Spawner->SpawnWeight;
+		}
+	}
+
+	float RandomWeight = FMath::FRandRange(0.0f, TotalWeight);
+	for (const AWaveSpawner* Spawner : Spawners)
+	{
+		if (Spawner)
+		{
+			RandomWeight -= Spawner->SpawnWeight;
+			if (RandomWeight <= 0.0f)
+			{
+				return Spawner->GetRandomSpawnLocation();
+			}
+		}
+	}
+	return Spawners[0] ? Spawners[0]->GetRandomSpawnLocation() : GetActorLocation();
 }
 
 void APWaveManager::BindOnWaveStarted(UObject* Object, FName FunctionName)
@@ -556,6 +485,31 @@ void APWaveManager::UnbindOnEnemyDie(UObject* Object)
 #endif
 }
 
+void APWaveManager::BindOnEndLevel(UObject* Object, FName FunctionName)
+{
+	if (!Object) return;
+	if (FunctionName.IsNone()) return;
+
+	FScriptDelegate Delegate;
+	Delegate.BindUFunction(Object, FunctionName);
+	OnEnemyDie.AddUnique(Delegate);
+
+#if UE_BUILD_DEVELOPMENT
+	UE_LOG(LogTemp, Log, TEXT("WaveManager: Function '%s' bound to OnEndLevel."), *FunctionName.ToString());
+#endif
+
+}
+
+void APWaveManager::UnbindOnEndLevel(UObject* Object)
+{
+	if (!Object) return;
+
+	OnEnemyDie.RemoveAll(Object);
+#if UE_BUILD_DEVELOPMENT
+	UE_LOG(LogTemp, Log, TEXT("WaveManager: Removed all OnEndLevel bindings for object %s."), *Object->GetName());
+#endif
+}
+
 void APWaveManager::StaticHandleEnemyDie(AActor* EnemyDie)
 {
 	if (Instance)
@@ -569,7 +523,7 @@ void APWaveManager::StaticHandleEnemyDie(AActor* EnemyDie)
 }
 
 void APWaveManager::InitializeWaveManager(UPDataWaveContainer* NewWaveData,
-	const TArray<FTransform>& SpawnerLocations, const float NewWaveInterval, const bool bNewAutoStartWaveSystem)
+	const TArray<AWaveSpawner*>& NewSpawners, const float NewWaveInterval, const bool bNewAutoStartWaveSystem)
 {
 	if (!NewWaveData)
 	{
@@ -578,11 +532,11 @@ void APWaveManager::InitializeWaveManager(UPDataWaveContainer* NewWaveData,
 	}
 
 	WaveDataAsset = NewWaveData;
-	EnemySpawners = SpawnerLocations;
+	Spawners = NewSpawners;
 	this->WaveInterval = WaveInterval;
 	this->bAutoStartWaveSystem = bNewAutoStartWaveSystem;
 #if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Log, TEXT("WaveManager: Initialized with new data. WaveInterval: %f, Spawners: %d"), WaveInterval, EnemySpawners.Num());
+	UE_LOG(LogTemp, Log, TEXT("WaveManager: Initialized with new data. WaveInterval: %f, Spawners: %d"), WaveInterval, Spawners.Num());
 #endif
 }
 

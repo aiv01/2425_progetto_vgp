@@ -33,6 +33,15 @@ public class WaveTool : ModuleRules
 				"SlateCore",
 				"InputCore",
 				"Projects",
+				"BlueprintGraph"	
+            }
+			);
+			
+		
+		PrivateDependencyModuleNames.AddRange(
+			new string[]
+			{
+				// ... add private dependencies that you statically link with here ...	
             }
 			);
 
