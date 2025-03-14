@@ -13,27 +13,22 @@ void AGridGeneratorVolume::Generate()
 	// clear all of the data
 	GridData.Empty();
 
-	// get volume extents
-	FVector VolumeExtents;
-	VolumeExtents.X = Brush->Bounds.BoxExtent.X * GetActorScale().X;
-	VolumeExtents.Y = Brush->Bounds.BoxExtent.Y * GetActorScale().Y;
-	VolumeExtents.Z = Brush->Bounds.BoxExtent.Z * GetActorScale().Z;
-	
-	// get origin of the generation 
-	FVector Origin = GetActorLocation() - VolumeExtents;
-
 	// get whole size of the volume
-	FVector VolumeSize = VolumeExtents * 2.f;
+	FVector VolumeSize = GetVolumeExtent() * 2.f;
 
 	// at this point we can calculate size in cells
 	CalculateSizeInCells(VolumeSize);
 
 	// start the actual grid generation
-	GenerateGrid(Origin);
+	GenerateGrid(GetOrigin());
 }
 
-void AGridGeneratorVolume::GetCloserSurface (FHitResult HitResult, FGridSurface& CloserSurface)
+void AGridGeneratorVolume::GetCloserSurface (FHitResult HitResult, FGridSurface*& CloserSurface)
 {
+	FVector LocalHitLocation = GetOrigin() - HitResult.Location;
+	
+	//CloserSurface = &GridData[0];
+	/*
 	float DistanceCloserSurface = INT_MAX;
 	for (auto GridSurface : GridData)
 	{
@@ -51,7 +46,7 @@ void AGridGeneratorVolume::GetCloserSurface (FHitResult HitResult, FGridSurface&
 			//no closer pos if min distance > Trap Size
 		}
 		
-	}
+	}*/
 }
 
 TArray<FGridSurface> AGridGeneratorVolume::GetGridData ()
@@ -233,4 +228,21 @@ bool AGridGeneratorVolume::CheckCorners(const FVector& CellPosition, const FVect
 		}
 	}
 	return true;
+}
+
+FVector AGridGeneratorVolume::GetOrigin () const
+{
+	// get origin of the generation 
+	return GetActorLocation() - GetVolumeExtent();
+}
+
+FVector AGridGeneratorVolume::GetVolumeExtent () const
+{
+	// get volume extents
+	FVector VolumeExtents;
+	VolumeExtents.X = Brush->Bounds.BoxExtent.X * GetActorScale().X;
+	VolumeExtents.Y = Brush->Bounds.BoxExtent.Y * GetActorScale().Y;
+	VolumeExtents.Z = Brush->Bounds.BoxExtent.Z * GetActorScale().Z;
+	return VolumeExtents;
+	
 }

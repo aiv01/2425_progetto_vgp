@@ -3,7 +3,13 @@
 #include "GridSystem/GridPreviewComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-
+/**
+ * this method does a line trace to a wall or floor. if there is a collision, it checks if there is an AGridGeneratorVolume and returns it (if there are more, it returns one)
+ * @param CameraForward FVector (look direction)
+ * @param result FHitResult&
+ * @param Hit bool
+ * @param VolumeRef AGridGeneratorVolume*&
+ */
 void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& result, bool& Hit, AGridGeneratorVolume*& VolumeRef)
 {
 	//do a line trace between the player character and it's camera forward
@@ -18,7 +24,7 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 	{
 		if(bDebug)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("HIT WITH SURFACE"));
+			UE_LOG(LogTemp, Log, TEXT("HIT WITH SURFACE"));
 			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, 10, 0, 5);
 		}
 		
@@ -29,10 +35,10 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 		{
 			if(bDebug)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("HIT WITH VOLUME"));
+				UE_LOG(LogTemp, Log, TEXT("HIT WITH VOLUME"));
 				for (auto OverlappedActor : OverlappedActors)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("ACTOR OVERLAPPED: %s"), *OverlappedActor->GetName());
+					UE_LOG(LogTemp, Log, TEXT("ACTOR OVERLAPPED: %s"), *OverlappedActor->GetName());
 				}
 			}
 			//get the first overlapped volume
@@ -42,13 +48,16 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 				Hit = true;
 				return;
 			}
+		} else if (bDebug)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NO GridGeneratorVolume FOUND"));
 		}
+	} else if(bDebug)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO SURFACE FOUND"));
 	}
 	Hit = false;
 }
-
-
-
 
 /**
  * Given a World Position and a volume, check if it's Inside the Box Volume Bounds (the volume is null, return false)
@@ -66,20 +75,25 @@ bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* Volum
 }
 
 /**
- * Given a Grid Surface, Show the Trap mesh preview. 
- * @param GridSurface 
+ * Given the CameraForward, Show the Trap mesh preview in a specific point. 
+ * @param CameraForward FVector (look direction)
+ * @param HitSurface bool
  */
 void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface)
 {
-	FHitResult result;
+	FHitResult Result;
 	AGridGeneratorVolume* GridVolumeRef;
-	GridRayCast(CameraForward, result, HitSurface, GridVolumeRef);
+	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
 	if(HitSurface && GridVolumeRef)
 	{
+		FGridSurface* GridSurface;
+		GridVolumeRef->GetCloserSurface(Result, GridSurface);
 		UGridPreviewComponent* UGridPreviewComp = GridVolumeRef->FindComponentByClass<UGridPreviewComponent>();
-		if(UGridPreviewComp)
+		if(UGridPreviewComp && GridSurface)
 		{
-			//UGridPreviewComp->ShowPreview()
+			UGridPreviewComp->ShowPreview(GridSurface);
+			UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
+
 		}else if(bDebug)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("NO PREVIEW COMPONENT ATTACHED"));
@@ -91,21 +105,26 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
 }
 
 /**
- * Given a Grid Surface, Place the Trap and occupy the grid surface.
- * @param GridSurface 
- */
+ * Given the CameraForward, Place the Trap in a specific point Inside the volume. 
+ * @param CameraForward FVector (look direction)
+ * @param HitSurface bool
+ */ 
 void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
 {
-	FHitResult result;
+	FHitResult Result;
 	AGridGeneratorVolume* GridVolumeRef;
-	GridRayCast(CameraForward, result, HitSurface, GridVolumeRef);
+	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
 	if(HitSurface && GridVolumeRef)
 	{
+		FGridSurface* GridSurface;
+		GridVolumeRef->GetCloserSurface(Result, GridSurface);
 		UGridPlacementComponent* UGridPlaceComp = GridVolumeRef->FindComponentByClass<UGridPlacementComponent>();
-		if(UGridPlaceComp)
+		if(UGridPlaceComp && GridSurface)
 		{
 			//place trap
-			//UGridPlaceComp->PlaceTrap();
+			UGridPlaceComp->PlaceTrap(GridSurface);
+			UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));
+
 		}else if(bDebug)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("NO PLACE COMPONENT ATTACHED"));

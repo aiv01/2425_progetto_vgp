@@ -23,9 +23,8 @@ public:
 	// "button" to start generation
 	UFUNCTION(CallInEditor, Category="GridGenerator")
 	void Generate();
-
-	UFUNCTION(Blueprintable)
-	void GetCloserSurface(const FHitResult HitResult, UPARAM(ref) FGridSurface& CloserSurface);
+	
+	void GetCloserSurface(const FHitResult HitResult, FGridSurface*& CloserSurface);
 
 	UFUNCTION(Blueprintable)
 	TArray<FGridSurface> GetGridData();
@@ -107,4 +106,9 @@ private:
 	// checks if the surface has enough "surface quantity" based on MinAvailableSurface
 	// returns true if there is enough surface
 	bool CheckCorners(const FVector& CellPosition, const FVector& SurfaceDirection) const;
+
+	FVector GetOrigin() const;
+	
+	FVector GetVolumeExtent() const;
+
 };

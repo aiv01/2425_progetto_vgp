@@ -15,7 +15,9 @@ UGridPlacementComponent::UGridPlacementComponent()
 
 void UGridPlacementComponent::PlaceTrap (FGridSurface* GridSurface)
 {
-	//Place Turret
-	GridSurface->bOccupied = true;
-	
+	if(!GridSurface->bOccupied)
+	{
+		//Place Turret
+		GridSurface->bOccupied = true;
+	}
 }

@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "GridPlacementComponent.generated.h"
 
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, BlueprintType, meta=(BlueprintSpawnableComponent))
 class AIV_2025_VGP_API UGridPlacementComponent : public UGridProcessorComponent
 {
 	GENERATED_BODY()

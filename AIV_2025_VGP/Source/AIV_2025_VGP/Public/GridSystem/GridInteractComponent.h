@@ -15,9 +15,9 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 
 
 	
-protected:
+public:
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
-	float InteractDistance = 300.0;
+	float InteractDistance = 600.0;
 	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
 	float SphereCastRadius = 100.0;
@@ -29,10 +29,12 @@ protected:
 	bool bDebug = false;
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Debug")
 	FColor DebugColor;
-	
-public:
+
+protected:
 	UFUNCTION(BlueprintPure)
 	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit, AGridGeneratorVolume*& VolumeRef);
+
+public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsPositionWithinVolume(AGridGeneratorVolume* VolumeRef, const FVector Position);
