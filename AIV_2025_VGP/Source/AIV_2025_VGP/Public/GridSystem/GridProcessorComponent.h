@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "FGridSurface.h"
+#include "GridGeneratorVolume.h"
 #include "Components/ActorComponent.h"
 #include "GridProcessorComponent.generated.h"
 
@@ -15,9 +16,15 @@ class AIV_2025_VGP_API UGridProcessorComponent : public UActorComponent
 
 public:
 	virtual void InitializeComponent() override;
-	
+	virtual void BeginPlay() override;
+	FGridSurface* GetCloserSurface(const FHitResult HitResult);
+
 protected:
 	//reference of the GridData from the GridGeneratorVolumeOwner Owner
-	TArray<FGridSurface> *GridData;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	AGridGeneratorVolume* GridVolumeOwner;
+
+	
+	void DrawDebug(FGridSurface* CloserSurface) const;
 	
 };

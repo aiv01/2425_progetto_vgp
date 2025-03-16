@@ -13,11 +13,13 @@ UGridPlacementComponent::UGridPlacementComponent()
 	// ...
 }
 
-void UGridPlacementComponent::PlaceTrap (FGridSurface* GridSurface)
+void UGridPlacementComponent::PlaceTrap (FHitResult HitResult)
 {
-	if(!GridSurface->bOccupied)
+	FGridSurface* CloserSurface = GetCloserSurface(HitResult);
+	if(CloserSurface)
 	{
+		CloserSurface->bOccupied = true;
+		DrawDebug(CloserSurface);
 		//Place Turret
-		GridSurface->bOccupied = true;
 	}
 }

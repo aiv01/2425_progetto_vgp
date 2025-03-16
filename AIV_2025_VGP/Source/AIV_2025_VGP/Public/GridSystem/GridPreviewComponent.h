@@ -14,6 +14,6 @@ public:
 	UMaterial* PreviewMaterial;
 	//TObjectPtr<UMaterial> PreviewMaterial;
 	
-	void ShowPreview(FGridSurface* GridSurface);
+	void ShowPreview(const FHitResult HitResult, FGridSurface*& CloserSurface);
 	
 };

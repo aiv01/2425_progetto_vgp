@@ -7,31 +7,77 @@
 
 void UGridProcessorComponent::InitializeComponent ()
 {
+	Super::InitializeComponent();
 	//check if the owner is from "GridGeneratorVolume" class
+	/*if( GetOwner()->IsA(AGridGeneratorVolume::StaticClass()))
+	{
+		//link ref
+		GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
+		if(GridVolumeOwner)		UE_LOG(LogTemp, Log, TEXT("owner setted'"));
+
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Owner is not a 'AGridGeneratorVolume'"));
+	}*/
+}
+
+void UGridProcessorComponent::BeginPlay ()
+{
+	Super::BeginPlay();
 	if( GetOwner()->IsA(AGridGeneratorVolume::StaticClass()))
 	{
 		//link ref
-		AGridGeneratorVolume* owner = Cast<AGridGeneratorVolume>(GetOwner());
-		TArray<FGridSurface> Gd = owner->GetGridData();
-		GridData = &Gd;
+		GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
+		if(GridVolumeOwner)		UE_LOG(LogTemp, Log, TEXT("owner setted'"));
+
 	} else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Owner is not a 'AGridGeneratorVolume'"));
 	}
 }
-/*
-FGridSurface* UGridProcessorComponent::GetClosetGridPoint (FVector Position)
-{
-	if(!GridData)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("GRID DATA NULL"))
-		return NULL;
-	}
 
-	
-	//given the normal, check the surface direction
-	//given the surface direction check the closer point
-	//given the cell size check if there is point
-	
+FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitResult)
+{
+	if(!GridVolumeOwner)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GRID OWNER REF NULL"))
+		return nullptr;
+		
+	}
+	//AGridGeneratorVolume* GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
+	//FVector LocalHitLocation = GridVolumeOwner->GetOrigin() - HitResult.Location;
+
+	float DistanceCloserSurface = INT_MAX;
+	//FVector VecDistanceCloserSurf = {INT_MAX, INT_MAX, INT_MAX};
+	float HalfCellSize = (GridVolumeOwner->CellSize)/2;
+	HalfCellSize*=HalfCellSize;
+	for (auto& GridSurface : GridVolumeOwner->GetGridData())
+	{
+		//check the distance 
+		float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
+		
+
+		if(DistanceCloserSurface > DistanceGridSurface)
+		{
+			DistanceCloserSurface = DistanceGridSurface;
+			if(DistanceCloserSurface < HalfCellSize)
+			{
+				return &GridSurface;
+			}
+		}
+		/**
+		//check if it has the same rotation has the normal of the FHitResult
+		if(FMath::IsNearlyEqual(FVector::DotProduct(HitResult.Normal, GridSurface.Orientation), 1.0f, KINDA_SMALL_NUMBER))
+		{
+			
+		}*/
+	}
+	UE_LOG(LogTemp, Error, TEXT("NO SURFACE FOUND?"))
+
+	return nullptr;
 }
-*/
+
+void UGridProcessorComponent::DrawDebug (FGridSurface* CloserSurface) const
+{
+	DrawDebugBox(GetWorld(), CloserSurface->Position, FVector{GridVolumeOwner->CellSize/2,GridVolumeOwner->CellSize/2,2}, {0,255,0}, false, 5, 0, 5);
+}

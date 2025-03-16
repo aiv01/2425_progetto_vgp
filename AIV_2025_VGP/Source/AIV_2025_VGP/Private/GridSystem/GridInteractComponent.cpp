@@ -18,14 +18,14 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 	//Check if collide to wall or floor
 	if(bDebug)
 	{
-		DrawDebugLine(GetWorld(), ownerLocation, endLocation, DebugColor, false, 10, 0, 5);
+		DrawDebugLine(GetWorld(), ownerLocation, endLocation, DebugColor, false, -1, 0, 5);
 	}
-	if(GetWorld()->LineTraceSingleByChannel(result, ownerLocation, endLocation, ECollisionChannel::ECC_Visibility))
+	if(GetWorld()->LineTraceSingleByChannel(result, ownerLocation, endLocation, ECC_Visibility))
 	{
 		if(bDebug)
 		{
 			UE_LOG(LogTemp, Log, TEXT("HIT WITH SURFACE"));
-			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, 10, 0, 5);
+			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, -1, 0, 5);
 		}
 		
 		//check the volume inside the SphereOverlapp 
@@ -81,18 +81,28 @@ bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* Volum
  */
 void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface)
 {
+	
 	FHitResult Result;
 	AGridGeneratorVolume* GridVolumeRef;
 	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
 	if(HitSurface && GridVolumeRef)
 	{
-		FGridSurface* GridSurface;
-		GridVolumeRef->GetCloserSurface(Result, GridSurface);
-		UGridPreviewComponent* UGridPreviewComp = GridVolumeRef->FindComponentByClass<UGridPreviewComponent>();
-		if(UGridPreviewComp && GridSurface)
+		if(LastGridSurface)
 		{
-			UGridPreviewComp->ShowPreview(GridSurface);
-			UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
+			if(GridVolumeRef->IsPointInsideGridSurface(*LastGridSurface, Result.Location))
+			{
+				UE_LOG(LogTemp, Log, TEXT("Still Inside"));
+				return;
+			}
+			UE_LOG(LogTemp, Log, TEXT("no more inside"));
+		}
+		UGridPreviewComponent* UGridPreviewComp = GridVolumeRef->FindComponentByClass<UGridPreviewComponent>();
+		if(UGridPreviewComp)
+		{
+			UGridPreviewComp->ShowPreview(Result, LastGridSurface);
+			if(bDebug){
+				UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
+			}
 
 		}else if(bDebug)
 		{
@@ -116,14 +126,14 @@ void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
 	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
 	if(HitSurface && GridVolumeRef)
 	{
-		FGridSurface* GridSurface;
-		GridVolumeRef->GetCloserSurface(Result, GridSurface);
 		UGridPlacementComponent* UGridPlaceComp = GridVolumeRef->FindComponentByClass<UGridPlacementComponent>();
-		if(UGridPlaceComp && GridSurface)
+		if(UGridPlaceComp)
 		{
 			//place trap
-			UGridPlaceComp->PlaceTrap(GridSurface);
-			UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));
+			UGridPlaceComp->PlaceTrap(Result);
+			if(bDebug){
+				UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));
+			}
 
 		}else if(bDebug)
 		{

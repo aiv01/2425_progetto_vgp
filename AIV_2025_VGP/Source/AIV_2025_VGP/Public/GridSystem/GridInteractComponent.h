@@ -13,7 +13,8 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-
+private:
+	FGridSurface* LastGridSurface;
 	
 public:
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
@@ -27,6 +28,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Debug")
 	bool bDebug = false;
+	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Debug")
 	FColor DebugColor;
 

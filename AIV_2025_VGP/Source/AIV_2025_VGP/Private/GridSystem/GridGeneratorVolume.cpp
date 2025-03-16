@@ -23,33 +23,7 @@ void AGridGeneratorVolume::Generate()
 	GenerateGrid(GetOrigin());
 }
 
-void AGridGeneratorVolume::GetCloserSurface (FHitResult HitResult, FGridSurface*& CloserSurface)
-{
-	FVector LocalHitLocation = GetOrigin() - HitResult.Location;
-	
-	//CloserSurface = &GridData[0];
-	/*
-	float DistanceCloserSurface = INT_MAX;
-	for (auto GridSurface : GridData)
-	{
-		//check if it has the same rotation has the normal of the FHitResult
-		if(FMath::IsNearlyEqual(FVector::DotProduct(HitResult.Normal, GridSurface.Orientation), 1.0f, KINDA_SMALL_NUMBER))
-		{
-			//check the distance 
-			float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
-			if(DistanceCloserSurface > DistanceGridSurface)
-			{
-				DistanceCloserSurface = DistanceGridSurface;
-				CloserSurface = GridSurface;
-			}
-			//rotation check?
-			//no closer pos if min distance > Trap Size
-		}
-		
-	}*/
-}
-
-TArray<FGridSurface> AGridGeneratorVolume::GetGridData ()
+TArray<FGridSurface>& AGridGeneratorVolume::GetGridData ()
 {
 	return GridData;
 }
@@ -245,4 +219,12 @@ FVector AGridGeneratorVolume::GetVolumeExtent () const
 	VolumeExtents.Z = Brush->Bounds.BoxExtent.Z * GetActorScale().Z;
 	return VolumeExtents;
 	
+}
+
+bool AGridGeneratorVolume::IsPointInsideGridSurface (FGridSurface Surface, FVector Point) const
+{
+	//FVector LocalPoint = Point - GetOrigin();
+	float HalfSquareCell = CellSize/2;
+	HalfSquareCell *= HalfSquareCell;
+	return FVector::DistSquared(Surface.Position, Point) < HalfSquareCell;
 }

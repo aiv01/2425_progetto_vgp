@@ -23,16 +23,25 @@ public:
 	// "button" to start generation
 	UFUNCTION(CallInEditor, Category="GridGenerator")
 	void Generate();
-	
-	void GetCloserSurface(const FHitResult HitResult, FGridSurface*& CloserSurface);
 
 	UFUNCTION(Blueprintable)
-	TArray<FGridSurface> GetGridData();
+	TArray<FGridSurface>& GetGridData();
+
+	UFUNCTION(Blueprintable)
+	FVector GetOrigin() const;
 	
-protected:
+	UFUNCTION(Blueprintable)
+	FVector GetVolumeExtent() const;
+
+	UFUNCTION(Blueprintable)
+	bool IsPointInsideGridSurface(FGridSurface Surface, FVector Point) const;
+	
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
 	float CellSize;
+	
+protected:
+	
 
 	// types of objects that can interfere with grid generation
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
@@ -106,9 +115,5 @@ private:
 	// checks if the surface has enough "surface quantity" based on MinAvailableSurface
 	// returns true if there is enough surface
 	bool CheckCorners(const FVector& CellPosition, const FVector& SurfaceDirection) const;
-
-	FVector GetOrigin() const;
-	
-	FVector GetVolumeExtent() const;
 
 };

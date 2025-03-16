@@ -3,8 +3,13 @@
 
 #include "GridSystem/GridPreviewComponent.h"
 
-void UGridPreviewComponent::ShowPreview (FGridSurface* GridSurface)
+void UGridPreviewComponent::ShowPreview (const FHitResult HitResult, FGridSurface*& CloserSurface)
 {
-	//cerca il punto piu vicino e piazza la mesh con la preview
+	CloserSurface = GetCloserSurface(HitResult);
+	if(CloserSurface)
+	{
+		DrawDebug(CloserSurface);
+		//Place Turret
+	}
 	
 }
