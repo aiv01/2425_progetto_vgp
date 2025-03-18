@@ -50,7 +50,7 @@ public:
 
 #pragma region Session
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback, const APawn* Requester,
+	static bool RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
 									   const int32 NumberPublicConnections, const int32 NumberPrivateConnections, 
 									   const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
 									   const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
@@ -75,5 +75,6 @@ private:
 	static bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
 	static CSteamID ConvertInt32toCSteamID(const int32 SteamID);
 	static void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
+	static void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 };

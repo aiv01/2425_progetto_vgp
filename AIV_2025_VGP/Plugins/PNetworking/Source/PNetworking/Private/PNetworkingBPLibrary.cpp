@@ -12,6 +12,7 @@
 #include "OnlineSubsystem.h"
 #include "UserSteamData.h"
 #include "PNetworking.h"
+#include "Kismet/GameplayStatics.h"
 
 // To disable "strncpy" security warnings.
 #pragma warning(push)
@@ -340,20 +341,13 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 {
 	if (bWasSuccessful)
 	{
+		FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(
+			FOnJoinSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 		if (bHasJoined)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
 
-			// const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen"));
-			// if (bServerTravelResult)
-			// {
-			// 	UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
-			// }
-			// else
-			// {
-			// 	UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
-			// }
 		}
 		else
 		{
@@ -366,8 +360,40 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 	}
 }
 
+void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+	if (Result != EOnJoinSessionCompleteResult::Success)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Join Session failed!"));
+		return;
+	}
+
+	FString ConnectInfo;
+	if (!FPNetworkingModule::GetOnlineSessionReference()->GetResolvedConnectString(SessionName, ConnectInfo))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string!"));
+		return;
+	}
+
+	UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("World is null!"));
+		return;
+	}
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(World, 0);
+	if (!PlayerController)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerController is null!"));
+		return;
+	}
+
+	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
+	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
+}
+
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
-												   const APawn* Requester,
 												   const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
 												   const bool bIsLANMatch,
@@ -403,18 +429,18 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 	NewSessionSettings.bUseLobbiesIfAvailable = bUseLobbiesIfAvailable;
 	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback, Requester](FName NewName, bool bWasSuccessfull)
+	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
 		{
 			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
 			FPNetworkingModule::bIsComputingNewSession = false;
 
-			if (!Requester)
+			UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
+			if (!World)
 			{
-				UE_LOG(LogTemp, Error, TEXT("Server Travel Error, Invalid Requester!"));
+				UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
 				return;
 			}
-
-			const bool bServerTravelResult = Requester->GetWorld()->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
+			const bool bServerTravelResult = World->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
 			if (bServerTravelResult)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
