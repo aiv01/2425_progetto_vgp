@@ -6,6 +6,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "PNetworkingBPLibrary.generated.h"
 
 class FOnlineFriend;

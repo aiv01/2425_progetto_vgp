@@ -6,7 +6,6 @@
 
 #include "PNetworkingBPLibrary.h"
 #include "Interfaces/OnlineIdentityInterface.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSubsystemTypes.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
@@ -389,7 +388,9 @@ void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSess
 		return;
 	}
 
-	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
+	const FString AssociatedIpToMap = ConnectInfo + TEXT("?map=/Game/Custom/Networking/Maps/MapTest");
+
+	PlayerController->ClientTravel(AssociatedIpToMap, ETravelType::TRAVEL_Absolute);
 	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
@@ -427,6 +428,10 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 	NewSessionSettings.bUsesPresence = bUsesPresence;
 	NewSessionSettings.bAllowJoinViaPresenceFriendsOnly = bAllowJoinViaPresenceFriendsOnly;
 	NewSessionSettings.bUseLobbiesIfAvailable = bUseLobbiesIfAvailable;
+	NewSessionSettings.bAllowJoinInProgress = true;
+	NewSessionSettings.bAllowJoinViaPresence = true;
+	NewSessionSettings.bAllowInvites = true;
+
 	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
