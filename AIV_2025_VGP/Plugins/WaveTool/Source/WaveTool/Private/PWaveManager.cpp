@@ -488,9 +488,14 @@ void APWaveManager::UnbindOnEnemyDie(UObject* Object)
 
 void APWaveManager::BindOnEnemySpawn(UObject* Object, FName FunctionName)
 {
-	if (!Object) return;
-	if (FunctionName.IsNone()) return;
-
+	if (!Object)
+	{
+		return;
+	}
+	if (FunctionName.IsNone())
+	{
+		return;
+	}
 	FScriptDelegate Delegate;
 	Delegate.BindUFunction(Object, FunctionName);
 	OnEnemySpawn.AddUnique(Delegate);
@@ -503,8 +508,10 @@ void APWaveManager::BindOnEnemySpawn(UObject* Object, FName FunctionName)
 
 void APWaveManager::UnbindOnEnemySpawn(UObject* Object)
 {
-	if (!Object) return;
-
+	if (!Object)
+	{
+		return;
+	}
 	OnEnemySpawn.RemoveAll(Object);
 #if UE_BUILD_DEVELOPMENT
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Removed all OnEnemySpawn bindings for object %s."), *Object->GetName());
