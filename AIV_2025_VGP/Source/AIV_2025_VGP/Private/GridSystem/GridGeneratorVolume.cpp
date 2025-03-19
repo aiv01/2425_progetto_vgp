@@ -1,5 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Caponera Marco
+// Cimino Alberto
+// Sanzogni Gabriele
+// Vernone Michele
 
 #include "GridSystem/GridGeneratorVolume.h"
 #include "GridSystem/FGridSurface.h"
@@ -139,10 +142,11 @@ void AGridGeneratorVolume::GenerateSurfaces(const FVector& CellPosition)
 		}
 
 		// cast line trace in the selected direction to check if we have a valid surface
-		FVector SurfPosition = CellPosition + CurrentTraceDir * (HalfCellSize + ERROR_MARGIN);
+		FVector SurfPosition = CellPosition + (CurrentTraceDir * HalfCellSize);
+		FVector TraceEnd = SurfPosition + CurrentTraceDir * ERROR_MARGIN;
 		FHitResult HitResult;
-		//DrawDebugLine(GetWorld(), CellPosition, SurfPosition, FColor::Red, false, 5.f, 0U, 5);
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, CellPosition, SurfPosition, ECollisionChannel::ECC_Visibility))
+		// DrawDebugLine(GetWorld(), CellPosition, TraceEnd, FColor::Red, false, 5.f, 0U, 5);
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, CellPosition, TraceEnd, ECollisionChannel::ECC_Visibility))
 		{
 			// check on hit object collision type
 			if (!SurfaceTypes.Contains(HitResult.Component->GetCollisionObjectType()))
@@ -170,7 +174,7 @@ void AGridGeneratorVolume::GenerateSurfaces(const FVector& CellPosition)
 			CurrentSurfaceData.bOccupied = false;
 			CurrentSurfaceData.Orientation = -CurrentTraceDir;
 			CurrentSurfaceData.Position = SurfPosition;
-			DrawDebugLine(GetWorld(), CurrentSurfaceData.Position, CurrentSurfaceData.Position + CurrentSurfaceData.Orientation*250, FColor::Red, true, 5.f, 0U, 5);
+
 			GridData.Add(CurrentSurfaceData);
 		}
 	}

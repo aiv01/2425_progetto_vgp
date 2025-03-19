@@ -1,12 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Caponera Marco
+// Cimino Alberto
+// Sanzogni Gabriele
+// Vernone Michele
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
 
-#define ERROR_MARGIN 10.0
+#define ERROR_MARGIN 10.f
 
 struct FGridSurface;
 enum EObjectTypeQuery;
@@ -115,5 +118,4 @@ private:
 	// checks if the surface has enough "surface quantity" based on MinAvailableSurface
 	// returns true if there is enough surface
 	bool CheckCorners(const FVector& CellPosition, const FVector& SurfaceDirection) const;
-
 };
