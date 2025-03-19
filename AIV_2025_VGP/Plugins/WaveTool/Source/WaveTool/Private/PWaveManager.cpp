@@ -256,6 +256,7 @@ void APWaveManager::SpawnNextEnemy()
         {
 #if UE_BUILD_DEVELOPMENT
             UE_LOG(LogTemp, Log, TEXT("WaveManager: Spawned enemy '%s' of type '%s'."), *SpawnedEnemy->GetName(), *Instruction.EnemyClass->GetName());
+        	OnEnemySpawn.Broadcast(SpawnedEnemy);
 #endif
             Instruction.Count--;
         }
@@ -482,6 +483,31 @@ void APWaveManager::UnbindOnEnemyDie(UObject* Object)
 	OnEnemyDie.RemoveAll(Object);
 #if UE_BUILD_DEVELOPMENT
 	UE_LOG(LogTemp, Log, TEXT("WaveManager: Removed all OnEnemyDie bindings for object %s."), *Object->GetName());
+#endif
+}
+
+void APWaveManager::BindOnEnemySpawn(UObject* Object, FName FunctionName)
+{
+	if (!Object) return;
+	if (FunctionName.IsNone()) return;
+
+	FScriptDelegate Delegate;
+	Delegate.BindUFunction(Object, FunctionName);
+	OnEnemySpawn.AddUnique(Delegate);
+
+#if UE_BUILD_DEVELOPMENT
+	UE_LOG(LogTemp, Log, TEXT("WaveManager: Function '%s' bound to OnEnemySpawn."), *FunctionName.ToString());
+#endif
+
+}
+
+void APWaveManager::UnbindOnEnemySpawn(UObject* Object)
+{
+	if (!Object) return;
+
+	OnEnemySpawn.RemoveAll(Object);
+#if UE_BUILD_DEVELOPMENT
+	UE_LOG(LogTemp, Log, TEXT("WaveManager: Removed all OnEnemySpawn bindings for object %s."), *Object->GetName());
 #endif
 }
 
