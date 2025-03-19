@@ -16,6 +16,7 @@ class AEnemySpawner;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveStarted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveCompleted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDie, AActor*, EnemyDie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemySpawn, AActor*, EnemySpawn);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEndLevel);
 
 UCLASS(Blueprintable)
@@ -107,6 +108,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wave System | Events")
 	FOnEnemyDie OnEnemyDie;
 
+	/** Event triggered when an enemy spawn */
+	UPROPERTY(BlueprintAssignable, Category = "Wave System | Events")
+	FOnEnemySpawn OnEnemySpawn;
+
 	/** Event triggered when level end */
 	UPROPERTY(BlueprintAssignable, Category = "Wave System | Events")
 	FOnEndLevel OnEndLevel;
@@ -132,10 +137,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
 	void BindOnEnemyDie(UObject* Object, FName FunctionName);
 
+	/** Binds a function to OnEnemySpawn */
+	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
+	void BindOnEnemySpawn(UObject* Object, FName FunctionName);
+	
 	/** Unbinds all functions from OnEnemyDie */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
 	void UnbindOnEnemyDie(UObject* Object);
 
+	/** Unbinds all functions from OnEnemySpawn */
+	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
+	void UnbindOnEnemySpawn(UObject* Object);
+	
 	/** Binds a function to OnEnemyDie */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Events")
 	void BindOnEndLevel(UObject* Object, FName FunctionName);
