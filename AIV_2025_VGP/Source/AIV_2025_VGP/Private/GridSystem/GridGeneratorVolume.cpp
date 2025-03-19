@@ -141,7 +141,7 @@ void AGridGeneratorVolume::GenerateSurfaces(const FVector& CellPosition)
 		// cast line trace in the selected direction to check if we have a valid surface
 		FVector SurfPosition = CellPosition + CurrentTraceDir * (HalfCellSize + ERROR_MARGIN);
 		FHitResult HitResult;
-		// DrawDebugLine(GetWorld(), CellPosition, SurfPosition, FColor::Red, false, 5.f, 0U, 5);
+		//DrawDebugLine(GetWorld(), CellPosition, SurfPosition, FColor::Red, false, 5.f, 0U, 5);
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, CellPosition, SurfPosition, ECollisionChannel::ECC_Visibility))
 		{
 			// check on hit object collision type
@@ -170,7 +170,7 @@ void AGridGeneratorVolume::GenerateSurfaces(const FVector& CellPosition)
 			CurrentSurfaceData.bOccupied = false;
 			CurrentSurfaceData.Orientation = -CurrentTraceDir;
 			CurrentSurfaceData.Position = SurfPosition;
-
+			DrawDebugLine(GetWorld(), CurrentSurfaceData.Position, CurrentSurfaceData.Position + CurrentSurfaceData.Orientation*250, FColor::Red, true, 5.f, 0U, 5);
 			GridData.Add(CurrentSurfaceData);
 		}
 	}
@@ -221,10 +221,23 @@ FVector AGridGeneratorVolume::GetVolumeExtent () const
 	
 }
 
-bool AGridGeneratorVolume::IsPointInsideGridSurface (FGridSurface Surface, FVector Point) const
+bool AGridGeneratorVolume::IsPointInsideGridSurface (const FGridSurface& Surface, const FVector& Point) const
 {
 	//FVector LocalPoint = Point - GetOrigin();
-	float HalfSquareCell = CellSize/2;
-	HalfSquareCell *= HalfSquareCell;
-	return FVector::DistSquared(Surface.Position, Point) < HalfSquareCell;
+	const float HalfSquareCell = CellSize * 0.5;
+	const FVector LocalSurfacePoint = (Point - Surface.Position).GetAbs();
+
+	if (Surface.Orientation.Z != 0)
+	{	
+		return LocalSurfacePoint.X < HalfSquareCell && LocalSurfacePoint.Y < HalfSquareCell;
+	}
+	if (Surface.Orientation.X != 0)
+	{	
+		return LocalSurfacePoint.Z < HalfSquareCell && LocalSurfacePoint.Y < HalfSquareCell;
+	}
+	if (Surface.Orientation.Y != 0)
+	{	
+		return LocalSurfacePoint.X < HalfSquareCell && LocalSurfacePoint.Z < HalfSquareCell;
+	}
+	return false;
 }

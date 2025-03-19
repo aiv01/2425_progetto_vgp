@@ -6,6 +6,7 @@
 void UGridPreviewComponent::ShowPreview (const FHitResult HitResult, FGridSurface*& CloserSurface)
 {
 	CloserSurface = GetCloserSurface(HitResult);
+	
 	if(CloserSurface)
 	{
 		DrawDebug(CloserSurface);

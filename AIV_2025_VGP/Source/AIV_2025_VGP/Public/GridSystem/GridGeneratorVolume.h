@@ -6,7 +6,7 @@
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
 
-#define ERROR_MARGIN 0.5f
+#define ERROR_MARGIN 10.0
 
 struct FGridSurface;
 enum EObjectTypeQuery;
@@ -33,8 +33,8 @@ public:
 	UFUNCTION(Blueprintable)
 	FVector GetVolumeExtent() const;
 
-	UFUNCTION(Blueprintable)
-	bool IsPointInsideGridSurface(FGridSurface Surface, FVector Point) const;
+	//UFUNCTION(Blueprintable)
+	bool IsPointInsideGridSurface(const FGridSurface& Surface, const FVector& Point) const;
 	
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")

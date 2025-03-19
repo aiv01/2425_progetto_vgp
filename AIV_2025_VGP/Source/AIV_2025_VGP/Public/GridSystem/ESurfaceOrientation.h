@@ -11,7 +11,7 @@
 
 // used to let the user decided in which direction to generate surfaces for the grid system
 UENUM(BlueprintType)
-enum ESurfaceOrientation
+enum ESurfaceOrientation : int
 {
 	ZPOS		UMETA(DisplayName = "Up"),
 	ZNEG		UMETA(DisplayName = "Down"),

@@ -25,6 +25,6 @@ protected:
 	AGridGeneratorVolume* GridVolumeOwner;
 
 	
-	void DrawDebug(FGridSurface* CloserSurface) const;
+	void DrawDebug(const FGridSurface* CloserSurface) const;
 	
 };

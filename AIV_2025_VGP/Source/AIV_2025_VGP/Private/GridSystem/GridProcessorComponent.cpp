@@ -47,15 +47,20 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 	//AGridGeneratorVolume* GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
 	//FVector LocalHitLocation = GridVolumeOwner->GetOrigin() - HitResult.Location;
 
-	float DistanceCloserSurface = INT_MAX;
+	//float DistanceCloserSurface = INT_MAX;
 	//FVector VecDistanceCloserSurf = {INT_MAX, INT_MAX, INT_MAX};
-	float HalfCellSize = (GridVolumeOwner->CellSize)/2;
-	HalfCellSize*=HalfCellSize;
+	//float HalfCellSize = (GridVolumeOwner->CellSize)/2;
+	//HalfCellSize*=HalfCellSize;
 	for (auto& GridSurface : GridVolumeOwner->GetGridData())
 	{
-		//check the distance 
-		float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
+		//check the distance
+		if(GridVolumeOwner->IsPointInsideGridSurface(GridSurface, HitResult.Location))
+		{
+			return &GridSurface;
+		}
 		
+		/*
+		float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
 
 		if(DistanceCloserSurface > DistanceGridSurface)
 		{
@@ -65,7 +70,6 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 				return &GridSurface;
 			}
 		}
-		/**
 		//check if it has the same rotation has the normal of the FHitResult
 		if(FMath::IsNearlyEqual(FVector::DotProduct(HitResult.Normal, GridSurface.Orientation), 1.0f, KINDA_SMALL_NUMBER))
 		{
@@ -77,7 +81,9 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 	return nullptr;
 }
 
-void UGridProcessorComponent::DrawDebug (FGridSurface* CloserSurface) const
+void UGridProcessorComponent::DrawDebug (const FGridSurface* CloserSurface) const
 {
-	DrawDebugBox(GetWorld(), CloserSurface->Position, FVector{GridVolumeOwner->CellSize/2,GridVolumeOwner->CellSize/2,2}, {0,255,0}, false, 5, 0, 5);
+	//const FVector BoxExtent = CloserSurface->Orientation;
+	const float HalfCell = GridVolumeOwner->CellSize * 0.5;
+	DrawDebugBox(GetWorld(), CloserSurface->Position + (CloserSurface->Orientation * HalfCell), FVector{HalfCell}, {0,255,0}, false, 5, 0, 5);
 }
