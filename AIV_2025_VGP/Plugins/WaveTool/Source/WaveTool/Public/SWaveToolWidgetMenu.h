@@ -28,14 +28,14 @@ private:
 	};
 	struct FEnemyTypesNode : public FBaseTreeNode
 	{
+		int32 EnemyTypesID;
+		int32 waveID;
+		int32 waveContainerID;
 		TSubclassOf<AActor> EnemyClass;
 		int32 Cost;
 		EEnemyTypes EnemyType;
 
 		FEnemyTypesNode() {};
-		FEnemyTypesNode(TSubclassOf<AActor> enemyClass, int32 cost, EEnemyTypes enemyType) :
-			EnemyClass(enemyClass), Cost(cost), EnemyType(enemyType) {
-		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -44,7 +44,8 @@ private:
 	};
 	struct FWavesArrayNode : public FBaseTreeNode
 	{
-		int32 WaveID;
+		int32 waveID;
+		int32 waveContainerID;
 		FString Description;
 		int32 TotalPoints;
 		TArray<TSharedPtr<FEnemyTypesNode>> EnemyTypes;
@@ -52,9 +53,6 @@ private:
 		ESpawnOrder SpawnOrder;
 
 		FWavesArrayNode() {}
-		FWavesArrayNode(const int32 waveID, const FString& description, const int32 totalPoints) :
-			WaveID(waveID), Description(description), TotalPoints(totalPoints) {
-		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -63,16 +61,13 @@ private:
 	};
 	struct FWaveContainerNode : public FBaseTreeNode
 	{
+		int32 waveContainerID;
 		FString WaveContainerName;
-		int32 WaveContainerID;
 		FString ContainerDescription;
 		TArray<TSharedPtr<FWavesArrayNode>> WavesArray;
 		TArray<TSharedPtr<FBaseTreeNode>> Children;
 
 		FWaveContainerNode() {}
-		FWaveContainerNode(const FString& waveContainerName, const int32 waveContainerID, const FString& containerDescription) :
-			WaveContainerName(waveContainerName), WaveContainerID(waveContainerID), ContainerDescription(containerDescription) {
-		}
 
 		virtual ETreeNodeType GetNodeType() const override
 		{
@@ -110,24 +105,20 @@ private:
 	TSharedPtr<EEnemyTypes> SelectedEnemyType;
 	void OnEnemyTypeSelectionChanged(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 	TSharedRef<SWidget> GenerateComboItem(TSharedPtr<EEnemyTypes> Item);
-	FText GetCurrentItemLabel() const;
+	FText GetCurrentItemLabel(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex) const;
 	FText EnumToText(EEnemyTypes EnumValue) const;
 
 	// Class Selection Menu //
-	UPROPERTY()	//to avoid garbage collector
-	TSubclassOf<AActor> SelectedActorClass = nullptr;
 	void OnClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
-	const UClass* GetSelectedClass() const;
+	const UClass* GetSelectedClass(int32 containerIndex, int32 arrayWaveIndex, int32 enemyTypeIndex) const;
 	
 	// Editables Texts //
 	//wave container
-	int32 GetWaveContainerIDEditableText(const int32 containerIndex) const;
-	void OnWaveContainerIDChanged(const int32 NewValue, const int32 containerIndex);
+	FText GetWaveContainerNameEditableText(const int32 containerIndex) const;
+	void OnWaveContainerNameChanged(const FText& NewText, int32 containerIndex);
 	FText GetWaveContainerDescriptionEditableText(const int32 containerIndex) const;
 	void OnWaveContainerDescriptionChanged(const FText& NewText, int32 containerIndex);
 	//wave
-	int32 GetWaveIDEditableText(const int32 containerIndex, const int32 waveIndex) const;
-	void OnWaveIDValueChange(const int32 NewValue, const int32 containerIndex, const int32 waveIndex);
 	FText GetWaveDescriptionEditableText(const int32 containerIndex, const int32 waveIndex) const;
 	void OnWaveDecriptionTextChanged(const FText& NewText, const int32 containerIndex, const int32 waveIndex);
 	int32 GetWaveTotalPointsEditableText(const int32 containerIndex, const int32 waveIndex) const;
