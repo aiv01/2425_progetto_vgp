@@ -29,6 +29,9 @@ public:
 	float MaxInsistence = 10.0f;
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void InitializeGoal();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	UGOAPWorldModel* ElaborateWorldModel(UGOAPWorldModel* Wm);
 	
 };
