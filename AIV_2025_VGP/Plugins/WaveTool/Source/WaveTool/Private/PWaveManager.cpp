@@ -272,71 +272,177 @@ void APWaveManager::SpawnNextEnemy()
 }
 
 
+//TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies)
+//{
+//	//creating the variable for the process
+//	TMap<TSubclassOf<AActor>, int32> SelectedEnemies;	//an array to contains the enemies to return
+//	TMap<EEnemyTypes, int32> EnemyCount;			//a map usefull to count how many enemies of wich type are already selected
+//	int32 RemainingPoints = WavePoints;				//the points spent by the Greedy to buy
+//	int32 MaxTanks = PlayerCount;					//for now, number of players = number of tanks
+//
+//	//filling the map with the necessary categories
+//	EnemyCount.Add(EEnemyTypes::Melee, 0);
+//	EnemyCount.Add(EEnemyTypes::Ranged, 0);
+//	EnemyCount.Add(EEnemyTypes::Tank, 0);
+//
+//	//creating an array of enemies from the aviable ones, sorted from the lowest price to the highest
+//	TArray<FInternalDumbEnemyType> SortedEnemies = AviableEnemies;
+//	SortedEnemies.Sort([](const FInternalDumbEnemyType& A, const FInternalDumbEnemyType& B) {return A.Cost > B.Cost; });
+//
+//	//the cycle when the magic happens
+//	while (RemainingPoints > 0)
+//	{
+//		//bool that check if a cycle ended with a purchase or not
+//		bool bAddedEnemy = false;
+//
+//		for (const FInternalDumbEnemyType& Enemy : SortedEnemies)
+//		{
+//			//checking if the pool of points have still budget
+//			if (Enemy.Cost <= RemainingPoints)
+//			{
+//				//checking if there are already enough tanks, skip if true
+//				if (Enemy.EnemyType == EEnemyTypes::Tank && EnemyCount[EEnemyTypes::Tank] >= MaxTanks)
+//				{
+//					continue;
+//				}
+//				//create a balance between melee and ranged, trying to pick first one then another
+//				
+//				bool bOnlyMelee = (EnemyCount[EEnemyTypes::Ranged] == 0);
+//				bool bOnlyRanged = (EnemyCount[EEnemyTypes::Melee] == 0);
+//				
+//				if (!bOnlyMelee && !bOnlyRanged)
+//				{
+//					//TODO: Fix bug spawn enemies	
+//					if ((Enemy.EnemyType == EEnemyTypes::Melee && EnemyCount[EEnemyTypes::Melee] > EnemyCount[EEnemyTypes::Ranged] + 1) ||
+//						(Enemy.EnemyType == EEnemyTypes::Ranged && EnemyCount[EEnemyTypes::Ranged] > EnemyCount[EEnemyTypes::Melee] + 1))
+//					{
+//						continue;
+//					}
+//				}
+//
+//				//adding the enemy to the array of enemies pulled
+//				if (SelectedEnemies.Contains(Enemy.EnemyClass))
+//				{
+//					SelectedEnemies[Enemy.EnemyClass]++;
+//				}
+//				else
+//				{
+//					SelectedEnemies.Add(Enemy.EnemyClass, 1);
+//				}
+//				EnemyCount[Enemy.EnemyType]++;
+//				RemainingPoints -= Enemy.Cost;
+//				bAddedEnemy = true;
+//				break;
+//			}
+//		}
+//		//if this cycle no enemy was added, budget is depleted
+//		if (!bAddedEnemy)
+//		{
+//			break;
+//		}
+//	}
+//	//return a TMap with all the pulled enemies and in wich quantity
+//	return SelectedEnemies;
+//
+//}
+
 TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies)
 {
-	//creating the variable for the process
-	TMap<TSubclassOf<AActor>, int32> SelectedEnemies;	//an array to contains the enemies to return
-	TMap<EEnemyTypes, int32> EnemyCount;			//a map usefull to count how many enemies of wich type are already selected
-	int32 RemainingPoints = WavePoints;				//the points spent by the Greedy to buy
-	int32 MaxTanks = PlayerCount;					//for now, number of players = number of tanks
+	// Creazione delle variabili per il processo
+	TMap<TSubclassOf<AActor>, int32> SelectedEnemies;// Contiene gli nemici selezionati
+	TMap<EEnemyTypes, int32> EnemyCount;// Conta quanti nemici di ogni tipo sono già stati scelti
+	TMap<EEnemyTypes, int32> PointBuyCount; // Conta quanti nemici sono stati aggiunti SOLO con Point Buy
+	int32 RemainingPoints = WavePoints;// Punti rimanenti per l'acquisto dei nemici
+	int32 MaxTanks = PlayerCount;// Per ora, il numero di tank è limitato ai giocatori
 
-	//filling the map with the necessary categories
+	// Inizializza il conteggio delle categorie
 	EnemyCount.Add(EEnemyTypes::Melee, 0);
 	EnemyCount.Add(EEnemyTypes::Ranged, 0);
 	EnemyCount.Add(EEnemyTypes::Tank, 0);
 
-	//creating an array of enemies from the aviable ones, sorted from the lowest price to the highest
-	TArray<FInternalDumbEnemyType> SortedEnemies = AviableEnemies;
-	SortedEnemies.Sort([](const FInternalDumbEnemyType& A, const FInternalDumbEnemyType& B) {return A.Cost < B.Cost; });
+	// Inizializza il conteggio delle categorie riservate al point buy
+	PointBuyCount.Add(EEnemyTypes::Melee, 0);
+	PointBuyCount.Add(EEnemyTypes::Ranged, 0);
+	PointBuyCount.Add(EEnemyTypes::Tank, 0);
 
-	//the cycle when the magic happens
+	// Ordina gli nemici dal costo più basso al più alto
+	TArray<FInternalDumbEnemyType> SortedEnemies = AviableEnemies;
+	SortedEnemies.Sort([](const FInternalDumbEnemyType& A, const FInternalDumbEnemyType& B) { return A.Cost > B.Cost; });
+
+
+	auto AddEnemy = [&](const FInternalDumbEnemyType& Enemy, int32 Count, bool bIsPointBuy)
+		{
+			if (Count <= 0) return; // Evita aggiunte inutili
+
+			SelectedEnemies.FindOrAdd(Enemy.EnemyClass) += Count;
+			EnemyCount[Enemy.EnemyType] += Count;
+			if (bIsPointBuy) // Se è stato acquistato con point buy, aggiorniamo PointBuyCount
+			{
+				PointBuyCount[Enemy.EnemyType] += Count;
+			}
+		};
+
+	
+	for (const FInternalDumbEnemyType& Enemy : SortedEnemies)
+	{
+		if (!Enemy.bUseEnemyCost)  // Caso Min Max
+		{
+			int32 SpawnCount = FMath::RandRange(Enemy.MinEnemies, Enemy.MaxEnemies);
+
+			// Controllo sui Tank
+			if (Enemy.EnemyType == EEnemyTypes::Tank && (EnemyCount[EEnemyTypes::Tank] + SpawnCount) > MaxTanks)
+			{
+				SpawnCount = MaxTanks - EnemyCount[EEnemyTypes::Tank];
+			}
+
+			AddEnemy(Enemy, SpawnCount, false);
+		}
+	}
+
 	while (RemainingPoints > 0)
 	{
-		//bool that check if a cycle ended with a purchase or not
 		bool bAddedEnemy = false;
 
 		for (const FInternalDumbEnemyType& Enemy : SortedEnemies)
 		{
-			//checking if the pool of points have still budget
-			if (Enemy.Cost <= RemainingPoints)
+			if (!Enemy.bUseEnemyCost || Enemy.Cost > RemainingPoints)
 			{
-				//checking if there are already enough tanks, skip if true
-				if (Enemy.EnemyType == EEnemyTypes::Tank && EnemyCount[EEnemyTypes::Tank] >= MaxTanks)
-				{
-					continue;
-				}
-				//create a balance between melee and ranged, trying to pick first one then another
-				//TODO: Fix bug spawn enemies	
-				if ((Enemy.EnemyType == EEnemyTypes::Melee && EnemyCount[EEnemyTypes::Melee] > EnemyCount[EEnemyTypes::Ranged] + 1) ||
-					(Enemy.EnemyType == EEnemyTypes::Ranged && EnemyCount[EEnemyTypes::Ranged] > EnemyCount[EEnemyTypes::Melee] + 1))
-				{
-					continue;
-				}
-
-				//adding the enemy to the array of enemies pulled
-				if (SelectedEnemies.Contains(Enemy.EnemyClass))
-				{
-					SelectedEnemies[Enemy.EnemyClass]++;
-				}
-				else
-				{
-					SelectedEnemies.Add(Enemy.EnemyClass, 1);
-				}
-				EnemyCount[Enemy.EnemyType]++;
-				RemainingPoints -= Enemy.Cost;
-				bAddedEnemy = true;
-				break;
+				continue; // Salta i nemici Min-Max e quelli troppo costosi
 			}
+
+			// Controlla se il numero massimo di Tank è stato raggiunto
+			if (Enemy.EnemyType == EEnemyTypes::Tank && EnemyCount[EEnemyTypes::Tank] >= MaxTanks)
+			{
+				continue;
+			}
+
+			bool bOnlyMelee = (PointBuyCount[EEnemyTypes::Ranged] == 0) && Enemy.bUseEnemyCost;
+			bool bOnlyRanged = (PointBuyCount[EEnemyTypes::Melee] == 0) && Enemy.bUseEnemyCost;
+		
+			if (!bOnlyMelee && !bOnlyRanged)
+			{
+				//TODO: Fix bug spawn enemies	
+				if ((Enemy.EnemyType == EEnemyTypes::Melee && PointBuyCount[EEnemyTypes::Melee] > PointBuyCount[EEnemyTypes::Ranged] + 1) ||
+					(Enemy.EnemyType == EEnemyTypes::Ranged && PointBuyCount[EEnemyTypes::Ranged] > PointBuyCount[EEnemyTypes::Melee] + 1))
+				{
+					continue;
+				}
+			}
+			// Aggiunge il nemico e scala i punti
+			AddEnemy(Enemy, 1, true);
+			RemainingPoints -= Enemy.Cost;
+			bAddedEnemy = true;
 		}
-		//if this cycle no enemy was added, budget is depleted
+
+		// Se nessun nemico è stato aggiunto, il loop si ferma
 		if (!bAddedEnemy)
 		{
 			break;
 		}
 	}
-	//return a TMap with all the pulled enemies and in wich quantity
-	return SelectedEnemies;
 
+	// Restituisce la mappa con gli nemici selezionati e la loro quantità
+	return SelectedEnemies;
 }
 
 void APWaveManager::CheckWaveCompletion()
