@@ -71,6 +71,9 @@ public:
 
 	/** Queue fo r current enemy */
 	TArray<FSpawnInstruction> PendingSpawnQueue;
+
+	/* Queue for pre computer the enemies positions*/
+	TArray<FVector> PrecomputedSpawnPositions;
 #pragma endregion
 
 #pragma region Wave System Internal Functions
@@ -93,6 +96,7 @@ public:
 #pragma region Spawner Functions
 	FVector GetSpawnerLocationByWeight() const;
 	void SpawnNextEnemy();
+	TArray<FVector> ComputeSpawnPositions(int32 TotalEnemies) const;
 #pragma endregion
 
 #pragma region Delegates
