@@ -108,6 +108,14 @@ private:
 	FText GetCurrentItemLabel(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex) const;
 	FText EnumToText(EEnemyTypes EnumValue) const;
 
+	// Spawn Order Drop Down Menu //
+	TArray<TSharedPtr<ESpawnOrder>> SpawnOrders;
+	TSharedPtr<ESpawnOrder> SelectedSpawnOrder;
+	void OnSpawnOrderSelectionChanged(TSharedPtr<ESpawnOrder> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex);
+	TSharedRef<SWidget> GenerateSpawnOrderComboItem(TSharedPtr<ESpawnOrder> Item);
+	FText GetCurrentSpawnOrderLabel(int32 containerIndex, int32 waveIndex) const;
+	FText EnumToText(ESpawnOrder EnumValue) const;
+
 	// Class Selection Menu //
 	void OnClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 	const UClass* GetSelectedClass(int32 containerIndex, int32 arrayWaveIndex, int32 enemyTypeIndex) const;
