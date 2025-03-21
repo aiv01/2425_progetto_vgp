@@ -29,9 +29,12 @@ private:
 	struct FEnemyTypesNode : public FBaseTreeNode
 	{
 		int32 EnemyTypesID;
-		int32 waveID;
-		int32 waveContainerID;
+		int32 WaveID;
+		int32 WaveContainerID;
 		TSubclassOf<AActor> EnemyClass;
+		bool UseEnemyCost;
+		int32 MinEnemies;
+		int32 MaxEnemies;
 		int32 Cost;
 		EEnemyTypes EnemyType;
 
@@ -44,8 +47,8 @@ private:
 	};
 	struct FWavesArrayNode : public FBaseTreeNode
 	{
-		int32 waveID;
-		int32 waveContainerID;
+		int32 WaveID;
+		int32 WaveContainerID;
 		FString Description;
 		int32 TotalPoints;
 		TArray<TSharedPtr<FEnemyTypesNode>> EnemyTypes;
@@ -61,7 +64,7 @@ private:
 	};
 	struct FWaveContainerNode : public FBaseTreeNode
 	{
-		int32 waveContainerID;
+		int32 WaveContainerID;
 		FString WaveContainerName;
 		FString ContainerDescription;
 		TArray<TSharedPtr<FWavesArrayNode>> WavesArray;
@@ -134,6 +137,12 @@ private:
 	FText GetWaveSpawnOrderEditableText(int32 containerIndex, const int32 waveIndex) const;
 	void OnWaveSpawnOrdertextChanged(const ESpawnOrder NewValue, const int32 containerIndex, const int32 waveIndex); 
 	//enemy type
+	ECheckBoxState GetWaveEnemyUseEnemyCostState(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	void OnWaveEnemyUseEnemyCostStateChanged(const ECheckBoxState NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
+	int32 GetWaveEnemyMinEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	void OnWaveEnemyMinEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
+	int32 GetWaveEnemyMaxEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
+	void OnWaveEnemyMaxEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
 	int32 GetWaveEnemyCostEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
 	void OnWaveEnemyCostTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
 	FText GetWaveEnemyTypeEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
