@@ -71,6 +71,9 @@ public:
 
 	/** Queue fo r current enemy */
 	TArray<FSpawnInstruction> PendingSpawnQueue;
+
+	/* Queue for pre computer the enemies positions*/
+	TArray<FVector> PrecomputedSpawnPositions;
 #pragma endregion
 
 #pragma region Wave System Internal Functions
@@ -93,6 +96,7 @@ public:
 #pragma region Spawner Functions
 	FVector GetSpawnerLocationByWeight() const;
 	void SpawnNextEnemy();
+	TArray<FVector> ComputeSpawnPositions(int32 TotalEnemies) const;
 #pragma endregion
 
 #pragma region Delegates
@@ -211,6 +215,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wave Management")
 	TMap<TSubclassOf<AActor>, int32> GenerateWave(int32 WavePoints, int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies);
 
+	int32 InternalRandom(int min, int max);
 	/*	Example of Call
 		TArray<TSubclassOf<AActor>> GenerateWave(1000, 4, EnemyList);
 	*/
