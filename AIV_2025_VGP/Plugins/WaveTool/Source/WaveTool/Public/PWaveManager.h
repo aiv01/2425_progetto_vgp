@@ -215,6 +215,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wave Management")
 	TMap<TSubclassOf<AActor>, int32> GenerateWave(int32 WavePoints, int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies);
 
+	int32 InternalRandom(int min, int max);
 	/*	Example of Call
 		TArray<TSubclassOf<AActor>> GenerateWave(1000, 4, EnemyList);
 	*/

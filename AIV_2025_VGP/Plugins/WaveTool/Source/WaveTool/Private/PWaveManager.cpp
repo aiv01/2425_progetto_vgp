@@ -323,13 +323,7 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 	{
 		if (!Enemy.bUseEnemyCost)  // Caso Min Max
 		{
-			int32 SpawnCount = FMath::RandRange(Enemy.MinEnemies, Enemy.MaxEnemies);
-
-			// Controllo sui Tank
-			if (Enemy.EnemyType == EEnemyTypes::Tank && (EnemyCount[EEnemyTypes::Tank] + SpawnCount) > MaxTanks)
-			{
-				SpawnCount = MaxTanks - EnemyCount[EEnemyTypes::Tank];
-			}
+			int32 SpawnCount = InternalRandom(Enemy.MinEnemies, Enemy.MaxEnemies);
 
 			AddEnemy(Enemy, SpawnCount, false);
 		}
@@ -356,8 +350,7 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 			bool bOnlyRanged = (PointBuyCount[EEnemyTypes::Melee] == 0) && Enemy.bUseEnemyCost;
 		
 			if (!bOnlyMelee && !bOnlyRanged)
-			{
-				//TODO: Fix bug spawn enemies	
+			{	
 				if ((Enemy.EnemyType == EEnemyTypes::Melee && PointBuyCount[EEnemyTypes::Melee] > PointBuyCount[EEnemyTypes::Ranged] + 1) ||
 					(Enemy.EnemyType == EEnemyTypes::Ranged && PointBuyCount[EEnemyTypes::Ranged] > PointBuyCount[EEnemyTypes::Melee] + 1))
 				{
@@ -379,6 +372,11 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 
 	// Restituisce la mappa con gli nemici selezionati e la loro quantità
 	return SelectedEnemies;
+}
+int32 APWaveManager::InternalRandom(int Min, int Max)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Generating random number between %d and %d"), Min, Max);
+	return FMath::RandRange(Min, Max);
 }
 #pragma endregion
 
