@@ -1,5 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Caponera Marco
+// Cimino Alberto
+// Sanzogni Gabriele
+// Vernone Michele
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,7 +18,6 @@ class AIV_2025_VGP_API UGridProcessorComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	FGridSurface* GetCloserSurface(const FHitResult HitResult);
 

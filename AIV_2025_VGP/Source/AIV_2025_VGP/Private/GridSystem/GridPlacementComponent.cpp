@@ -1,5 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Caponera Marco
+// Cimino Alberto
+// Sanzogni Gabriele
+// Vernone Michele
 
 #include "GridSystem/GridPlacementComponent.h"
 
@@ -15,11 +18,14 @@ UGridPlacementComponent::UGridPlacementComponent()
 
 void UGridPlacementComponent::PlaceTrap (FHitResult HitResult)
 {
+	//get closer surface
 	FGridSurface* CloserSurface = GetCloserSurface(HitResult);
+	//check if surface is valid
 	if(CloserSurface)
 	{
+		//set the surface occupied
 		CloserSurface->bOccupied = true;
-		DrawDebug(CloserSurface);
+		//DrawDebug(CloserSurface);
 		//Place Turret
 	}
 }

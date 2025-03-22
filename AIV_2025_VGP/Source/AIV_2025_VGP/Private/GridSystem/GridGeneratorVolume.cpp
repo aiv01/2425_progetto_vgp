@@ -227,21 +227,25 @@ FVector AGridGeneratorVolume::GetVolumeExtent () const
 
 bool AGridGeneratorVolume::IsPointInsideGridSurface (const FGridSurface& Surface, const FVector& Point) const
 {
-	//FVector LocalPoint = Point - GetOrigin();
-	const float HalfSquareCell = CellSize * 0.5;
+	//get the absolute local position
 	const FVector LocalSurfacePoint = (Point - Surface.Position).GetAbs();
-
+	//check, based on the orientation Vector, if the point is inside the surface
 	if (Surface.Orientation.Z != 0)
 	{	
-		return LocalSurfacePoint.X < HalfSquareCell && LocalSurfacePoint.Y < HalfSquareCell;
+		return LocalSurfacePoint.X < HalfCellSize && LocalSurfacePoint.Y < HalfCellSize;
 	}
 	if (Surface.Orientation.X != 0)
 	{	
-		return LocalSurfacePoint.Z < HalfSquareCell && LocalSurfacePoint.Y < HalfSquareCell;
+		return LocalSurfacePoint.Z < HalfCellSize && LocalSurfacePoint.Y < HalfCellSize;
 	}
 	if (Surface.Orientation.Y != 0)
 	{	
-		return LocalSurfacePoint.X < HalfSquareCell && LocalSurfacePoint.Z < HalfSquareCell;
+		return LocalSurfacePoint.X < HalfCellSize && LocalSurfacePoint.Z < HalfCellSize;
 	}
 	return false;
+}
+
+float AGridGeneratorVolume::GetHalfCellSize () const
+{
+	return HalfCellSize;
 }

@@ -1,3 +1,9 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+// Caponera Marco
+// Cimino Alberto
+// Sanzogni Gabriele
+// Vernone Michele
+
 #include "GridSystem/GridInteractComponent.h"
 #include "GridSystem/GridPlacementComponent.h"
 #include "GridSystem/GridPreviewComponent.h"
@@ -27,8 +33,8 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 			UE_LOG(LogTemp, Log, TEXT("HIT WITH SURFACE"));
 			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, -1, 0, 5);
 		}
-		
-		//check the volume inside the SphereOverlapp 
+		//if the line trace hit a surface (wall or floor)
+		//check if there is a volume inside a SphereOverlapActors 
 		TArray<AActor*> OverlappedActors;
 		TArray<AActor*> ignoreActor = { GetOwner() };
 		if(UKismetSystemLibrary::SphereOverlapActors(GetWorld(), result.Location, SphereCastRadius, ObjectTypeQuery, AGridGeneratorVolume::StaticClass(), ignoreActor, OverlappedActors))
@@ -64,6 +70,7 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
  * @param VolumeRef Volume to check
  * @param Position World Position to Check
  * @return bool
+ * DEPRECATED
  */
 bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* VolumeRef, FVector Position)
 {
@@ -81,24 +88,35 @@ bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* Volum
  */
 void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface)
 {
-	
+	//call the GridRayCast and return the Volume and HitResult
 	FHitResult Result;
 	AGridGeneratorVolume* GridVolumeRef;
 	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
+	//if HitSurface and GridVolumeRef are valid
 	if(HitSurface && GridVolumeRef)
 	{
+		//if the dirty flag is valid
 		if(LastGridSurface)
 		{
+			//check if the hit location is still inside the cell bounds
 			if(GridVolumeRef->IsPointInsideGridSurface(*LastGridSurface, Result.Location))
 			{
-				UE_LOG(LogTemp, Log, TEXT("Still Inside"));
+				if(bDebug)
+				{
+					UE_LOG(LogTemp, Log, TEXT("Still Inside"));
+				}
 				return;
 			}
-			UE_LOG(LogTemp, Log, TEXT("no more inside"));
+			if(bDebug)
+			{
+				UE_LOG(LogTemp, Log, TEXT("no more inside"));
+			}
 		}
+		//if LastGridSurface is null or different from the hit location call the volume preview component 
 		UGridPreviewComponent* UGridPreviewComp = GridVolumeRef->FindComponentByClass<UGridPreviewComponent>();
 		if(UGridPreviewComp)
 		{
+			//if there is the component, call the preview method inside
 			UGridPreviewComp->ShowPreview(Result, LastGridSurface);
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
@@ -121,15 +139,18 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
  */ 
 void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
 {
+	//call the GridRayCast and return the Volume and HitResult
 	FHitResult Result;
 	AGridGeneratorVolume* GridVolumeRef;
 	GridRayCast(CameraForward, Result, HitSurface, GridVolumeRef);
+	//if HitSurface and GridVolumeRef are valid
 	if(HitSurface && GridVolumeRef)
 	{
+		//from the hit location call the volume component 
 		UGridPlacementComponent* UGridPlaceComp = GridVolumeRef->FindComponentByClass<UGridPlacementComponent>();
 		if(UGridPlaceComp)
 		{
-			//place trap
+			//if there is the component, call the Place method inside
 			UGridPlaceComp->PlaceTrap(Result);
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));

@@ -5,21 +5,6 @@
 
 #include "GridSystem/GridGeneratorVolume.h"
 
-void UGridProcessorComponent::InitializeComponent ()
-{
-	Super::InitializeComponent();
-	//check if the owner is from "GridGeneratorVolume" class
-	/*if( GetOwner()->IsA(AGridGeneratorVolume::StaticClass()))
-	{
-		//link ref
-		GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
-		if(GridVolumeOwner)		UE_LOG(LogTemp, Log, TEXT("owner setted'"));
-
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Owner is not a 'AGridGeneratorVolume'"));
-	}*/
-}
 
 void UGridProcessorComponent::BeginPlay ()
 {
@@ -83,7 +68,7 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 
 void UGridProcessorComponent::DrawDebug (const FGridSurface* CloserSurface) const
 {
-	//const FVector BoxExtent = CloserSurface->Orientation;
-	const float HalfCell = GridVolumeOwner->CellSize * 0.5;
+	const float HalfCell = GridVolumeOwner->GetHalfCellSize();
 	DrawDebugBox(GetWorld(), CloserSurface->Position + (CloserSurface->Orientation * HalfCell), FVector{HalfCell}, {0,255,0}, false, 5, 0, 5);
+	DrawDebugDirectionalArrow(GetWorld(), CloserSurface->Position, CloserSurface->Position + CloserSurface->Orientation * 100, 25, {255,0,0}, false, 5);
 }

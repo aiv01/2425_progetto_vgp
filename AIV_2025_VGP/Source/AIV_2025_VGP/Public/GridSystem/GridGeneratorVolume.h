@@ -9,11 +9,12 @@
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
 
+
 #define ERROR_MARGIN 10.f
 
 struct FGridSurface;
 enum EObjectTypeQuery;
-enum ESurfaceOrientation;
+enum ESurfaceOrientation : int;
 enum ECollisionChannel;
 /**
  * 
@@ -38,14 +39,16 @@ public:
 
 	//UFUNCTION(Blueprintable)
 	bool IsPointInsideGridSurface(const FGridSurface& Surface, const FVector& Point) const;
+
+	UFUNCTION(Blueprintable)
+	float GetHalfCellSize() const;
+	
+protected:
 	
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
 	float CellSize;
 	
-protected:
-	
-
 	// types of objects that can interfere with grid generation
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
 	TArray<TEnumAsByte<EObjectTypeQuery>> DisruptingObjectTypes;
