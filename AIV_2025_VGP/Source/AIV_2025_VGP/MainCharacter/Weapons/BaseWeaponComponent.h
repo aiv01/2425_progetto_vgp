@@ -56,10 +56,19 @@ public:
 	void AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon);
 
 	UFUNCTION(BlueprintCallable)
-	void StartAttackWithCurrentWeapon();
+	void StartPrimaryAttack();
 	UFUNCTION(BlueprintCallable)
-	void EndAttackWithCurrentWeapon();
+	void EndPrimaryAttack();
+	UFUNCTION(BlueprintCallable)
+	void StartSecondaryAttack();
+	UFUNCTION(BlueprintCallable)
+	void EndSecondaryAttack();
 	UFUNCTION(BlueprintCallable)
 	void StartAnimationCurrentWeapon();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
+	void GetPrimaryAttackName(FName& PrimaryAttackName);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
+	void GetSecondaryAttackName(FName& SecondaryAttackName);
 #pragma endregion Functions
 };

@@ -100,11 +100,20 @@ void ABasePlayer::Look_Implementation(const FVector2D& Value)
 	}
 }
 
-void ABasePlayer::Attack_Implementation()
+void ABasePlayer::PrimaryAttack_Implementation()
 {
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		II_PlayerInput::Execute_Attack(this);
+		II_PlayerInput::Execute_PrimaryAttack(this);
+	}
+}
+
+void ABasePlayer::SecondaryAttack_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ABasePlayer::SecondaryAttack_Implementation"));
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		II_PlayerInput::Execute_SecondaryAttack(this);
 	}
 }
 

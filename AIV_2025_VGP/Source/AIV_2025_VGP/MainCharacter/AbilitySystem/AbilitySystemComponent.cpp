@@ -4,7 +4,7 @@
 // Luca Casamenti
 
 #include "AbilitySystemComponent.h"
-DEFINE_LOG_CATEGORY_STATIC(LogStrategy, Log, All);
+//DEFINE_LOG_CATEGORY_STATIC(LogStrategy, Log, All);
 // Sets default values for this component's properties
 UAbilitySystemComponent::UAbilitySystemComponent()
 {
@@ -36,13 +36,13 @@ void UAbilitySystemComponent::ExecuteStrategy(FName StrategyName)
 			II_FunctionStrategy* StrategyInterface = Cast<II_FunctionStrategy>(StrategyInstance);
 			if (StrategyInterface)
 			{
-				UE_LOG(LogStrategy, Log, TEXT("StrategyComponent: Eseguendo la strategia %s"), *StrategyInstance->GetName());
+				//UE_LOG(LogStrategy, Log, TEXT("StrategyComponent: Eseguendo la strategia %s"), *StrategyInstance->GetName());
 				StrategyInterface->Execute();
 			}
 		}
 		else
 		{
-			UE_LOG(LogStrategy, Error, TEXT("StrategyComponent: Nessuna strategia valida impostata!"));
+			//UE_LOG(LogStrategy, Error, TEXT("StrategyComponent: Nessuna strategia valida impostata!"));
 		}
 	}
 	

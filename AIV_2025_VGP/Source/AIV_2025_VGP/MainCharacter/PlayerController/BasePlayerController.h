@@ -34,8 +34,11 @@ private:
 	UInputAction* IA_CstmLook;
 
 	UPROPERTY()
-	UInputAction* IA_CstmAttack;
+	UInputAction* IA_CstmPrimaryAttack;
 
+	UPROPERTY()
+	UInputAction* IA_CstmSecondaryAttack;
+	
 	UPROPERTY()
 	UInputAction* IA_CstmChangeWeapon;
 #pragma endregion Properties
@@ -49,7 +52,8 @@ private:
 	//Input function
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void Attack();
+	void PrimaryAttack();
+	void SecondaryAttack();
 	void Jump();
 	void ChangeWeapon(const FInputActionValue& Value);
 

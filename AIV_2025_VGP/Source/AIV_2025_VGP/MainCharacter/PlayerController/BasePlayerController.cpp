@@ -19,8 +19,9 @@ void ABasePlayerController::FindInputActions()
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmJump.IA_CstmJump"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmMove.IA_CstmMove"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmLook.IA_CstmLook"));
-	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmAttack.IA_CstmAttack"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> PrimaryAttackActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmPrimaryAttack.IA_CstmPrimaryAttack"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> ChangeWeaponActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmChangeWeapon.IA_CstmChangeWeapon"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> SecondaryAttackActionAssets(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmSecondaryAttack.IA_CstmSecondaryAttack"));
 	
 	if (IMC_MainCharacterAsset.Succeeded())
 	{
@@ -38,13 +39,17 @@ void ABasePlayerController::FindInputActions()
 	{
 		IA_CstmLook = LookActionAsset.Object;
 	}
-	if (AttackActionAsset.Succeeded())
+	if (PrimaryAttackActionAsset.Succeeded())
 	{
-		IA_CstmAttack = AttackActionAsset.Object;
+		IA_CstmPrimaryAttack = PrimaryAttackActionAsset.Object;
 	}
 	if (ChangeWeaponActionAsset.Succeeded())
 	{
 		IA_CstmChangeWeapon = ChangeWeaponActionAsset.Object;
+	}
+	if (SecondaryAttackActionAssets.Succeeded())
+	{
+		IA_CstmSecondaryAttack = SecondaryAttackActionAssets.Object;
 	}
 }
 
@@ -84,13 +89,17 @@ void ABasePlayerController::SetupInputComponent()
 		{
 			EnhancedInput->BindAction(IA_CstmJump, ETriggerEvent::Triggered, this, &ABasePlayerController::Jump);
 		}
-		if (IA_CstmAttack)
+		if (IA_CstmPrimaryAttack)
 		{
-			EnhancedInput->BindAction(IA_CstmAttack, ETriggerEvent::Started, this, &ABasePlayerController::Attack);
+			EnhancedInput->BindAction(IA_CstmPrimaryAttack, ETriggerEvent::Started, this, &ABasePlayerController::PrimaryAttack);
 		}
 		if(IA_CstmChangeWeapon)
 		{
 			EnhancedInput->BindAction(IA_CstmChangeWeapon, ETriggerEvent::Started, this, &ABasePlayerController::ChangeWeapon);
+		}
+		if(IA_CstmSecondaryAttack)
+		{
+			EnhancedInput->BindAction(IA_CstmSecondaryAttack, ETriggerEvent::Started, this, &ABasePlayerController::SecondaryAttack);
 		}
 	}
 }
@@ -114,11 +123,19 @@ void ABasePlayerController::Look(const FInputActionValue& Value)
 	}
 }
 
-void ABasePlayerController::Attack()
+void ABasePlayerController::PrimaryAttack()
 {
 	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
 	{
-		ControlledPawn->Attack_Implementation();
+		ControlledPawn->PrimaryAttack_Implementation();
+	}
+}
+
+void ABasePlayerController::SecondaryAttack()
+{
+	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
+	{
+		ControlledPawn->SecondaryAttack_Implementation();
 	}
 }
 

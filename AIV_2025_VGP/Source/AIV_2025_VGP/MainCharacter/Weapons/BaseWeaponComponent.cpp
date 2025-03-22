@@ -125,19 +125,35 @@ void UBaseWeaponComponent::SpawnWeapons()
 	}
 }
 
-void UBaseWeaponComponent::StartAttackWithCurrentWeapon()
+void UBaseWeaponComponent::StartPrimaryAttack()
 {
 	if(Weapons[CurrentWeaponIndex])
 	{
-		Weapons[CurrentWeaponIndex]->AttackEventStart();
+		Weapons[CurrentWeaponIndex]->PrimaryAttackEventStart();
 	}
 }
 
-void UBaseWeaponComponent::EndAttackWithCurrentWeapon()
+void UBaseWeaponComponent::EndPrimaryAttack()
 {
 	if(Weapons[CurrentWeaponIndex])
 	{
-		Weapons[CurrentWeaponIndex]->AttackEventEnd();
+		Weapons[CurrentWeaponIndex]->PrimaryAttackEventEnd();
+	}
+}
+
+void UBaseWeaponComponent::StartSecondaryAttack()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->SecondaryAttackEventStart();
+	}
+}
+
+void UBaseWeaponComponent::EndSecondaryAttack()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->SecondaryAttackEventEnd();
 	}
 }
 
@@ -148,3 +164,14 @@ void UBaseWeaponComponent::StartAnimationCurrentWeapon()
 		Weapons[CurrentWeaponIndex]->WeaponAnimationStart();
 	}
 }
+#pragma region Getter
+void UBaseWeaponComponent::GetPrimaryAttackName(FName& PrimaryAttackName)
+{
+	PrimaryAttackName = Weapons[CurrentWeaponIndex]->PrimaryAttackName;
+}
+
+void UBaseWeaponComponent::GetSecondaryAttackName(FName& SecondaryAttackName)
+{
+	SecondaryAttackName = Weapons[CurrentWeaponIndex]->SecondaryAttackName;
+}
+#pragma endregion	
