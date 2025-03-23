@@ -99,7 +99,7 @@ void ABasePlayerController::SetupInputComponent()
 		}
 		if(IA_CstmSecondaryAttack)
 		{
-			EnhancedInput->BindAction(IA_CstmSecondaryAttack, ETriggerEvent::Started, this, &ABasePlayerController::SecondaryAttack);
+			EnhancedInput->BindAction(IA_CstmSecondaryAttack, ETriggerEvent::Triggered, this, &ABasePlayerController::SecondaryAttack);
 		}
 	}
 }
