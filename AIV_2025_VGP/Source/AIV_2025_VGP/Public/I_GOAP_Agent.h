@@ -18,7 +18,7 @@ class UI_GOAP_Agent : public UInterface
 /**
  * 
  */
-class AIV_2025_VGP_API IGOAP_Agent
+class AIV_2025_VGP_API II_GOAP_Agent
 {
 	GENERATED_BODY()
 
