@@ -388,9 +388,7 @@ void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSess
 		return;
 	}
 
-	const FString AssociatedIpToMap = ConnectInfo + TEXT("?map=/Game/Custom/Networking/Maps/MapTest");
-
-	PlayerController->ClientTravel(AssociatedIpToMap, ETravelType::TRAVEL_Absolute);
+	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
 	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
