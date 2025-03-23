@@ -18,11 +18,13 @@ void UGOAPMelee::Execute()
 		if (MontageToPlay)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "This is a temp strategy");
-			/*ACharacter* GOAPAgent = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			//TODO: we should get reference to the enemy (base C++ class ABaseEnemy)
+			ACharacter* GOAPAgent = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			//this should be the same once we got the reference
 			if (GOAPAgent)
 			{
 				GOAPAgent->PlayAnimMontage(MontageToPlay);
-			}*/
+			}
 		}
 	}
 }
