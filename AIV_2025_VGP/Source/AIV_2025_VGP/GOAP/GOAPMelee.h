@@ -14,8 +14,8 @@ class AIV_2025_VGP_API UGOAPMelee : public UGOAPBaseCombatStrategy
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
-	UAnimSequence* AnimationToPlay;
+	UAnimMontage* MontageToPlay;
 
 	virtual void Execute() override;
-
+	
 };
