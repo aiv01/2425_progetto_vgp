@@ -9,7 +9,6 @@
 #include "Interfaces/I_PlayerInput.h"
 #include "Logging/LogMacros.h"
 #include "../Public/HealthSystem/I_HealthSystem.h"
-#include "../Public/HealthSystem/HealthComponent.h"
 #include "BasePlayer.generated.h"
 
 class USpringArmComponent;
@@ -21,7 +20,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class ABasePlayer : public ACharacter, public II_PlayerInput, public II_HealthSystem,
+class ABasePlayer : public ACharacter, public II_PlayerInput, public II_HealthSystem
 {
 	GENERATED_BODY()
 

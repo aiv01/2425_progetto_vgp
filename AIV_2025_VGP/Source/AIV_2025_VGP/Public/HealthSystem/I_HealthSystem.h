@@ -7,7 +7,7 @@
 #include "I_HealthSystem.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(Blueprintable)
 class UI_HealthSystem : public UInterface
 {
 	GENERATED_BODY()

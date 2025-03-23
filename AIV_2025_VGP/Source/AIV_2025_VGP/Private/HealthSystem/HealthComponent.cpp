@@ -9,7 +9,7 @@ UHealthComponent::UHealthComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;// Setted to false since its not needed
+	PrimaryComponentTick.bCanEverTick = false;// To false since its not needed
 	CurrentHealth = MaxHealth; // Sets current health to the maximum amount when built
 
 	// ...
@@ -25,11 +25,19 @@ void UHealthComponent::BeginPlay()
 	
 }
 
+void UHealthComponent::SetHealth(float Amount)
+{
+	if (Amount >= 0 && Amount <= MaxHealth)
+	{
+		CurrentHealth = Amount;
+	}
+}
+
 void UHealthComponent::AddHealth(float Amount)
 {
 	if (Amount > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
 	{
-		CurrentHealth = FMath::Clamp(Amount, 0.f, MaxHealth); // Adds Amount to current health trought a clamp
+		CurrentHealth = FMath::Clamp(Amount, 0.f, MaxHealth); // Adds Amount to current health with a clamp
 	}
 }
 
@@ -38,16 +46,8 @@ void UHealthComponent:: RemoveHealth(float Amount)
 {
 	if (Amount > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
 	{
-		CurrentHealth = FMath::Clamp(CurrentHealth - Amount, 0.f, MaxHealth); // Adds Amount to current health trought a clamp
+		CurrentHealth = FMath::Clamp(CurrentHealth - Amount, 0.f, MaxHealth); // Adds Amount to current health with a clamp
 	}
 }
 
-
-// Called every frame
-void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
 

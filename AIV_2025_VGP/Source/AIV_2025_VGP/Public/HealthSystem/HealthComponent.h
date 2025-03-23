@@ -42,13 +42,5 @@ public:
 	// Removes health to current health
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void RemoveHealth(float Amount);
-
-
-
-
-
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
+	
 };
