@@ -150,7 +150,6 @@ void ABasePlayerController::ChangeWeapon(const FInputActionValue& Value)
 
 	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ChangeWeapon chiamato: %hhd"), bForward);
 		ControlledPawn->ChangeWeapon_Implementation(bForward);
 	}
 }

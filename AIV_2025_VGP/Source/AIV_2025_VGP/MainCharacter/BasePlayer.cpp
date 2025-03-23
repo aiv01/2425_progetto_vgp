@@ -56,7 +56,6 @@ ABasePlayer::ABasePlayer()
 	if (SkeletalMesh)
 	{
 		GetMesh()->SetSkeletalMesh(SkeletalMesh);
-		UE_LOG(LogTemp, Warning, TEXT("BasePlayer::ABasePlayer mesh found!"));
 	}
 }
 
@@ -110,7 +109,6 @@ void ABasePlayer::PrimaryAttack_Implementation()
 
 void ABasePlayer::SecondaryAttack_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ABasePlayer::SecondaryAttack_Implementation"));
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
 		II_PlayerInput::Execute_SecondaryAttack(this);
@@ -118,9 +116,7 @@ void ABasePlayer::SecondaryAttack_Implementation()
 }
 
 void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ChangeWeapon chiamato dal BASEPLAYER: %hhd"), bForward);
-	
+{	
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
 		II_PlayerInput::Execute_ChangeWeapon(this, bForward);
