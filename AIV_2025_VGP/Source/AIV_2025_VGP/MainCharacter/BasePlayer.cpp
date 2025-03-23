@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "../Public/HealthSystem/I_HealthSystem.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -122,4 +123,20 @@ void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 		II_PlayerInput::Execute_ChangeWeapon(this, bForward);
 	}
 }
+
+void ABasePlayer::AddHealth_Implementation(float Amount)
+{
+	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
+	{
+		II_HealthSystem::Execute_AddHealth(this, Amount);
+	}
+}
+void ABasePlayer::RemoveHealth_Implementation(float Amount)
+{
+	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
+	{
+		II_HealthSystem::Execute_RemoveHealth(this, Amount);
+	}
+}
+
 

@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "Interfaces/I_PlayerInput.h"
 #include "Logging/LogMacros.h"
+#include "../Public/HealthSystem/I_HealthSystem.h"
+#include "../Public/HealthSystem/HealthComponent.h"
 #include "BasePlayer.generated.h"
 
 class USpringArmComponent;
@@ -19,7 +21,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class ABasePlayer : public ACharacter, public II_PlayerInput
+class ABasePlayer : public ACharacter, public II_PlayerInput, public II_HealthSystem,
 {
 	GENERATED_BODY()
 
@@ -40,6 +42,9 @@ public:
 	virtual void SecondaryAttack_Implementation() override;
 	virtual void ChangeWeapon_Implementation(bool bForward) override;
 
+	virtual void AddHealth_Implementation(float Amount) override;
+	virtual void RemoveHealth_Implementation(float Amount) override;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* MontageToPlay;
 
@@ -53,4 +58,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/* Returns FollowCamera subobject */
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
 };
