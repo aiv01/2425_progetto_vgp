@@ -36,7 +36,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
-	FString CurrentWeaponName = FString("");
+	FName CurrentWeaponName = FName("");
 #pragma endregion Properties
 
 	

@@ -23,7 +23,7 @@ public:
 	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
-	FString WeaponName;
+	FName WeaponName;
 	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
 	FName PrimaryAttackName;
 	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
