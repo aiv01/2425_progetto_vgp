@@ -77,5 +77,6 @@ private:
 	static CSteamID ConvertInt32toCSteamID(const int32 SteamID);
 	static void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
 	static void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+	static void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 
 };

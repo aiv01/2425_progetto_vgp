@@ -392,6 +392,30 @@ void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSess
 	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
+void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
+{
+	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
+
+	UWorld* CurrentWorld = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
+	if (!CurrentWorld)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: World is null!"));
+		return;
+	}
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(CurrentWorld, 0);
+	if (!PlayerController)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: PlayerController is null!"));
+		return;
+	}
+
+	FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
+	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
+
+	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
+}
+
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
 												   const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
@@ -518,6 +542,13 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 
 	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
 	FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+
+	if (GEngine)
+	{
+		GEngine->OnNetworkFailure().AddStatic(&UPNetworkingBPLibrary::OnNetworkFailure);
+		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
+		return true;
+	}
 
 	return true;
 }
