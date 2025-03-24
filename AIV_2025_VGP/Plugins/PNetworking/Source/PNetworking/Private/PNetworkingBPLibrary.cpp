@@ -432,10 +432,16 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 
 	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
-		{
+	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback, &SessionInterface](FName NewName, bool bWasSuccessfull)
+	{
 			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
 			FPNetworkingModule::bIsComputingNewSession = false;
+
+			if (!bWasSuccessfull)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Creating Session error!"));
+				return;
+			}
 
 			UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 			if (!World)
@@ -452,9 +458,22 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 			{
 				UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
 			}
-		}
+	}
 	));
 	
+	SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateLambda([](FName sessionName, bool bWasSuccessfull)
+		{
+			if (bWasSuccessfull)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Session not destroyed!"));
+			}
+		}
+	));
+
 	return SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
 }
 
