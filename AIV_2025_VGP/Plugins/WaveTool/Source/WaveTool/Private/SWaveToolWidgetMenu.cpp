@@ -10,6 +10,7 @@
 #include "PropertyCustomizationHelpers.h"
 #include "UObject/Class.h"
 #include "PackageTools.h"
+#include "EngineUtils.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
@@ -28,16 +29,32 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 					.HAlign(EHorizontalAlignment::HAlign_Center)
 					.VAlign(EVerticalAlignment::VAlign_Center).AutoHeight()
 				[
-					SNew(SButton)
-						.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave Container")))
-						.OnClicked(this, &SWaveToolWidgetMenu::OnWaveContainerPlusButtonClicked)
+					SNew(SBorder)
+						.BorderBackgroundColor(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f))
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SHorizontalBox) + SHorizontalBox::Slot().HAlign(EHorizontalAlignment::HAlign_Center)
+								.VAlign(EVerticalAlignment::VAlign_Center).AutoWidth().Padding(10, 0)
+								[
+									SNew(STextBlock).Text(FText::FromString(TEXT("Create new Wave Data Asset")))
+								]
+								+ SHorizontalBox::Slot()
+								[
+									SNew(SButton)
+										.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave Container")))
+										.OnClicked(this, &SWaveToolWidgetMenu::OnWaveContainerPlusButtonClicked)
+								]
+						]
 				]
 					+ SVerticalBox::Slot()
 				[
 					SAssignNew(PropertyList, SVerticalBox)	//don't even think i need this anymore
 				]
 			]	
-		] + SHorizontalBox::Slot()
+		]
+		/*
+		+ SHorizontalBox::Slot()
 		[
 			SNew(SBorder)
                 .BorderBackgroundColor(FLinearColor(1.0f, 0.0f, 0.5f, 1.0f))
@@ -46,13 +63,29 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 			[
 				SNew(SVerticalBox) + SVerticalBox::Slot().AutoHeight()
 				[
-					SNew(SButton)
-                        .HAlign(HAlign_Center)
-						.Text(FText::FromString(TEXT("SetWaveData")))
-						.OnClicked(this, &SWaveToolWidgetMenu::OnSetWaveDataButtonClicked)
+					SNew(SHorizontalBox) + SHorizontalBox::Slot().AutoWidth()
+					[
+						SNew(STextBlock).Text(FText::FromString(TEXT("Wave Data Asset")))
+					]
+					+ SHorizontalBox::Slot()
+					[
+						SNew(SClassPropertyEntryBox)
+							.MetaClass(UPDataWaveContainer::StaticClass())
+							//.MetaClass(UPDataWaveContainer::)
+							.SelectedClass_Lambda([this] { return WManagerDataWaveContainer; })
+							.AllowNone(true)
+							.OnSetClass_Lambda([this](const UClass* NewClass) {
+							if (NewClass && NewClass->IsChildOf(UPDataWaveContainer::StaticClass()))
+							{
+								WManagerDataWaveContainer = const_cast<UClass*>(NewClass);
+								UE_LOG(LogTemp, Log, TEXT("Selected Wave Container Class: %s"), *NewClass->GetName());
+							}
+							})
+					]
 				]
 			]
 		]
+		*/
 	];
 	GenerateDataTableWidget();
 	// ENUM DROP DOWN MENU STUFF //
@@ -753,6 +786,25 @@ FReply SWaveToolWidgetMenu::OnEnemyTypesMinusButtonClicked(int32 containerIndex,
 	return FReply::Handled();
 }
 
+void SWaveToolWidgetMenu::FindOrCreateManager()
+{
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	if (!World) return;
+
+	for (TActorIterator<APWaveManager> ItActor(World); ItActor; ++ItActor)
+	{
+		WaveManager = *ItActor;
+		UE_LOG(LogTemp, Log, TEXT("Found Wave Manager"));
+		break;
+	}
+
+	if (!WaveManager)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Creating Wave Manager"));
+		WaveManager = NewObject<APWaveManager>(World);
+	}
+}
+
 // ENUM DROP DOWN MENU //
 void SWaveToolWidgetMenu::OnEnemyTypeSelectionChanged(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex)
 {
@@ -885,18 +937,11 @@ void SWaveToolWidgetMenu::OnClassSelected(const UClass* selectedClass, int32 con
 		WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass = const_cast<UClass*>(selectedClass);
 		UE_LOG(LogTemp, Log, TEXT("Stored Native Actor Class: %s"),
 			*WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass->GetName());
-		//DataWaveContainersArray[containerIndex]->WavesArray[waveIndex].WaveSettings.EnemyTypes[enemyTypeIndex].EnemyClass = SelectedActorClass;
-		//WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass = SelectedActorClass;
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Selected class is not a valid AActor subclass."));
 	}
-
-	/*UE_LOG(LogTemp, Log, TEXT("Selected Actor Class: %s"), *SelectedClass->GetName());
-	TSubclassOf<AActor> selectedactor = const_cast<UClass*>(SelectedClass);
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass = selectedactor;
-	SelectedClass = const_cast<UClass*>(selectedClass);*/
 }
 
 const UClass* SWaveToolWidgetMenu::GetSelectedClass(int32 containerIndex, int32 arrayWaveIndex, int32 enemyTypeIndex) const

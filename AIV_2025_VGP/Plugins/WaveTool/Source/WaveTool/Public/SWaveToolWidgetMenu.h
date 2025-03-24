@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "PDataWaveContainer.h"
+#include "PWaveManager.h"
 
 class WAVETOOL_API SWaveToolWidgetMenu : public SCompoundWidget
 {
@@ -102,6 +103,10 @@ private:
 	FReply OnEnemyTypesPlusButtonClicked(int32 containerIndex, int32 waveIndex);
 	FReply OnEnemyTypesMinusButtonClicked(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 
+	//runtime//
+	APWaveManager* WaveManager;
+	UClass* WManagerDataWaveContainer;
+	void FindOrCreateManager();
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;
