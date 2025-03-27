@@ -30,6 +30,8 @@ public:
 	FName SecondaryAttackName;
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
 	FString WeaponDamage;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon State")
+	bool bCanAttack = true;
 	
 #pragma endregion Properties
 
