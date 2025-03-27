@@ -1,12 +1,12 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 // Lorenzo Petrillo
 // Fabrizio Conni
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
-
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AIV_2025_VGP_API UHealthComponent : public UActorComponent
@@ -16,6 +16,8 @@ class AIV_2025_VGP_API UHealthComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UHealthComponent();
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRevive);
 
 protected:
 	// Called when the game starts
@@ -42,5 +44,12 @@ public:
 	// Removes health to current health
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	bool RemoveHealth(float Amount);
-	
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FOnDeath OnDeathCallback;
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FOnRevive OnReviveCallback;
+
+private:
+	void CheckIfDeath() const;
 };

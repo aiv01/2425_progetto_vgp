@@ -7,8 +7,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/I_PlayerInput.h"
+#include "Interfaces/I_HealthSystem.h"
 #include "Logging/LogMacros.h"
-#include "../Public/HealthSystem/I_HealthSystem.h"
 #include "BasePlayer.generated.h"
 
 class USpringArmComponent;
