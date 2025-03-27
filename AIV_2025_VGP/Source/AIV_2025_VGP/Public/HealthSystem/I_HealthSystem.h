@@ -23,8 +23,8 @@ class AIV_2025_VGP_API II_HealthSystem
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
-	void AddHealth(float Amount);
+	void IAddHealth(float Amount);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
-	void RemoveHealth(float Amount);
+	void IRemoveHealth(float Amount);
 };

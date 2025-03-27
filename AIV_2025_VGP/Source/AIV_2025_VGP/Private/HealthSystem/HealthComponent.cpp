@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 // Lorenzo Petrillo
+// Fabrizio Conni
 
 
 #include "HealthSystem/HealthComponent.h"
@@ -25,29 +26,35 @@ void UHealthComponent::BeginPlay()
 	
 }
 
-void UHealthComponent::SetHealth(float Amount)
+bool UHealthComponent::SetHealth(float Amount)
 {
 	if (Amount >= 0 && Amount <= MaxHealth)
 	{
 		CurrentHealth = Amount;
+		return true;
 	}
+	return false;
 }
 
-void UHealthComponent::AddHealth(float Amount)
+bool UHealthComponent::AddHealth(float Amount)
 {
-	if (Amount > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
+	if (Amount > 0 && CurrentHealth > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
 	{
 		CurrentHealth = FMath::Clamp(Amount, 0.f, MaxHealth); // Adds Amount to current health with a clamp
+		return true;
 	}
+	return false;
 }
 
 
-void UHealthComponent:: RemoveHealth(float Amount)
+bool UHealthComponent:: RemoveHealth(float Amount)
 {
-	if (Amount > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
+	if (Amount > 0 && CurrentHealth > 0) // Checks if amount is more then 0 and its needed to do the elaborate the clamp
 	{
 		CurrentHealth = FMath::Clamp(CurrentHealth - Amount, 0.f, MaxHealth); // Adds Amount to current health with a clamp
+		return true;
 	}
+	return false;
 }
 
 

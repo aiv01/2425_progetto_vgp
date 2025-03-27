@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 // Lorenzo Petrillo
-
+// Fabrizio Conni
 #pragma once
 
 #include "CoreMinimal.h"
@@ -33,14 +33,14 @@ public:
 
 	// Sets health to a current value
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	void SetHealth(float Amount);
+	bool SetHealth(float Amount);
 
 	// Adds health to current health
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	void AddHealth(float Amount);
+	bool AddHealth(float Amount);
 
 	// Removes health to current health
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	void RemoveHealth(float Amount);
+	bool RemoveHealth(float Amount);
 	
 };

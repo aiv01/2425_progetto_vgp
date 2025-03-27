@@ -41,8 +41,8 @@ public:
 	virtual void SecondaryAttack_Implementation() override;
 	virtual void ChangeWeapon_Implementation(bool bForward) override;
 
-	virtual void AddHealth_Implementation(float Amount) override;
-	virtual void RemoveHealth_Implementation(float Amount) override;
+	virtual void IAddHealth_Implementation(float Amount) override;
+	virtual void IRemoveHealth_Implementation(float Amount) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* MontageToPlay;

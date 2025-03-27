@@ -124,18 +124,18 @@ void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 	}
 }
 
-void ABasePlayer::AddHealth_Implementation(float Amount)
+void ABasePlayer::IAddHealth_Implementation(float Amount)
 {
 	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
 	{
-		II_HealthSystem::Execute_AddHealth(this, Amount);
+		II_HealthSystem::Execute_IAddHealth(this, Amount);
 	}
 }
-void ABasePlayer::RemoveHealth_Implementation(float Amount)
+void ABasePlayer::IRemoveHealth_Implementation(float Amount)
 {
 	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
 	{
-		II_HealthSystem::Execute_RemoveHealth(this, Amount);
+		II_HealthSystem::Execute_IRemoveHealth(this, Amount);
 	}
 }
 
