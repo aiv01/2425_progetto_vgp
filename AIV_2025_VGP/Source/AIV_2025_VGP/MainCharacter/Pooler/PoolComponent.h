@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "PoolComponent.generated.h"
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AIV_2025_VGP_API UPoolComponent : public UActorComponent
 {
@@ -24,7 +23,6 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	
 	
 public:	
 	UPROPERTY(EditAnywhere, Category="Pooler")

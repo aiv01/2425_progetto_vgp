@@ -49,33 +49,22 @@ void UPoolComponent::InitializePool()
 		}
 	}
 }
-
 AActor* UPoolComponent::GetPoolElement(FVector Location, FRotator Rotation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("GetElement"));
-	for(AActor* SpawnedActor : PoolList)
+	AActor* SpawnedActor = PoolList[0];
+	
+	if(SpawnedActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryGetActor"));
+		SpawnedActor->SetActorLocation(Location);
+		SpawnedActor->SetActorRotation(Rotation);
+		SpawnedActor->SetActorHiddenInGame(false);
+		SpawnedActor->SetActorEnableCollision(true);
 
-		if (SpawnedActor && SpawnedActor->IsHidden())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Actor: %s"), *SpawnedActor->GetName());
-			UE_LOG(LogTemp, Warning, TEXT("Setting Rotation: %s"), *Rotation.ToCompactString());
-			SpawnedActor->SetActorLocation(Location);
-			SpawnedActor->SetActorRotation(Rotation);
-			UE_LOG(LogTemp, Warning, TEXT("Setting Rotation: %s"), *Rotation.ToCompactString());
-			SpawnedActor->SetActorHiddenInGame(false);
-			SpawnedActor->SetActorEnableCollision(true);
+		// Infinity Loop for pooler
+		PoolList.Remove(SpawnedActor);
+		PoolList.Add(SpawnedActor);
 
-			// if (UProjectileMovementComponent* Movement = SpawnedActor->FindComponentByClass<UProjectileMovementComponent>())
-			// {
-			// 	Movement->Velocity = SpawnedActor->GetActorForwardVector() * 2000;
-			// 	Movement->Activate(true);
-			// }
-
-			return SpawnedActor;
-		}
+		return SpawnedActor;
 	}
-
 	return nullptr;
-}
+}	
