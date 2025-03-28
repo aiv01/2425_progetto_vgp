@@ -2,6 +2,8 @@
 // Fabio Giannino
 // Fabrizio Conni
 // Luca Casamenti
+// Andreea Manuela Hodor
+// Marco Pungillo
 
 #pragma once
 
@@ -20,4 +22,6 @@ class AIV_2025_VGP_API UBaseStrategy : public UObject, public II_FunctionStrateg
 public:
 	virtual void Execute() override;
 	
+	UPROPERTY(BlueprintReadWrite, Category = "Params")
+	ACharacter* StrategyOwner;
 };
