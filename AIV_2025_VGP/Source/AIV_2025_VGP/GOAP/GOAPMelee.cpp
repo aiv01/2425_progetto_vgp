@@ -2,9 +2,9 @@
 //Andreea Hodor
 
 #include "GOAPMelee.h"
-
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "GOAPAbilityComponent.h"
 
 void UGOAPMelee::Execute()
 {
@@ -12,19 +12,23 @@ void UGOAPMelee::Execute()
 	{
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "MeleeStrategy");
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, "MeleeStrategy");
 		}
 
-		if (MontageToPlay)
+		if (AnimationToPlay)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "This is a temp strategy");
-			//TODO: we should get reference to the enemy (base C++ class ABaseEnemy)
-			ACharacter* GOAPAgent = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-			//this should be the same once we got the reference
-			if (GOAPAgent)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "Melee atk!!!");
+
+			if (StrategyOwner)
 			{
-				GOAPAgent->PlayAnimMontage(MontageToPlay);
+				USkeletalMeshComponent* MeshComponent = StrategyOwner->GetMesh();
+				if (MeshComponent)
+				{
+					MeshComponent->PlayAnimation(AnimationToPlay, true);
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "Animation is playing correctly");
+				}
 			}
 		}
 	}
 }
+
