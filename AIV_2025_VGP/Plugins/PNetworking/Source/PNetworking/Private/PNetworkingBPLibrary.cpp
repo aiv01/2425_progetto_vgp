@@ -396,6 +396,12 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 {
 	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
 
+	if (!GEngine)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Engine error: GEngin invalid!"));
+		return;
+	}
+
 	UWorld* CurrentWorld = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 	if (!CurrentWorld)
 	{
@@ -410,10 +416,10 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		return;
 	}
 
-	FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
+	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
 	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 
-	 auto lambda=FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
+	 auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
 		{
 			if (bWasSuccessfull)
 			{
@@ -426,7 +432,15 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		}
 	));
 
-	 FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), lambda);
+	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), lambda))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
+	}
+
+	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), *(FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0))))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Self unregister to crashed session successfull!"));
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
 }
@@ -551,6 +565,18 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
 		return true;
 	}
+
+	auto playerLeft = FOnSessionParticipantLeftDelegate::CreateLambda(([](FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason)
+		{
+			if (true)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
+				FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
+			}
+		}
+	));
+
+	FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(playerLeft);
 
 	return true;
 }
