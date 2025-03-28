@@ -1,24 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-//Andreea Hodor
+//Andreea Manuela Hodor
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIV_2025_VGP/MainCharacter/AbilitySystem/Strategy/CombatStrategy/BaseCombatStrategy.h"
+#include "AIV_2025_VGP/GOAP/GOAPBaseCombatStrategy.h"
 #include "GOAPMelee.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class AIV_2025_VGP_API UGOAPMelee : public UBaseCombatStrategy
+class AIV_2025_VGP_API UGOAPMelee : public UGOAPBaseCombatStrategy
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
-	UAnimMontage* MontageToPlay;
+	UAnimMontage* AnimationToPlay;
 
 	virtual void Execute() override;
-	
+
 };
