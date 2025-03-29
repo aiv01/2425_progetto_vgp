@@ -276,7 +276,7 @@ TArray<FVector> APWaveManager::ComputeSpawnPositionsFromComposition(const TArray
 			FVector SpawnLocation = ChosenSpawner ? ChosenSpawner->GetRandomSpawnLocation() : GetActorLocation();
 
 			SpawnPositions.Add(SpawnLocation);
-			PrecomputedSpawnerNames.Add(ChosenSpawnerName); // Stesso spawner per tutti i nemici nel gruppo
+			PrecomputedSpawnerNames.Add(ChosenSpawnerName); // Same spawner for all enemy in the group
 		}
 	}
 
