@@ -451,24 +451,24 @@ TArray<int32> APWaveManager::ComputeSpawnQueueComposition() const
 TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoints, const int32 PlayerCount,
                                                              const TArray<FInternalDumbEnemyType>& AviableEnemies)
 {
-	// Creazione delle variabili per il processo
-	TMap<TSubclassOf<AActor>, int32> SelectedEnemies; // Contiene gli nemici selezionati
-	TMap<EEnemyTypes, int32> EnemyCount; // Conta quanti nemici di ogni tipo sono gi� stati scelti
-	TMap<EEnemyTypes, int32> PointBuyCount; // Conta quanti nemici sono stati aggiunti SOLO con Point Buy
-	int32 RemainingPoints = WavePoints; // Punti rimanenti per l'acquisto dei nemici
-	int32 MaxTanks = PlayerCount; // Per ora, il numero di tank � limitato ai giocatori
+	// Variables
+	TMap<TSubclassOf<AActor>, int32> SelectedEnemies;			// return map, contains selected enemies
+	TMap<EEnemyTypes, int32> EnemyCount;						// track how many enemy types are selected 
+	TMap<EEnemyTypes, int32> PointBuyCount;						// Enemy count used only by "Point buy"
+	int32 RemainingPoints = WavePoints;							// quantity of remaining points
+	int32 MaxTanks = PlayerCount;								// Tank limited by player count (Point Buy Only)
 
-	// Inizializza il conteggio delle categorie
+	// Initializing EnemyCount
 	EnemyCount.Add(EEnemyTypes::Melee, 0);
 	EnemyCount.Add(EEnemyTypes::Ranged, 0);
 	EnemyCount.Add(EEnemyTypes::Tank, 0);
 
-	// Inizializza il conteggio delle categorie riservate al point buy
+	// Initializing PointBuyCount
 	PointBuyCount.Add(EEnemyTypes::Melee, 0);
 	PointBuyCount.Add(EEnemyTypes::Ranged, 0);
 	PointBuyCount.Add(EEnemyTypes::Tank, 0);
 
-	// Ordina gli nemici dal costo pi� basso al pi� alto
+	// Order the enemies by their cost, from the most to the least expensive 
 	TArray<FInternalDumbEnemyType> SortedEnemies = AviableEnemies;
 	SortedEnemies.Sort([](const FInternalDumbEnemyType& A, const FInternalDumbEnemyType& B)
 	{
@@ -478,20 +478,20 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 
 	auto AddEnemy = [&](const FInternalDumbEnemyType& Enemy, int32 Count, bool bIsPointBuy)
 	{
-		if (Count <= 0) return; // Evita aggiunte inutili
+		if (Count <= 0) return; //Prevent more enemies that the quantity
 
 		SelectedEnemies.FindOrAdd(Enemy.EnemyClass) += Count;
 		EnemyCount[Enemy.EnemyType] += Count;
-		if (bIsPointBuy) // Se � stato acquistato con point buy, aggiorniamo PointBuyCount
+		if (bIsPointBuy) // if the enemy is taken by point buy, we update his map
 		{
 			PointBuyCount[Enemy.EnemyType] += Count;
 		}
 	};
 
-
+	//Min-Max
 	for (const FInternalDumbEnemyType& Enemy : SortedEnemies)
 	{
-		if (!Enemy.bUseEnemyCost) // Caso Min Max
+		if (!Enemy.bUseEnemyCost) 
 		{
 			int32 SpawnCount = InternalRandom(Enemy.MinEnemies, Enemy.MaxEnemies);
 
@@ -499,6 +499,7 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 		}
 	}
 
+	//Point Buy
 	while (RemainingPoints > 0)
 	{
 		bool bAddedEnemy = false;
@@ -507,10 +508,10 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 		{
 			if (!Enemy.bUseEnemyCost || Enemy.Cost > RemainingPoints)
 			{
-				continue; // Salta i nemici Min-Max e quelli troppo costosi
+				continue; // Skip min-max enemies and check if purchases is still possible
 			}
 
-			// Controlla se il numero massimo di Tank � stato raggiunto
+			// check the number of tanks
 			if (Enemy.EnemyType == EEnemyTypes::Tank && EnemyCount[EEnemyTypes::Tank] >= MaxTanks)
 			{
 				continue;
@@ -529,20 +530,20 @@ TMap<TSubclassOf<AActor>, int32> APWaveManager::GenerateWave(const int32 WavePoi
 					continue;
 				}
 			}
-			// Aggiunge il nemico e scala i punti
+			// Adding the enemy
 			AddEnemy(Enemy, 1, true);
 			RemainingPoints -= Enemy.Cost;
 			bAddedEnemy = true;
 		}
 
-		// Se nessun nemico � stato aggiunto, il loop si ferma
+		//If no enemy is added, stop the loop
 		if (!bAddedEnemy)
 		{
 			break;
 		}
 	}
 
-	// Restituisce la mappa con gli nemici selezionati e la loro quantit�
+	//Return of the map with Min-Max and Point Buy Enemies
 	return SelectedEnemies;
 }
 

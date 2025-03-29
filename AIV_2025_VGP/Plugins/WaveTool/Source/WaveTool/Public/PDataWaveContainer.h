@@ -4,9 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "PDataWaveContainer.generated.h"
-
-//TO DO: "GETTER"
+#include "PDataWaveContainer.generated.h
 
 // This enum is provisory and contains the "In game Waves".
 // If you want a generated wave to spawn on the first round, insert 1 and so on...
