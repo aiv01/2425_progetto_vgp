@@ -295,6 +295,37 @@ FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
 }
 
+void UPNetworkingBPLibrary::DestroySessionTest()
+{
+	auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
+		{
+			if (bWasSuccessfull)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Session not destroyed!"));
+			}
+		}
+	));
+
+	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), lambda))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't Destroy Session "));
+	}
+	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), *(FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0))))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Self unregister to crashed session successfull!"));
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
+}
+
 bool UPNetworkingBPLibrary::ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID)
 {
 	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();

@@ -68,6 +68,9 @@ public:
 	static FString GetUserNameFromSteamID(const int32 SteamID);
 #pragma endregion Debug
 
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static void DestroySessionTest();
+
 private:
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
