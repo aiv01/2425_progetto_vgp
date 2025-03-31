@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FormationDataAsset.h"
 #include "GameFramework/Actor.h"
 #include "PDataWaveContainer.h"
 #include "WaveSpawner.h"
@@ -40,9 +41,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	UPDataWaveContainer* WaveDataAsset;
 	
+	/* Data asset for the spawn formation*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Formation")
+	TArray<UFormationDataAsset*> FormationDataAssets;
+	 
 	/** Interval between waves (in seconds) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	float WaveInterval;
+	
+	/** Interval between waves (in seconds) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
+	float FormationSpawnFrequency;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	float SpawnFrequency;
@@ -50,6 +59,12 @@ public:
 	/** Automatically starts the wave system at game start */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Variables")
 	bool bAutoStartWaveSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave System | Formation")
+	bool bUseFormation;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bEnableLogging = false;
 #pragma endregion
 
 #pragma region Wave System Variables
@@ -71,14 +86,16 @@ public:
 
 	/** Queue fo r current enemy */
 	TArray<FSpawnInstruction> PendingSpawnQueue;
+
+	/* Queue for pre computer the enemies positions*/
+	TArray<FVector> PrecomputedSpawnPositions;
+
+	float CachedTotalSpawnerWeight;
 #pragma endregion
 
 #pragma region Wave System Internal Functions
 	/** Starts the next wave */
 	void StartWave();
-
-	/** Starts the next wave */
-	void NewStartWave();
 	
 	/** Checks if the wave is completed */
 	void CheckWaveCompletion();
@@ -91,8 +108,32 @@ public:
 #pragma endregion
 
 #pragma region Spawner Functions
-	FVector GetSpawnerLocationByWeight() const;
+	/* Main function to manage the spawning, detach if spawn formation or single one */
 	void SpawnNextEnemy();
+	void GenerateSpawnQueue();
+	void CacheSpawnerWeights();
+	//void CacheSpawnerWeights():
+	/* Calculate a list of position using total enemy end distribution spawners*/
+	TArray<FVector> ComputeSpawnPositions(int32 TotalEnemies);
+	
+	/* Calculate a list of position based on formation */
+	TArray<FVector> ComputeSpawnPositionsFromComposition(const TArray<int32>& Composition);
+	
+	/* Using round-robin algorithm distribute the formation*/
+	void ApplyFormationsToSpawnQueue_RoundRobin();
+	
+	/* Create the formation using roundRobin*/
+	static TArray<FSpawnInstruction> GroupFormationInstructions_RoundRobin(
+	const TMap<FName, TArray<TArray<FSpawnInstruction>>>& GroupsByFormation, const TArray<FName>& FormationOrder);
+	
+	/*Using for select a spawner based on weight spawners*/
+	AWaveSpawner* GetRandomSpawnerByWeight() const;
+	
+
+	/*Using for select a spawner based on weight spawners - formation*/
+	TArray<int32> ComputeSpawnQueueComposition() const;
+
+
 #pragma endregion
 
 #pragma region Delegates
@@ -193,7 +234,7 @@ public:
 	void SetWaveInterval(float NewInterval);
 #pragma endregion
 
-#pragma region Debug Functions
+#pragma region Debug Functions - Variables
 	/** Prints wave system info */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Debug")
 	void PrintWaveInfo() const;
@@ -205,12 +246,16 @@ public:
 	/** Kills all enemies in the current wave */
 	UFUNCTION(BlueprintCallable, Category = "Wave System | Debug")
 	void KillAllEnemies();
+
+	TArray<FString> PrecomputedSpawnerNames;
+	
 #pragma endregion
 
 #pragma region Greedy
 	UFUNCTION(BlueprintCallable, Category = "Wave Management")
 	TMap<TSubclassOf<AActor>, int32> GenerateWave(int32 WavePoints, int32 PlayerCount, const TArray<FInternalDumbEnemyType>& AviableEnemies);
 
+	int32 InternalRandom(int min, int max);
 	/*	Example of Call
 		TArray<TSubclassOf<AActor>> GenerateWave(1000, 4, EnemyList);
 	*/
