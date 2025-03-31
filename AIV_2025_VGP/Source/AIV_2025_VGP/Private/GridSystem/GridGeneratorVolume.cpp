@@ -11,6 +11,12 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GridSystem/ESurfaceOrientation.h"
 
+void AGridGeneratorVolume::BeginPlay ()
+{
+	Super::BeginPlay();
+	HalfCellSize = CellSize * 0.5;
+}
+
 void AGridGeneratorVolume::Generate()
 {
 	// clear all of the data

@@ -15,10 +15,9 @@ class AIV_2025_VGP_API UGridPreviewComponent : public UGridProcessorComponent
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, Category="Preview/Material")
-	UMaterial* PreviewMaterial;
+	
 	//TObjectPtr<UMaterial> PreviewMaterial;
 	
-	void ShowPreview(const FHitResult HitResult, FGridSurface*& CloserSurface);
+	void ShowPreview(const FHitResult& HitResult, UMaterial* MeshMaterial, FGridSurface*& CloserSurface);
 	
 };

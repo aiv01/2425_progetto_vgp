@@ -24,6 +24,7 @@ class AIV_2025_VGP_API AGridGeneratorVolume : public AVolume
 {
 	GENERATED_BODY()
 public:
+	virtual void BeginPlay() override;
 	// "button" to start generation
 	UFUNCTION(CallInEditor, Category="GridGenerator")
 	void Generate();

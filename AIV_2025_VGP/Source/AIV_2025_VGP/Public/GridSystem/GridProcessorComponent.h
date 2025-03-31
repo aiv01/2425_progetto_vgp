@@ -20,6 +20,7 @@ class AIV_2025_VGP_API UGridProcessorComponent : public UActorComponent
 public:
 	virtual void BeginPlay() override;
 	FGridSurface* GetCloserSurface(const FHitResult HitResult);
+	void DrawDebug(const FGridSurface* CloserSurface) const;
 
 protected:
 	//reference of the GridData from the GridGeneratorVolumeOwner Owner
@@ -27,6 +28,5 @@ protected:
 	AGridGeneratorVolume* GridVolumeOwner;
 
 	
-	void DrawDebug(const FGridSurface* CloserSurface) const;
 	
 };

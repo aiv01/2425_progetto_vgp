@@ -69,6 +69,6 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 void UGridProcessorComponent::DrawDebug (const FGridSurface* CloserSurface) const
 {
 	const float HalfCell = GridVolumeOwner->GetHalfCellSize();
-	DrawDebugBox(GetWorld(), CloserSurface->Position + (CloserSurface->Orientation * HalfCell), FVector{HalfCell}, {0,255,0}, false, 5, 0, 5);
-	DrawDebugDirectionalArrow(GetWorld(), CloserSurface->Position, CloserSurface->Position + CloserSurface->Orientation * 100, 25, {255,0,0}, false, 5);
+	DrawDebugBox(GetWorld(), CloserSurface->Position + (CloserSurface->Orientation * HalfCell), FVector{HalfCell}, {0,255,0}, false, 0.2, 0, 5);
+	DrawDebugDirectionalArrow(GetWorld(), CloserSurface->Position, CloserSurface->Position + CloserSurface->Orientation * 100, 25, {255,0,0}, false, 0.2, 0, 10);
 }

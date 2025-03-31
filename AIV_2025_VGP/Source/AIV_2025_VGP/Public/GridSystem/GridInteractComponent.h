@@ -18,8 +18,15 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 
 private:
 	FGridSurface* LastGridSurface;
+	AGridGeneratorVolume* LastGridVolume;
+	UStruct  ;
+	
 	
 public:
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Preview")
+	//TObjectPtr<UMaterial> PreviewMaterial;
+	UMaterial* PreviewMaterial;
+	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
 	float InteractDistance = 600.0;
 	
@@ -37,7 +44,7 @@ public:
 
 protected:
 	UFUNCTION(BlueprintPure)
-	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit, AGridGeneratorVolume*& VolumeRef);
+	void GridRayCast(FVector CameraForward, FHitResult& result, bool& Hit);
 
 public:
 
