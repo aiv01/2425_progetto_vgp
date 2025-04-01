@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-//Andreea Hodor
 
-#include "GOAPMelee.h"
+
+#include "AIV_2025_VGP/GOAP/Strategy/GOAPSwordStrategy.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "AIV_2025_VGP/MainCharacter/AbilitySystem/AbilitySystemComponent.h"
 
-void UGOAPMelee::Execute()
+void UGOAPSwordStrategy::Execute()
 {
 	if (CanAttack())
 	{
@@ -31,4 +31,3 @@ void UGOAPMelee::Execute()
 		}
 	}
 }
-

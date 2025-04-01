@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-//Andreea Hodor
+// Andreea Manuela Hodor
 
-#include "GOAPMelee.h"
+#include "AIV_2025_VGP/GOAP/Strategy/GOAPAxeAttack.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "AIV_2025_VGP/MainCharacter/AbilitySystem/AbilitySystemComponent.h"
 
-void UGOAPMelee::Execute()
+void UGOAPAxeAttack::Execute()
 {
 	if (CanAttack())
 	{
