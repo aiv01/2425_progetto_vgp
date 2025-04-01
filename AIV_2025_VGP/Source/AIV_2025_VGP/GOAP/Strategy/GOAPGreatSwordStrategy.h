@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-// Andreea Manuela Hodor
+//Andreea Manuela Hodor
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "AIV_2025_VGP/GOAP/GOAPBaseCombatStrategy.h"
-#include "GOAPMelee.generated.h"
+#include "GOAPGreatSwordStrategy.generated.h"
 
 UCLASS()
-class AIV_2025_VGP_API UGOAPMelee : public UGOAPBaseCombatStrategy
+class AIV_2025_VGP_API UGOAPGreatSwordStrategy : public UGOAPBaseCombatStrategy
 {
 	GENERATED_BODY()
 
@@ -17,5 +17,5 @@ public:
 	UAnimMontage* AnimationToPlay;
 
 	virtual void Execute() override;
-
+	
 };
