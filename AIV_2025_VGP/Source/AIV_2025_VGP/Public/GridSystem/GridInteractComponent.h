@@ -19,7 +19,7 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 private:
 	FGridSurface* LastGridSurface;
 	AGridGeneratorVolume* LastGridVolume;
-	UStruct  ;
+	//UStruct  ;
 	
 	
 public:
