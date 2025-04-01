@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "AIV_2025_VGP/GOAP/GOAPBaseCombatStrategy.h"
-#include "GOAPMelee.generated.h"
+#include "GOAPAxeAttack.generated.h"
 
 UCLASS()
-class AIV_2025_VGP_API UGOAPMelee : public UGOAPBaseCombatStrategy
+class AIV_2025_VGP_API UGOAPAxeAttack : public UGOAPBaseCombatStrategy
 {
 	GENERATED_BODY()
 
@@ -17,5 +17,5 @@ public:
 	UAnimMontage* AnimationToPlay;
 
 	virtual void Execute() override;
-
+	
 };
