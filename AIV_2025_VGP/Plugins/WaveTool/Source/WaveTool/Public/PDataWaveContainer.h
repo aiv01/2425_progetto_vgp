@@ -4,9 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "PDataWaveContainer.generated.h"
-
-//TO DO: "GETTER"
+#include "PDataWaveContainer.generated.h
 
 // This enum is provisory and contains the "In game Waves".
 // If you want a generated wave to spawn on the first round, insert 1 and so on...
@@ -53,14 +51,14 @@ struct FInternalDumbEnemyType
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "bUseEnemyCost"))
     int32 Cost = 0;    
     
-    // This field indicates the meaximum enemy you want
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "!bUseEnemyCost"))
-    int32 MaxEnemies = 0;    
-    
     // This field indicates the miminum enemy you want
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "!bUseEnemyCost"))
     int32 MinEnemies = 0;
 
+    // This field indicates the meaximum enemy you want
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy", meta = (EditCondition = "!bUseEnemyCost"))
+    int32 MaxEnemies = 0;    
+    
     // This field indicates the Type of the Enemy
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     EEnemyTypes EnemyType;

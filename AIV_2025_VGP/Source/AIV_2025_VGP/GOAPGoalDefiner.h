@@ -1,4 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// COPYRIGHT
+// Marco Pungillo
+
 
 #pragma once
 
@@ -27,6 +30,9 @@ public:
 	float MinInsistence;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Insistence")
 	float MaxInsistence = 10.0f;
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void InitializeGoal();
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	UGOAPWorldModel* ElaborateWorldModel(UGOAPWorldModel* Wm);
