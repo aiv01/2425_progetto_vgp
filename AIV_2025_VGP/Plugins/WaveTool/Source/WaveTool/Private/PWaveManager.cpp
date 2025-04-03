@@ -119,7 +119,7 @@ void APWaveManager::SpawnNextEnemy()
             	{
             		UE_LOG(LogTemp, Error, TEXT("Wave Manager: Enemy doesn't implement interface!"));
             	}
-                OnEnemySpawn.Broadcast(SpawnedEnemy);
+                OnEnemySpawn.Broadcast(SpawnedEnemy,GroupInstructions[i].bIsLeader, GroupInstructions[i].FormationName, GroupInstructions[i].GroupID);
             }
         }
 
@@ -143,7 +143,7 @@ void APWaveManager::SpawnNextEnemy()
         if (SpawnedEnemy)
         {
         	
-            OnEnemySpawn.Broadcast(SpawnedEnemy);
+            OnEnemySpawn.Broadcast(SpawnedEnemy, false, "None", -1);
 #if UE_BUILD_DEVELOPMENT
         	if(bEnableLogging)
         	{
