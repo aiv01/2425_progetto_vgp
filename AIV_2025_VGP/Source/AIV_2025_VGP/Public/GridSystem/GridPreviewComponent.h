@@ -15,9 +15,8 @@ class AIV_2025_VGP_API UGridPreviewComponent : public UGridProcessorComponent
 	GENERATED_BODY()
 
 public:
+	AStaticMeshActor* PreviewMesh;
 	
-	//TObjectPtr<UMaterial> PreviewMaterial;
-	
-	void ShowPreview(const FHitResult& HitResult, UMaterial* MeshMaterial, FGridSurface*& CloserSurface);
-	
+	void ShowPreview(const FHitResult& HitResult, UMaterial* MeshMaterial, FGridSurface*& CloserSurface, const FName TrapRowName);
+	void ClearPreviewMesh();
 };

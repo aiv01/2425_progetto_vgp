@@ -5,6 +5,8 @@
 // Vernone Michele
 
 #include "GridSystem/GridInteractComponent.h"
+
+#include "Engine/StaticMeshActor.h"
 #include "GridSystem/GridPlacementComponent.h"
 #include "GridSystem/GridPreviewComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -63,6 +65,11 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 			}
 			//no VOLUME e HO la preview
 			//LastGridVolume.clear preview
+			UGridPreviewComponent* UGridPreviewComp = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
+			if(UGridPreviewComp)
+			{
+				UGridPreviewComp->ClearPreviewMesh();
+			}
 			LastGridVolume = nullptr;
 		} 
 	} else if(bDebug)
@@ -93,7 +100,7 @@ bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* Volum
  * @param CameraForward FVector (look direction)
  * @param HitSurface bool
  */
-void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface)
+void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface, const FName TrapRowName)
 {
 	//call the GridRayCast and return the Volume and HitResult
 	FHitResult Result;
@@ -125,7 +132,7 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
 		if(UGridPreviewComp)
 		{
 			//if there is the component, call the preview method inside
-			UGridPreviewComp->ShowPreview(Result, PreviewMaterial, LastGridSurface);
+			UGridPreviewComp->ShowPreview(Result, PreviewMaterial, LastGridSurface, TrapRowName);
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
 			}
@@ -145,7 +152,7 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
  * @param CameraForward FVector (look direction)
  * @param HitSurface bool
  */ 
-void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
+void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface, const FName TrapRowName)
 {
 	//call the GridRayCast and return the Volume and HitResult
 	FHitResult Result;
@@ -158,7 +165,7 @@ void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface)
 		if(UGridPlaceComp)
 		{
 			//if there is the component, call the Place method inside
-			UGridPlaceComp->PlaceTrap(Result);
+			UGridPlaceComp->PlaceTrap(Result, TrapRowName);
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));
 			}

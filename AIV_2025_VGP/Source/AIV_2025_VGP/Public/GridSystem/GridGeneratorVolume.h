@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FTrapData.h"
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
 
@@ -43,8 +44,13 @@ public:
 
 	UFUNCTION(Blueprintable)
 	float GetHalfCellSize() const;
+
+	FTrapData* GetTrapData(const FName TrapRowName) const;
+	
 	
 protected:
+	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
+	UDataTable* DataTable;
 	
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")

@@ -52,9 +52,9 @@ public:
 	bool IsPositionWithinVolume(AGridGeneratorVolume* VolumeRef, const FVector Position);
 
 	UFUNCTION(BlueprintCallable)
-	void ShowPreview(FVector CameraForward, bool& HitSurface);
+	void ShowPreview(FVector CameraForward, bool& HitSurface, const FName TrapRowName);
 	
 	UFUNCTION(BlueprintCallable)
-	void PlaceTrap(FVector CameraForward, bool& HitSurface);
+	void PlaceTrap(FVector CameraForward, bool& HitSurface, const FName TrapRowName);
 		
 };

@@ -16,10 +16,10 @@ UGridPlacementComponent::UGridPlacementComponent()
 	// ...
 }
 
-void UGridPlacementComponent::PlaceTrap (FHitResult HitResult)
+void UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapRowName)
 {
 	//get closer surface
-	FGridSurface* CloserSurface = GetCloserSurface(HitResult);
+	FGridSurface* CloserSurface = GetCloserSurface(HitResult, TrapRowName);
 	//check if surface is valid
 	if(CloserSurface)
 	{

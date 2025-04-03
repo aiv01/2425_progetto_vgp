@@ -7,6 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "FGridSurface.h"
+#include "FTrapData.h"
 #include "GridGeneratorVolume.h"
 #include "Components/ActorComponent.h"
 #include "GridProcessorComponent.generated.h"
@@ -19,7 +20,7 @@ class AIV_2025_VGP_API UGridProcessorComponent : public UActorComponent
 
 public:
 	virtual void BeginPlay() override;
-	FGridSurface* GetCloserSurface(const FHitResult HitResult);
+	FGridSurface* GetCloserSurface(const FHitResult HitResult, const FName TrapName);
 	void DrawDebug(const FGridSurface* CloserSurface) const;
 
 protected:

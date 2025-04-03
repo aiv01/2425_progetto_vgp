@@ -255,3 +255,12 @@ float AGridGeneratorVolume::GetHalfCellSize () const
 {
 	return HalfCellSize;
 }
+
+FTrapData* AGridGeneratorVolume::GetTrapData (const FName TrapRowName) const
+{
+	if(!DataTable)
+	{
+		return nullptr;
+	}
+	return DataTable->FindRow<FTrapData>(TrapRowName, "");
+}

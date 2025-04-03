@@ -21,7 +21,7 @@ void UGridProcessorComponent::BeginPlay ()
 	}
 }
 
-FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitResult)
+FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitResult,  const FName TrapName)
 {
 	if(!GridVolumeOwner)
 	{
@@ -29,37 +29,17 @@ FGridSurface* UGridProcessorComponent::GetCloserSurface (const FHitResult HitRes
 		return nullptr;
 		
 	}
-	//AGridGeneratorVolume* GridVolumeOwner = Cast<AGridGeneratorVolume>(GetOwner());
-	//FVector LocalHitLocation = GridVolumeOwner->GetOrigin() - HitResult.Location;
-
-	//float DistanceCloserSurface = INT_MAX;
-	//FVector VecDistanceCloserSurf = {INT_MAX, INT_MAX, INT_MAX};
-	//float HalfCellSize = (GridVolumeOwner->CellSize)/2;
-	//HalfCellSize*=HalfCellSize;
+	
 	for (auto& GridSurface : GridVolumeOwner->GetGridData())
 	{
+		
 		//check the distance
 		if(GridVolumeOwner->IsPointInsideGridSurface(GridSurface, HitResult.Location))
 		{
 			return &GridSurface;
 		}
 		
-		/*
-		float DistanceGridSurface = FVector::DistSquared(HitResult.Location, GridSurface.Position);
-
-		if(DistanceCloserSurface > DistanceGridSurface)
-		{
-			DistanceCloserSurface = DistanceGridSurface;
-			if(DistanceCloserSurface < HalfCellSize)
-			{
-				return &GridSurface;
-			}
-		}
-		//check if it has the same rotation has the normal of the FHitResult
-		if(FMath::IsNearlyEqual(FVector::DotProduct(HitResult.Normal, GridSurface.Orientation), 1.0f, KINDA_SMALL_NUMBER))
-		{
-			
-		}*/
+		
 	}
 	UE_LOG(LogTemp, Error, TEXT("NO SURFACE FOUND?"))
 
