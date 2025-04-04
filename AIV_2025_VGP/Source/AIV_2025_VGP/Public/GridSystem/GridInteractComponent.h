@@ -25,7 +25,11 @@ private:
 public:
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Preview")
 	//TObjectPtr<UMaterial> PreviewMaterial;
-	UMaterial* PreviewMaterial;
+	UMaterial* PositivePreviewMaterial;
+
+	UPROPERTY(EditAnywhere, Category="GridGenerator|Preview")
+	//TObjectPtr<UMaterial> PreviewMaterial;
+	UMaterial* NegativePreviewMaterial;
 	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
 	float InteractDistance = 600.0;

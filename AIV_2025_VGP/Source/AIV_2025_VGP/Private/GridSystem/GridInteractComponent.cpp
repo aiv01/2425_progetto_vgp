@@ -132,7 +132,7 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
 		if(UGridPreviewComp)
 		{
 			//if there is the component, call the preview method inside
-			UGridPreviewComp->ShowPreview(Result, PreviewMaterial, LastGridSurface, TrapRowName);
+			UGridPreviewComp->ShowPreview(Result, PositivePreviewMaterial, NegativePreviewMaterial, LastGridSurface, TrapRowName);
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PREVIEW COMPONENT ATTACHED :)"));
 			}

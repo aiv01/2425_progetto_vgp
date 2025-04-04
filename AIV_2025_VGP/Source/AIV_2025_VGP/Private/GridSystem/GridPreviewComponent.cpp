@@ -10,10 +10,10 @@
 /**
  * Show the Preview of the trap mesh
  * @param HitResult Hit Location
- * @param MeshMaterial
+ * @param PositiveMeshMaterial
  * @param CloserSurface set the FGridSurface 
  */
-void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* MeshMaterial, FGridSurface*& CloserSurface, const FName TrapRowName)
+void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* PositiveMeshMaterial, UMaterial* NegativeMeshMaterial, FGridSurface*& CloserSurface, const FName TrapRowName)
 {
 	
 	//set closer surface ref
@@ -21,34 +21,21 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 	//check if surface is valid
 	if(CloserSurface)
 	{
-		if(!MeshMaterial)
-		{
-			UE_LOG(LogTemp, Error, TEXT("MATERIAL NOT SET IN GRID INTERACT COMPONENT"));
-			return;
-		}
 		FTrapData* TrapData = GridVolumeOwner->GetTrapData(TrapRowName);
-
 		if(!TrapData)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Trap not setted in datatable or name wrong"))
 			return;
 		}
-		if(TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("GRID NOT ON THE FLOOR"))
-			return;
-		}
-		if(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X != 0 && CloserSurface->Orientation.Y != 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("GRID NOT ON THE WALL"))
-			return;
-		}
-		
+
 		if(!PreviewMesh)
 		{
 			TObjectPtr<UStaticMesh> StaticMesh = TrapData->Mesh;
 			PreviewMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
 			PreviewMesh->SetMobility(EComponentMobility::Movable);
+			PreviewMesh->SetActorEnableCollision(false);
+			PreviewMesh->SetActorScale3D(FVector{ GridVolumeOwner->GetHalfCellSize() / 50.f });
+			//PreviewMesh->SetActorRotation(FQuat{CloserSurface->Orientation, 0});
 			UStaticMeshComponent* MeshComponent = PreviewMesh->GetStaticMeshComponent();
 			if (MeshComponent)
 			{
@@ -56,16 +43,33 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 			}
 			
 		}
+		
 		if(PreviewMesh)
 		{
-			
 			PreviewMesh->SetActorLocation(CloserSurface->Position);
-			PreviewMesh->GetComponentByClass<UStaticMeshComponent>()->SetMaterial(0, MeshMaterial);
 			
+			if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
+				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X != 0 && CloserSurface->Orientation.Y != 0))
+			{
+				if(!NegativeMeshMaterial)
+				{
+					UE_LOG(LogTemp, Error, TEXT("NEGATIVE MATERIAL NOT SET IN GRID INTERACT COMPONENT"));
+					return;
+				}
+				
+				PreviewMesh->GetComponentByClass<UStaticMeshComponent>()->SetMaterial(0, NegativeMeshMaterial);
+				
+			} else
+			{
+				if(!PositiveMeshMaterial)
+				{
+					UE_LOG(LogTemp, Error, TEXT("POSITIVE MATERIAL NOT SET IN GRID INTERACT COMPONENT"));
+					return;
+				}
+				PreviewMesh->GetComponentByClass<UStaticMeshComponent>()->SetMaterial(0, PositiveMeshMaterial);
+			}
 		}
 		
-		//DrawDebug(CloserSurface);
-		//Place preview Turret
 	}
 	
 }
