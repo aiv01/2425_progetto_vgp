@@ -35,7 +35,9 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 			PreviewMesh->SetMobility(EComponentMobility::Movable);
 			PreviewMesh->SetActorEnableCollision(false);
 			PreviewMesh->SetActorScale3D(FVector{ GridVolumeOwner->GetHalfCellSize() / 50.f });
-			//PreviewMesh->SetActorRotation(FQuat{CloserSurface->Orientation, 0});
+			
+			
+			
 			UStaticMeshComponent* MeshComponent = PreviewMesh->GetStaticMeshComponent();
 			if (MeshComponent)
 			{
@@ -47,6 +49,14 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 		if(PreviewMesh)
 		{
 			PreviewMesh->SetActorLocation(CloserSurface->Position);
+			
+			FVector Forward = CloserSurface->Orientation.GetSafeNormal(); // Assicura che sia un vettore unitario
+			FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal(); // Ortogonale a Forward
+			FVector Up = FVector::CrossProduct(Forward, Right); // Ortogonale a entrambi
+			FMatrix RotationMatrix = FMatrix(Forward, Right, Up, FVector::ZeroVector);
+			FRotator TargetRotation = RotationMatrix.Rotator();	
+			TargetRotation.Pitch -= 90.0f;
+			PreviewMesh->SetActorRotation(TargetRotation);
 			
 			if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
 				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X != 0 && CloserSurface->Orientation.Y != 0))
