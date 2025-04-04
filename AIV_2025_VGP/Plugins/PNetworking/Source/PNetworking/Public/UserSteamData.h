@@ -7,13 +7,16 @@
 #include "CoreMinimal.h"
 #include "UserSteamData.generated.h"
 
+// Contains informations to retreive steam users data.
+// It is made in order to use it in blueprints.
+
 USTRUCT(BlueprintType)
 struct FUserSteamData
 {
     GENERATED_BODY()
     
     UPROPERTY(BlueprintReadOnly)
-    int32 SteamID; // blueprint not supported "uint32", so we need to do some casts. 
+    int32 SteamID; // Blueprint not supported "uint32", so we need to do some casts. 
     
     UPROPERTY(BlueprintReadOnly)
     FText UserName;
