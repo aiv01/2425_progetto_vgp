@@ -16,11 +16,13 @@
 void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* PositiveMeshMaterial, UMaterial* NegativeMeshMaterial, FGridSurface*& CloserSurface, const FName TrapRowName)
 {
 	
-	//set closer surface ref
+	// Get the closest surface from the hit result
 	CloserSurface = GetCloserSurface(HitResult, TrapRowName);
+	
 	//check if surface is valid
 	if(CloserSurface)
 	{
+		// Retrieve trap data from the volume using the TrapRowName
 		FTrapData* TrapData = GridVolumeOwner->GetTrapData(TrapRowName);
 		if(!TrapData)
 		{
@@ -28,39 +30,38 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 			return;
 		}
 
+		// If the preview mesh actor doesn't exist yet, create it
 		if(!PreviewMesh)
 		{
 			TObjectPtr<UStaticMesh> StaticMesh = TrapData->Mesh;
 			PreviewMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
+
+			// Setup mesh properties: mobility, collision, scale
 			PreviewMesh->SetMobility(EComponentMobility::Movable);
 			PreviewMesh->SetActorEnableCollision(false);
 			PreviewMesh->SetActorScale3D(FVector{ GridVolumeOwner->GetHalfCellSize() / 50.f });
 			
-			
-			
+			// Assign static mesh from the trap data
 			UStaticMeshComponent* MeshComponent = PreviewMesh->GetStaticMeshComponent();
 			if (MeshComponent)
 			{
 				MeshComponent->SetStaticMesh(StaticMesh);
 			}
-			
 		}
-		
+
+		// If the preview mesh is valid, set position, rotation, and materia
 		if(PreviewMesh)
 		{
+			// Move the mesh to the surface position
 			PreviewMesh->SetActorLocation(CloserSurface->Position);
-			
-			FVector Forward = CloserSurface->Orientation.GetSafeNormal(); // Assicura che sia un vettore unitario
-			FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal(); // Ortogonale a Forward
-			FVector Up = FVector::CrossProduct(Forward, Right); // Ortogonale a entrambi
-			FMatrix RotationMatrix = FMatrix(Forward, Right, Up, FVector::ZeroVector);
-			FRotator TargetRotation = RotationMatrix.Rotator();	
-			TargetRotation.Pitch -= 90.0f;
-			PreviewMesh->SetActorRotation(TargetRotation);
-			
+
+			PreviewMesh->SetActorRotation(GetTrapRotation(CloserSurface->Orientation));
+
+			// Determine if trap placement is valid or invalid, and apply appropriate material
 			if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
-				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X != 0 && CloserSurface->Orientation.Y != 0))
+				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X == 0 && CloserSurface->Orientation.Y == 0))
 			{
+				// Invalid trap placement (wrong surface type)
 				if(!NegativeMeshMaterial)
 				{
 					UE_LOG(LogTemp, Error, TEXT("NEGATIVE MATERIAL NOT SET IN GRID INTERACT COMPONENT"));
@@ -71,6 +72,7 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 				
 			} else
 			{
+				// Valid trap placement
 				if(!PositiveMeshMaterial)
 				{
 					UE_LOG(LogTemp, Error, TEXT("POSITIVE MATERIAL NOT SET IN GRID INTERACT COMPONENT"));
@@ -83,9 +85,14 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 	}
 	
 }
-
+/**
+ * Destroys the preview mesh actor and clears the reference.
+ */
 void UGridPreviewComponent::ClearPreviewMesh()
 {
-	PreviewMesh->Destroy();
-	PreviewMesh = nullptr;
+	if(PreviewMesh)
+	{
+		PreviewMesh->Destroy();
+		PreviewMesh = nullptr;
+	}
 }

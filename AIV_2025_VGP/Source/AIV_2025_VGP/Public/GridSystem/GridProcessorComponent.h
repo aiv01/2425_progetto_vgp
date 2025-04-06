@@ -28,6 +28,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	AGridGeneratorVolume* GridVolumeOwner;
 
+	FRotator GetTrapRotation(FVector CloserSurfaceOrientation);
+
 	
 	
 };

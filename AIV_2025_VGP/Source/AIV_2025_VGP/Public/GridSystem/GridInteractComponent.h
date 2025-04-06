@@ -35,7 +35,7 @@ public:
 	float InteractDistance = 600.0;
 	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
-	float SphereCastRadius = 100.0;
+	float SphereCastRadius = 5.0;
 	
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Collision")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypeQuery;

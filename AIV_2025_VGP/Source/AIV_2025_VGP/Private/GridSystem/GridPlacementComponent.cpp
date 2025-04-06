@@ -18,14 +18,34 @@ UGridPlacementComponent::UGridPlacementComponent()
 
 void UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapRowName)
 {
-	//get closer surface
+	// Get the closest surface from the hit result
 	FGridSurface* CloserSurface = GetCloserSurface(HitResult, TrapRowName);
 	//check if surface is valid
-	if(CloserSurface)
+	if(CloserSurface && !CloserSurface->bOccupied)
 	{
+		// Retrieve trap data from the volume using the TrapRowName
+		FTrapData* TrapData = GridVolumeOwner->GetTrapData(TrapRowName);
+		if(!(TrapData && TrapData->TrapClass))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Trap not setted in datatable or name wrong"))
+			return;
+		}
+
+		if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
+			(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X == 0 && CloserSurface->Orientation.Y == 0))
+		{
+			//cant place turret, wrong surgace
+			return;	
+		}
+		
+		//Spawn the Trap
+		AActor* Trap = GetWorld()->SpawnActor<AActor>(TrapData->TrapClass);
+		// Set Trap Position, Rotation and Scale
+		Trap->SetActorLocation(CloserSurface->Position);
+		Trap->SetActorRotation(GetTrapRotation(CloserSurface->Orientation));
+		Trap->SetActorScale3D(FVector{ GridVolumeOwner->GetHalfCellSize() / 50.f });
+		
 		//set the surface occupied
 		CloserSurface->bOccupied = true;
-		//DrawDebug(CloserSurface);
-		//Place Turret
 	}
 }

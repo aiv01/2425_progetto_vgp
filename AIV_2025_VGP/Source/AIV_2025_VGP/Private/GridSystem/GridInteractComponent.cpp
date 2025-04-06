@@ -22,24 +22,29 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 	//do a line trace between the player character and it's camera forward
 	const FVector ownerLocation = GetOwner()->GetActorLocation();
 	const FVector endLocation = ownerLocation + CameraForward * InteractDistance;
-	//Check if collide to wall or floor
+	//draw the debug line for the line trace
 	if(bDebug)
 	{
 		DrawDebugLine(GetWorld(), ownerLocation, endLocation, DebugColor, false, -1, 0, 5);
 	}
+
+	//Perform the actual line trace
 	if(GetWorld()->LineTraceSingleByChannel(result, ownerLocation, endLocation, ECC_Visibility))
 	{
+		//draw the debug Sphere for the SphereOverlap
 		if(bDebug)
 		{
 			UE_LOG(LogTemp, Log, TEXT("HIT WITH SURFACE"));
 			DrawDebugSphere(GetWorld(), result.Location, SphereCastRadius, 12, DebugColor, false, -1, 0, 5);
 		}
-		//if the line trace hit a surface (wall or floor)
-		//check if there is a volume inside a SphereOverlapActors 
+		
+		// Check for overlapping GridVolume actors in a spherical area around the hit
 		TArray<AActor*> OverlappedActors;
 		TArray<AActor*> ignoreActor = { GetOwner() };
+		
 		if(UKismetSystemLibrary::SphereOverlapActors(GetWorld(), result.Location, SphereCastRadius, ObjectTypeQuery, AGridGeneratorVolume::StaticClass(), ignoreActor, OverlappedActors))
 		{
+			//debug for the hit result and the actors inside sphere
 			if(bDebug)
 			{
 				UE_LOG(LogTemp, Log, TEXT("HIT WITH VOLUME"));
@@ -48,29 +53,30 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 					UE_LOG(LogTemp, Log, TEXT("ACTOR OVERLAPPED: %s"), *OverlappedActor->GetName());
 				}
 			}
-			//get the first overlapped volume
+			
+			// Set the first overlapped volume as the current grid volume
 			if(!OverlappedActors.IsEmpty())
 			{
-
 				LastGridVolume = Cast<AGridGeneratorVolume>(OverlappedActors[0]);
 				Hit = true;
 				return;
 			}
-		} else if (LastGridVolume)
+		} else if (LastGridVolume) // If no volume is found but one was previously selected
 		{
-			
 			if (bDebug)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("NO GridGeneratorVolume FOUND"));
 			}
-			//no VOLUME e HO la preview
-			//LastGridVolume.clear preview
+			// Clear the preview mesh on the last volume
 			UGridPreviewComponent* UGridPreviewComp = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
 			if(UGridPreviewComp)
 			{
 				UGridPreviewComp->ClearPreviewMesh();
 			}
+
+			// Reset references
 			LastGridVolume = nullptr;
+			LastGridSurface = nullptr;
 		} 
 	} else if(bDebug)
 	{
@@ -80,16 +86,19 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 }
 
 /**
+ * DEPRECATED
  * Given a World Position and a volume, check if it's Inside the Box Volume Bounds (the volume is null, return false)
  * @param VolumeRef Volume to check
  * @param Position World Position to Check
  * @return bool
- * DEPRECATED
+ * 
  */
 bool UGridInteractComponent::IsPositionWithinVolume (AGridGeneratorVolume* VolumeRef, FVector Position)
 {
 	if(!VolumeRef) return false;
 	FVector BoxExtent = VolumeRef->GetBounds().GetBox().GetExtent();
+
+	// Check if Position is within bounds of the VolumeRef
 	return ((VolumeRef->GetActorLocation().X - BoxExtent.X) > Position.X && (VolumeRef->GetActorLocation().X + BoxExtent.X) < Position.X &&
 		(VolumeRef->GetActorLocation().Y - BoxExtent.Y) > Position.Y && (VolumeRef->GetActorLocation().Y + BoxExtent.Y) < Position.Y &&
 		(VolumeRef->GetActorLocation().Z - BoxExtent.Z) > Position.Z && (VolumeRef->GetActorLocation().Z + BoxExtent.Z) < Position.Z);
@@ -114,20 +123,22 @@ void UGridInteractComponent::ShowPreview(FVector CameraForward, bool& HitSurface
 			//check if the hit location is still inside the cell bounds
 			if(LastGridVolume->IsPointInsideGridSurface(*LastGridSurface, Result.Location))
 			{
+				// Optionally draw debug for confirmation
 				if(bDebug)
 				{
 					UE_LOG(LogTemp, Log, TEXT("Still Inside"));
 					UGridPreviewComponent* UGridPreviewCompDebug = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
 					UGridPreviewCompDebug->DrawDebug(LastGridSurface);
 				}
-				return;
+				return; // No need to update preview
 			}
+			// We've left the previous surface
 			if(bDebug)
 			{
 				UE_LOG(LogTemp, Log, TEXT("no more inside"));
 			}
 		}
-		//if LastGridSurface is null or different from the hit location call the volume preview component 
+		// Get the preview component and show the new preview
 		UGridPreviewComponent* UGridPreviewComp = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
 		if(UGridPreviewComp)
 		{
