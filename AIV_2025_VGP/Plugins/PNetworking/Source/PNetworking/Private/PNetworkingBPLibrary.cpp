@@ -419,7 +419,7 @@ void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSess
 		return;
 	}
 
-	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
+	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Relative, true);
 	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
@@ -448,10 +448,7 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 	}
 
 	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
-
-	FWorldContext world = GEngine->GetWorldContexts()[0];
-	GEngine->BrowseToDefaultMap(world);
-	//PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Relative, true);
+	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Relative, true);
 
 	 auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
 		{
