@@ -121,6 +121,9 @@ public:
 	static void DestroySessionTest();
 
 private:
+
+	static FDelegateHandle CreateSessionCompleteDelegateHandle;
+
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
 	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
@@ -130,5 +133,6 @@ private:
 	static void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
 	static void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	static void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+	static void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
 
 };

@@ -20,6 +20,8 @@
 #include "steam/steam_api.h"
 #pragma warning(pop)
 
+FDelegateHandle UPNetworkingBPLibrary::CreateSessionCompleteDelegateHandle;
+
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	UE_LOG(LogTemp, Warning, TEXT("BPL Constructor Called"));
@@ -419,7 +421,7 @@ void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSess
 		return;
 	}
 
-	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Relative, true);
+	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
 	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
@@ -448,7 +450,7 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 	}
 
 	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
-	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Relative, true);
+	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 
 	 auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
 		{
@@ -474,6 +476,40 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
+}
+
+void UPNetworkingBPLibrary::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)
+{
+	FPNetworkingModule::bIsComputingNewSession = false;
+
+	if (!bWasSuccessfull)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Creating Session error!"));
+		return;
+	}
+
+	UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+		return;
+	}
+
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	if (!SessionInterface.IsValid())
+	{
+		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+	}
+
+	const bool bServerTravelResult = World->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
+	if (bServerTravelResult)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+	}
 }
 
 bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
@@ -516,34 +552,7 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompl
 
 	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateLambda([Callback](FName NewName, bool bWasSuccessfull)
-	{
-			Callback.ExecuteIfBound(NewName, bWasSuccessfull);
-			FPNetworkingModule::bIsComputingNewSession = false;
-
-			if (!bWasSuccessfull)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Creating Session error!"));
-				return;
-			}
-
-			UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
-			if (!World)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
-				return;
-			}
-			const bool bServerTravelResult = World->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
-			if (bServerTravelResult)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
-			}
-	}
-	));
+	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnCreateSessionComplete));
 
 	return SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
 }
