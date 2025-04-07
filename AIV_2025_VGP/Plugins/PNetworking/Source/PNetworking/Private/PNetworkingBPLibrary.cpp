@@ -512,8 +512,7 @@ void UPNetworkingBPLibrary::OnCreateSessionComplete(FName NewName, bool bWasSucc
 	}
 }
 
-bool UPNetworkingBPLibrary::RequestSessionCreation(const FOnSessionCreationCompleted& Callback,
-												   const int32 NumberPublicConnections, 
+bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
 												   const bool bIsLANMatch,
 												   const bool bIsDedicated, 
