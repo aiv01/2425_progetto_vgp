@@ -109,6 +109,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool InitializeOnlineCallbacks();
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	static bool DeInitializeOnlineCallbacks();
 #pragma endregion Session
 
 #pragma region Debug
@@ -125,6 +127,8 @@ private:
 	static FDelegateHandle JoinSessionCompleteDelegateHandle;
 	static FDelegateHandle DestroySessionCompleteDelegateHandle;
 	static FDelegateHandle SessionParticipantLeftDelegateHandle;
+	static FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
+	static FDelegateHandle OnNetworkFailureDelegateHandle;
 
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
@@ -138,5 +142,6 @@ private:
 	static void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
 	static void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 	static void OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason);
+	static void CheckAndDestroyAlreadyExistingSession();
 
 };

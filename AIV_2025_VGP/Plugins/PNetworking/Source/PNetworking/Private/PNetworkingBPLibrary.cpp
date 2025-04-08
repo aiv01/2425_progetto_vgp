@@ -22,8 +22,10 @@
 
 FDelegateHandle UPNetworkingBPLibrary::CreateSessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::JoinSessionCompleteDelegateHandle;
-FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::SessionParticipantLeftDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::SessionUserInviteAcceptedDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::OnNetworkFailureDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -301,6 +303,11 @@ FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 }
 void UPNetworkingBPLibrary::OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
 {
+	if (DestroySessionCompleteDelegateHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+		DestroySessionCompleteDelegateHandle.Reset();
+	}
 	if (bWasSuccessfull)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
@@ -314,7 +321,8 @@ void UPNetworkingBPLibrary::OnDestroySessionComplete(FName sessionName, bool bWa
 
 void UPNetworkingBPLibrary::DestroySession()
 {
-	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete)))
+	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete));
+	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
@@ -322,12 +330,13 @@ void UPNetworkingBPLibrary::DestroySession()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can't Destroy Session "));
 	}
-	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), *(FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0))))
+
+	/*if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), *(FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0))))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Self unregister to crashed session successfull!"));
-	}
+	}*/
 
-	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
+	/*UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));*/
 }
 
 bool UPNetworkingBPLibrary::ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID)
@@ -395,7 +404,11 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 
 void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
-	FPNetworkingModule::GetOnlineSessionReference()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+	if (JoinSessionCompleteDelegateHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+		JoinSessionCompleteDelegateHandle.Reset();
+	}
 
 	if (Result != EOnJoinSessionCompleteResult::Success)
 	{
@@ -455,7 +468,7 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
 	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 
-	 auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
+	 /*auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
 		{
 			if (bWasSuccessfull)
 			{
@@ -478,13 +491,18 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		UE_LOG(LogTemp, Warning, TEXT("Self unregister to crashed session successfull!"));
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));
+	UE_LOG(LogTemp, Warning, TEXT("Client traveling back to Main Menu due to network failure."));*/
 }
 
 void UPNetworkingBPLibrary::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)
 {
 	FPNetworkingModule::bIsComputingNewSession = false;
 
+	if (CreateSessionCompleteDelegateHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+		CreateSessionCompleteDelegateHandle.Reset();
+	}
 	if (!bWasSuccessfull)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Creating Session error!"));
@@ -498,11 +516,6 @@ void UPNetworkingBPLibrary::OnCreateSessionComplete(FName NewName, bool bWasSucc
 		return;
 	}
 
-	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
-	if (!SessionInterface.IsValid())
-	{
-		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
-	}
 
 	const bool bServerTravelResult = World->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
 	if (bServerTravelResult)
@@ -539,6 +552,8 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConne
 		return false;
 	}
 
+
+
 	FPNetworkingModule::bIsComputingNewSession = true;
 	 
 	FOnlineSessionSettings NewSessionSettings;
@@ -553,8 +568,6 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConne
 	NewSessionSettings.bAllowJoinInProgress = true;
 	NewSessionSettings.bAllowJoinViaPresence = true;
 	NewSessionSettings.bAllowInvites = true;
-
-	// NewSessionSettings.Set(FPNetworkingModule::GetSessionSettingsKeyName(), NewSessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnCreateSessionComplete));
 
@@ -599,6 +612,16 @@ void UPNetworkingBPLibrary::OnPlayerLeft(FName sessionName, const FUniqueNetId& 
 	FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
 }
 
+void UPNetworkingBPLibrary::CheckAndDestroyAlreadyExistingSession()
+{
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	if (!SessionInterface)
+	{
+		return;
+	}
+	FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName());
+}
+
 bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
@@ -607,16 +630,39 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
-	FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
 
 	if (GEngine)
 	{
-		GEngine->OnNetworkFailure().AddStatic(&UPNetworkingBPLibrary::OnNetworkFailure);
+		OnNetworkFailureDelegateHandle = GEngine->OnNetworkFailure().AddStatic(&UPNetworkingBPLibrary::OnNetworkFailure);
 		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
 		return true;
 	}
+	//Da non fare qua:
+	//SessionParticipantLeftDelegateHandle= FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerLeft));
 
-	SessionParticipantLeftDelegateHandle= FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerLeft));
+	return true;
+}
+
+bool UPNetworkingBPLibrary::DeInitializeOnlineCallbacks()
+{
+	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
+		SessionUserInviteAcceptedDelegateHandle.Reset();
+	}
+	if (SessionParticipantLeftDelegateHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantLeftDelegate_Handle(SessionParticipantLeftDelegateHandle);
+		SessionParticipantLeftDelegateHandle.Reset();
+	}
+	if (GEngine && OnNetworkFailureDelegateHandle.IsValid())
+	{
+		GEngine->OnNetworkFailure().Remove(OnNetworkFailureDelegateHandle);
+		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
+		OnNetworkFailureDelegateHandle.Reset();
+		return true;
+	}
 
 	return true;
 }
