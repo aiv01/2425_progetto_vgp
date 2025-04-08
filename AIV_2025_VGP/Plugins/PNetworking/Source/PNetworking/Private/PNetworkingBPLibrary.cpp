@@ -619,7 +619,11 @@ void UPNetworkingBPLibrary::CheckAndDestroyAlreadyExistingSession()
 	{
 		return;
 	}
-	FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName());
+	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName());
+	if (ExistingSession)
+	{
+		DestroySession();
+	}
 }
 
 bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
