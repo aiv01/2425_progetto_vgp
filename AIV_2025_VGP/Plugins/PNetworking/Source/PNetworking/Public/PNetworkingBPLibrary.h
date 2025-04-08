@@ -109,6 +109,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool InitializeOnlineCallbacks();
+
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	static bool DeInitializeOnlineCallbacks();
 #pragma endregion Session

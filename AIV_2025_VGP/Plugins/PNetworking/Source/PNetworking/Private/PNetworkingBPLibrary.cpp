@@ -650,6 +650,11 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 
 bool UPNetworkingBPLibrary::DeInitializeOnlineCallbacks()
 {
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return false;
+	}
+
 	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
 	{
 		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
@@ -665,7 +670,6 @@ bool UPNetworkingBPLibrary::DeInitializeOnlineCallbacks()
 		GEngine->OnNetworkFailure().Remove(OnNetworkFailureDelegateHandle);
 		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
 		OnNetworkFailureDelegateHandle.Reset();
-		return true;
 	}
 
 	return true;
