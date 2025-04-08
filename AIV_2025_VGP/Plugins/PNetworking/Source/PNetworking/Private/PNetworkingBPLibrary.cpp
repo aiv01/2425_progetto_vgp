@@ -21,6 +21,9 @@
 #pragma warning(pop)
 
 FDelegateHandle UPNetworkingBPLibrary::CreateSessionCompleteDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::JoinSessionCompleteDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::SessionParticipantLeftDelegateHandle;
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -296,23 +299,22 @@ FString UPNetworkingBPLibrary::GetUserNameFromSteamID(const int32 SteamID)
 	CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
 	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
 }
-
-void UPNetworkingBPLibrary::DestroySessionTest()
+void UPNetworkingBPLibrary::OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
 {
-	auto lambda = FOnDestroySessionCompleteDelegate::CreateLambda(([](FName sessionName, bool bWasSuccessfull)
-		{
-			if (bWasSuccessfull)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Session not destroyed!"));
-			}
-		}
-	));
+	if (bWasSuccessfull)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Session not destroyed!"));
+	}
+}
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), lambda))
+
+void UPNetworkingBPLibrary::DestroySession()
+{
+	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName(), FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete)))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
@@ -373,8 +375,7 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 {
 	if (bWasSuccessful)
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(
-			FOnJoinSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnJoinSessionComplete));
+		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 		if (bHasJoined)
 		{
@@ -394,6 +395,8 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 
 void UPNetworkingBPLibrary::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+	FPNetworkingModule::GetOnlineSessionReference()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+
 	if (Result != EOnJoinSessionCompleteResult::Success)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Join Session failed!"));
@@ -512,6 +515,8 @@ void UPNetworkingBPLibrary::OnCreateSessionComplete(FName NewName, bool bWasSucc
 	}
 }
 
+
+
 bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConnections, 
 												   const int32 NumberPrivateConnections, 
 												   const bool bIsLANMatch,
@@ -588,6 +593,12 @@ bool UPNetworkingBPLibrary::InviteFriend(const int32 SteamID)
 	return false;
 }
 
+void UPNetworkingBPLibrary::OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
+	FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
+}
+
 bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
@@ -605,17 +616,7 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 		return true;
 	}
 
-	auto playerLeft = FOnSessionParticipantLeftDelegate::CreateLambda(([](FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason)
-		{
-			if (true)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-				FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
-			}
-		}
-	));
-
-	FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(playerLeft);
+	SessionParticipantLeftDelegateHandle= FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerLeft));
 
 	return true;
 }

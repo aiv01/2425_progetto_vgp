@@ -117,11 +117,14 @@ public:
 #pragma endregion Debug
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static void DestroySessionTest();
+	static void DestroySession();
 
 private:
 
 	static FDelegateHandle CreateSessionCompleteDelegateHandle;
+	static FDelegateHandle JoinSessionCompleteDelegateHandle;
+	static FDelegateHandle DestroySessionCompleteDelegateHandle;
+	static FDelegateHandle SessionParticipantLeftDelegateHandle;
 
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	static UTexture2D* GetAvatar(const CSteamID SteamID);
@@ -133,5 +136,7 @@ private:
 	static void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	static void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 	static void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
+	static void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	static void OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason);
 
 };
