@@ -59,7 +59,8 @@ void UGridPreviewComponent::ShowPreview(const FHitResult& HitResult, UMaterial* 
 
 			// Determine if trap placement is valid or invalid, and apply appropriate material
 			if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
-				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X == 0 && CloserSurface->Orientation.Y == 0))
+				(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X == 0 && CloserSurface->Orientation.Y == 0) ||
+				(CloserSurface->bOccupied))
 			{
 				// Invalid trap placement (wrong surface type)
 				if(!NegativeMeshMaterial)

@@ -16,7 +16,7 @@ UGridPlacementComponent::UGridPlacementComponent()
 	// ...
 }
 
-void UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapRowName)
+bool UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapRowName)
 {
 	// Get the closest surface from the hit result
 	FGridSurface* CloserSurface = GetCloserSurface(HitResult, TrapRowName);
@@ -28,14 +28,14 @@ void UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapR
 		if(!(TrapData && TrapData->TrapClass))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Trap not setted in datatable or name wrong"))
-			return;
+			return false;
 		}
 
 		if((TrapData->Type.Contains(ETrapType::Floor) && CloserSurface->Orientation.Z != 1) ||
 			(TrapData->Type.Contains(ETrapType::Wall) && CloserSurface->Orientation.X == 0 && CloserSurface->Orientation.Y == 0))
 		{
 			//cant place turret, wrong surgace
-			return;	
+			return false;	
 		}
 		
 		//Spawn the Trap
@@ -47,5 +47,7 @@ void UGridPlacementComponent::PlaceTrap (FHitResult HitResult, const FName TrapR
 		
 		//set the surface occupied
 		CloserSurface->bOccupied = true;
+		return true;
 	}
+	return false;
 }

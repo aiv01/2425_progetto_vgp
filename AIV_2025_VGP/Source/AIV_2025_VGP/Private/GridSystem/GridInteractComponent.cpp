@@ -176,7 +176,10 @@ void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface,
 		if(UGridPlaceComp)
 		{
 			//if there is the component, call the Place method inside
-			UGridPlaceComp->PlaceTrap(Result, TrapRowName);
+			if(UGridPlaceComp->PlaceTrap(Result, TrapRowName))
+			{
+				LastGridSurface = nullptr;
+			}
 			if(bDebug){
 				UE_LOG(LogTemp, Log, TEXT("PLACE COMPONENT ATTACHED :)"));
 			}

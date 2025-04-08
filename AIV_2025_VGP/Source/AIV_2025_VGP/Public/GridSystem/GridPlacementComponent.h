@@ -19,6 +19,6 @@ class AIV_2025_VGP_API UGridPlacementComponent : public UGridProcessorComponent
 public:	
 	// Sets default values for this component's properties
 	UGridPlacementComponent();
-	void PlaceTrap(const FHitResult HitResult, const FName TrapRowName);
+	bool PlaceTrap(const FHitResult HitResult, const FName TrapRowName);
 	
 };
