@@ -484,6 +484,8 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
 
+	CheckAndDestroyAlreadyExistingSession();
+
 	// Local forse si riferisce a LAN.
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
 		*FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0), FPNetworkingModule::GetSessionName(), FOnUnregisterLocalPlayerCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnLocalPlayerUnregistered));*/

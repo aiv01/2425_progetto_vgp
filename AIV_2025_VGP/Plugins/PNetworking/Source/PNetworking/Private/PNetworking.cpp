@@ -14,6 +14,7 @@
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 bool FPNetworkingModule::bIsComputingNewSession = false;
+int FPNetworkingModule::LobbyCounter = 0;
 FName FPNetworkingModule::SessionName = TEXT("AIV_VGP3_Server"); // Name used for the multiplayer steam session.
 
 // Define custom Log category.
@@ -103,7 +104,7 @@ IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionReference()
 FName FPNetworkingModule::GetSessionName()
 {
 	FDateTime timestamp = FDateTime();
-	FName dateName(*(SessionName.ToString() + FString::FromInt(timestamp.ToUnixTimestamp())));
+	FName dateName(*(SessionName.ToString() + FString::FromInt(LobbyCounter++)));
 
 	return dateName;
 }

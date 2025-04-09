@@ -47,4 +47,5 @@ private:
 
 #pragma endregion
 
+	static int LobbyCounter;
 };
