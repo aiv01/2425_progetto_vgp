@@ -399,6 +399,7 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 	{
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
+
 		if (bHasJoined)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
@@ -484,7 +485,8 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
 
-	CheckAndDestroyAlreadyExistingSession();
+	//CheckAndDestroyAlreadyExistingSession();
+	FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
 
 	// Local forse si riferisce a LAN.
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
@@ -633,13 +635,14 @@ void UPNetworkingBPLibrary::OnLocalPlayerUnregistered(const FUniqueNetId& unique
 void UPNetworkingBPLibrary::CheckAndDestroyAlreadyExistingSession()
 {
 	// Test not working.
-	// FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
+	// 
 
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
 	if (!SessionInterface)
 	{
 		return;
 	}
+
 	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName());
 	if (ExistingSession)
 	{
