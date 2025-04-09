@@ -147,7 +147,7 @@ private:
 	static void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 	static void OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason);
 	static void OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft);
-	static void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult);
+	static void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult); // Da rimuovere poichè probabilmente LAN
 	static void CheckAndDestroyAlreadyExistingSession();
 
 };

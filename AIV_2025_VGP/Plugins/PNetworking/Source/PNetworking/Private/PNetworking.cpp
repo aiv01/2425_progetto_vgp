@@ -102,7 +102,10 @@ IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionReference()
 // Getter of hardcoded name of the session.
 FName FPNetworkingModule::GetSessionName()
 {
-	return SessionName;
+	FDateTime timestamp = FDateTime();
+	FName dateName(*(SessionName.ToString() + FString::FromInt(timestamp.ToUnixTimestamp())));
+
+	return dateName;
 }
 
 #pragma endregion

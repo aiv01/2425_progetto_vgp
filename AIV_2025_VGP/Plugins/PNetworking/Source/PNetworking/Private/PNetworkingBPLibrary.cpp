@@ -23,10 +23,11 @@
 
 FDelegateHandle UPNetworkingBPLibrary::CreateSessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::JoinSessionCompleteDelegateHandle;
-FDelegateHandle UPNetworkingBPLibrary::SessionParticipantLeftDelegateHandle;
-FDelegateHandle UPNetworkingBPLibrary::SessionParticipantRemovedDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::SessionUserInviteAcceptedDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::OnNetworkFailureDelegateHandle;
+//
+FDelegateHandle UPNetworkingBPLibrary::SessionParticipantLeftDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::SessionParticipantRemovedDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::OnUnregisterLocalPlayerDelegateHandle;
 
@@ -338,7 +339,9 @@ void UPNetworkingBPLibrary::OnDestroySessionComplete(FName sessionName, bool bWa
 
 void UPNetworkingBPLibrary::DestroySession()
 {
-	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete));
+	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(
+		FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete));
+
 	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
@@ -475,10 +478,13 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 		return;
 	}
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
+	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(
+		FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
 	{
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
+
+	// Local forse si riferisce a LAN.
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
 		*FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0), FPNetworkingModule::GetSessionName(), FOnUnregisterLocalPlayerCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnLocalPlayerUnregistered));*/
 
@@ -652,16 +658,14 @@ bool UPNetworkingBPLibrary::InitializeOnlineCallbacks()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
-	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
+	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(
+		FOnSessionUserInviteAcceptedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnInviteAccepted));
 
 	if (GEngine)
 	{
 		OnNetworkFailureDelegateHandle = GEngine->OnNetworkFailure().AddStatic(&UPNetworkingBPLibrary::OnNetworkFailure);
 		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
-		return true;
 	}
-	//Da non fare qua:
-	//SessionParticipantLeftDelegateHandle= FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerLeft));
 
 	return true;
 }
