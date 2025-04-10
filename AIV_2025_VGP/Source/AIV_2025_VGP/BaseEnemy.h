@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// COPYRIGHT
 // Marco Pungillo
 // Andreea Hodor
 // Alessandro Violante
@@ -7,9 +8,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "I_CombatAgent.h"
+#include "I_MovingAgent.h"
 #include "GameFramework/Character.h"
 #include "BaseEnemy.generated.h"
 
+class UGOAPWorldModel;
 UCLASS()
 class AIV_2025_VGP_API ABaseEnemy : public ACharacter
 {
@@ -30,4 +34,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void UpdateWorldState(const UGOAPWorldModel* wd);
+	//// Agent Interfaces
+	//	// Combat Agent
+	//virtual void I_ExecuteSkill(const FName SkillName) override;
+	//virtual void I_EndSkill(const FName SkillName) override;
+
+	//	// Moving Agent
+	//virtual float I_GetSpeed() override;
+	//virtual void I_SetSpeed(const float NewSpeed) override;
 };
