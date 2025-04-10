@@ -30,6 +30,7 @@ FDelegateHandle UPNetworkingBPLibrary::SessionParticipantLeftDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::SessionParticipantRemovedDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::OnUnregisterLocalPlayerDelegateHandle;
+FDelegateHandle UPNetworkingBPLibrary::OnSessionPlayerNetworkFailureHandle;
 
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -342,7 +343,7 @@ void UPNetworkingBPLibrary::DestroySession()
 	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(
 		FOnDestroySessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnDestroySessionComplete));
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+	if (DestroySessionCompleteDelegateHandle.IsValid() && FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
@@ -397,6 +398,12 @@ void UPNetworkingBPLibrary::OnInviteAccepted(bool bWasSuccessful, int32 LocalUse
 {
 	if (bWasSuccessful)
 	{
+		if (FPNetworkingModule::GetOnlineSessionReference()->IsPlayerInSession(
+			FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Sono già in una bellissima sessione!"));
+		}
+
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 
@@ -484,9 +491,10 @@ void UPNetworkingBPLibrary::OnNetworkFailure(UWorld* World, UNetDriver* NetDrive
 	{
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
+	CheckAndDestroyAlreadyExistingSession();
+	//FPNetworkingModule::GetOnlineSessionReference()->EndSession(FPNetworkingModule::GetSessionName());
+	//FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
 
-	//CheckAndDestroyAlreadyExistingSession();
-	FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
 
 	// Local forse si riferisce a LAN.
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
@@ -559,6 +567,7 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConne
 
 	FPNetworkingModule::bIsComputingNewSession = true;
 	 
+	 
 	FOnlineSessionSettings NewSessionSettings;
 	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
 	NewSessionSettings.NumPrivateConnections = NumberPrivateConnections;
@@ -573,6 +582,8 @@ bool UPNetworkingBPLibrary::RequestSessionCreation(const int32 NumberPublicConne
 	NewSessionSettings.bAllowInvites = true;
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateStatic(&UPNetworkingBPLibrary::OnCreateSessionComplete));
+	
+	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateStatic(&UPNetworkingBPLibrary::OnSessionPlayerNetworkFailure));
 	SessionParticipantLeftDelegateHandle = SessionInterface->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerLeft));
 	SessionParticipantRemovedDelegateHandle = SessionInterface->AddOnSessionParticipantRemovedDelegate_Handle(FOnSessionParticipantRemovedDelegate::CreateStatic(&UPNetworkingBPLibrary::OnPlayerRemoved));
 
@@ -631,12 +642,28 @@ void UPNetworkingBPLibrary::OnLocalPlayerUnregistered(const FUniqueNetId& unique
 	UE_LOG(LogTemp, Warning, TEXT("Player %s unregistered!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
 }
 
+void UPNetworkingBPLibrary::OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SESSION NET PROBLEMS DETECTED!"));
+	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER(S) CRASHED"));
+
+	if (ErrorType == ESessionFailure::ServiceConnectionLost)
+	{
+		if (CrashedPlayerID.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(CrashedPlayerID));
+			FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), CrashedPlayerID);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Lobby named %s networking error!"), *FPNetworkingModule::GetSessionName().ToString());
+		}
+	}
+}
+
 
 void UPNetworkingBPLibrary::CheckAndDestroyAlreadyExistingSession()
 {
-	// Test not working.
-	// 
-
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
 	if (!SessionInterface)
 	{
@@ -704,6 +731,12 @@ bool UPNetworkingBPLibrary::DeInitializeOnlineCallbacks()
 	{
 		FPNetworkingModule::GetOnlineSessionReference()->ClearOnUnregisterPlayersCompleteDelegate_Handle(OnUnregisterLocalPlayerDelegateHandle);
 		OnUnregisterLocalPlayerDelegateHandle.Reset();
+	}
+
+	if (OnSessionPlayerNetworkFailureHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionFailureDelegate_Handle(OnSessionPlayerNetworkFailureHandle);
+		OnSessionPlayerNetworkFailureHandle.Reset();
 	}
 
 	if (GEngine && OnNetworkFailureDelegateHandle.IsValid())

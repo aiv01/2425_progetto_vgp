@@ -24,6 +24,7 @@ struct FUserSteamData;
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
 
+
 #pragma endregion
 
 UCLASS()
@@ -132,6 +133,7 @@ private:
 	static FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
 	static FDelegateHandle OnNetworkFailureDelegateHandle;
 	static FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
+	static FDelegateHandle OnSessionPlayerNetworkFailureHandle;
 
 
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
@@ -148,6 +150,7 @@ private:
 	static void OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason);
 	static void OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft);
 	static void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult); // Da rimuovere poichè probabilmente LAN
+	static void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 	static void CheckAndDestroyAlreadyExistingSession();
 
 };
