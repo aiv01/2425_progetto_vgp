@@ -355,6 +355,7 @@ int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const 
 
 	if (!PendingFlag)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("All Avatar ready!"));
 		Callback.ExecuteIfBound(UserSteamData);
 	}
 	else
@@ -367,6 +368,7 @@ int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const 
 					{
 						SteamApiManagerPtr->OnAvatarReadyFriendListData.Unbind();
 						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
+						GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("RE-Query GetAvatar"));
 
 						GetPlayersData(bAlphabeticalSort, Callback);
 					}
