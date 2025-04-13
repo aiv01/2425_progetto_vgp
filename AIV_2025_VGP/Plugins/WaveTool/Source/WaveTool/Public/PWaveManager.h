@@ -17,7 +17,12 @@ class AEnemySpawner;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveStarted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWaveCompleted, int32, WaveIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDie, AActor*, EnemyDie);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemySpawn, AActor*, EnemySpawn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnEnemySpawn, AActor*,EnemySpawn, bool, IsLeader,  FName, FormationName, int32, GroupID);
+/*
+*	bool bIsLeader =false;
+	FName FormationName;
+	int32 GroupID = -1;
+ **/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEndLevel);
 
 UCLASS(Blueprintable)
