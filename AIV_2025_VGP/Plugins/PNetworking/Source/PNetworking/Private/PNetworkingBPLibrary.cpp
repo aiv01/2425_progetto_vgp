@@ -139,20 +139,20 @@ bool UPNetworkingBPLibrary::GetAllFriendsList(const FOnFriendsListReady& Callbac
 	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
 }
 
-UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
+UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID, int32& QueryResult)
 {
 	int32 AvatarID = SteamFriends()->GetLargeFriendAvatar(SteamID);
 
 	if (AvatarID == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar ID!"));
+		QueryResult = 0;
 		return nullptr;
 	}
 
 	if (AvatarID == -1)
 	{
-		
-
+		QueryResult = -1;
 		return nullptr;
 	}
 
@@ -188,6 +188,7 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 
 	AvatarTexture->UpdateResource();
 
+	QueryResult = 1;
 	return AvatarTexture;
 }
 
@@ -198,13 +199,15 @@ int32 UPNetworkingBPLibrary::GetLocalUserAvatar(const FOnLocalAvatarReady& Callb
 		return 0;
 	}
 
+	int32 QueryResult = 0;
+
 	const CSteamID SteamID = SteamUser()->GetSteamID(); // Local user.
-	UTexture2D* AvatarBuffer = GetAvatar(SteamID);
-	if (AvatarBuffer != nullptr) 
+	UTexture2D* AvatarBuffer = GetAvatar(SteamID, QueryResult);
+	if (AvatarBuffer != nullptr && QueryResult == 1) 
 	{
 		Callback.ExecuteIfBound(AvatarBuffer);
 	}
-	else
+	else if (AvatarBuffer == nullptr && QueryResult == -1)
 	{
 		if (SteamApiManagerPtr.IsValid())
 		{
@@ -222,6 +225,10 @@ int32 UPNetworkingBPLibrary::GetLocalUserAvatar(const FOnLocalAvatarReady& Callb
 
 		return -1;
 	}
+	else
+	{
+		return 0;
+	}
 
 	return 1;
 }
@@ -234,6 +241,7 @@ int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callb
 	}
 
 	bool PendingFlag = false;
+	int32 QueryResult = 0;
 
 	// Get friend's amount.
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
@@ -247,16 +255,20 @@ int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callb
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
 		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
-		UTexture2D* AvatarBuffer = GetAvatar(CurrentSteamID);
+		UTexture2D* AvatarBuffer = GetAvatar(CurrentSteamID, QueryResult);
 		
-		if (AvatarBuffer)
+		if (AvatarBuffer != nullptr && QueryResult == 1)
 		{
 			FriendsAvatar.Add(AvatarBuffer);
 		}
-		else
+		else if (AvatarBuffer == nullptr && QueryResult == -1)
 		{
 			PendingFlag = true;
 			break;
+		}
+		else
+		{
+			return 0;
 		}
 	}
 
@@ -288,13 +300,14 @@ int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callb
 
 int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
 {
-	TArray<FUserSteamData> UserSteamData;
-	bool PendingFlag = false;
-
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
 		return 0;
 	}
+
+	TArray<FUserSteamData> UserSteamData;
+	bool PendingFlag = false;
+	int32 QueryResult = 0;
 
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
@@ -315,18 +328,22 @@ int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const 
 		if (CurrentPlayerState != EPersonaState::k_EPersonaStateOffline)
 		{
 			const FString CurrentNickname(SteamFriends()->GetFriendPersonaName(CurrentSteamID));
-			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID);
+			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID, QueryResult);
 
-			if (CurrentTexture)
+			if (CurrentTexture != nullptr && QueryResult == 1)
 			{
 				UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()),
 					FText::FromString(CurrentNickname),
 					CurrentTexture));
 			}
-			else
+			else if (CurrentTexture == nullptr && QueryResult == -1)
 			{
 				PendingFlag = true;
 				break;
+			}
+			else
+			{
+				return 0;
 			}
 		}
 	}

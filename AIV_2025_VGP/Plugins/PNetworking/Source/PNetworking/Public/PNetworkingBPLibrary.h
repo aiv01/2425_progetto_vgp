@@ -137,7 +137,7 @@ private:
 
 
     static bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
-	static UTexture2D* GetAvatar(const CSteamID SteamID);
+	static UTexture2D* GetAvatar(const CSteamID SteamID, int32& QueryResult);
 	static int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
 	static void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 	static bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
