@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Andreea Manuela Hodor
 #pragma once
 
 #include "CoreMinimal.h"
@@ -16,7 +16,7 @@ class AIV_2025_VGP_API UGOAPPowerUpStrategy : public UGOAPBaseCombatStrategy
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
-	UAnimMontage* AnimationToPlay;
+	UAnimSequence* AnimationToPlay;
 
 	virtual void Execute() override;
 	
