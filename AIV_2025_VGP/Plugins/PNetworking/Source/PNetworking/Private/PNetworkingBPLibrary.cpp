@@ -359,7 +359,6 @@ int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const 
 		return -1;
 	}
 
-
 	return 1;
 }
 
