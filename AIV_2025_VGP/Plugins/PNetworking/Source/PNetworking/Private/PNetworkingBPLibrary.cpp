@@ -151,20 +151,7 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 
 	if (AvatarID == -1)
 	{
-		if (SteamApiManagerPtr.IsValid())
-		{
-			SteamApiManagerPtr->OnAvatarReadyDelegate.BindLambda([](AvatarImageLoaded_t* pCallback)
-				{
-					if (pCallback)
-					{
-						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-						SteamApiManagerPtr->OnAvatarReadyDelegate.Unbind();
-						// Richiamare la funzione che lo aveva richiamato GetAvatar inizialmente.
-						// Il callback da registrarsi non sarà singolo ma multiplo.
-						// Rischio più chiamate per più funzioni registrate.
-					}
-				});
-		}
+		
 
 		return nullptr;
 	}
@@ -204,23 +191,49 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 	return AvatarTexture;
 }
 
-UTexture2D* UPNetworkingBPLibrary::GetLocalUserAvatar()
+int32 UPNetworkingBPLibrary::GetLocalUserAvatar(const FOnLocalAvatarReady& Callback)
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
-		return nullptr;
+		return 0;
 	}
 
 	const CSteamID SteamID = SteamUser()->GetSteamID(); // Local user.
-	return GetAvatar(SteamID);
+	UTexture2D* AvatarBuffer = GetAvatar(SteamID);
+	if (AvatarBuffer != nullptr) 
+	{
+		Callback.ExecuteIfBound(AvatarBuffer);
+	}
+	else
+	{
+		if (SteamApiManagerPtr.IsValid())
+		{
+			SteamApiManagerPtr->OnAvatarReadyDelegateLocalUser.BindLambda([&Callback](AvatarImageLoaded_t* pCallback)
+				{
+					if (pCallback)
+					{
+						SteamApiManagerPtr->OnAvatarReadyDelegateLocalUser.Unbind();
+						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
+						
+						GetLocalUserAvatar(Callback);
+					}
+				});
+		}
+
+		return -1;
+	}
+
+	return 1;
 }
 
-TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
+int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callback)
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
-		return TArray<UTexture2D*>();
+		return 0;
 	}
+
+	bool PendingFlag = false;
 
 	// Get friend's amount.
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
@@ -234,19 +247,53 @@ TArray<UTexture2D*> UPNetworkingBPLibrary::GetFriendsAvatar()
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
 		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
-		FriendsAvatar.Add(GetAvatar(CurrentSteamID));
+		UTexture2D* AvatarBuffer = GetAvatar(CurrentSteamID);
+		
+		if (AvatarBuffer)
+		{
+			FriendsAvatar.Add(AvatarBuffer);
+		}
+		else
+		{
+			PendingFlag = true;
+			break;
+		}
 	}
 
-	return FriendsAvatar;
+	if (!PendingFlag)
+	{
+		Callback.ExecuteIfBound(FriendsAvatar);
+	}
+	else
+	{
+		if (SteamApiManagerPtr.IsValid())
+		{
+			SteamApiManagerPtr->OnAvatarReadyDelegateFriendList.BindLambda([&Callback](AvatarImageLoaded_t* pCallback)
+				{
+					if (pCallback)
+					{
+						SteamApiManagerPtr->OnAvatarReadyDelegateFriendList.Unbind();
+						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
+
+						GetFriendsAvatar(Callback);
+					}
+				});
+		}
+
+		return -1;
+	}
+
+	return 1;
 }
 
-TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort)
+int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
 {
 	TArray<FUserSteamData> UserSteamData;
+	bool PendingFlag = false;
 
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
-		return UserSteamData;
+		return 0;
 	}
 
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
@@ -269,19 +316,51 @@ TArray<FUserSteamData> UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabe
 		{
 			const FString CurrentNickname(SteamFriends()->GetFriendPersonaName(CurrentSteamID));
 			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID);
-			
-			UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()), 
-							  FText::FromString(CurrentNickname), 
-							  CurrentTexture));
+
+			if (CurrentTexture)
+			{
+				UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()),
+					FText::FromString(CurrentNickname),
+					CurrentTexture));
+			}
+			else
+			{
+				PendingFlag = true;
+				break;
+			}
 		}
 	}
 
-	if (bAlphabeticalSort)
+	if (bAlphabeticalSort && UserSteamData.Num() > 0)
 	{
 		AlphabeticalSortFriends(UserSteamData);
 	}
 
-	return UserSteamData;
+	if (!PendingFlag)
+	{
+		Callback.ExecuteIfBound(UserSteamData);
+	}
+	else
+	{
+		if (SteamApiManagerPtr.IsValid())
+		{
+			SteamApiManagerPtr->OnAvatarReadyFriendListData.BindLambda([&bAlphabeticalSort, &Callback](AvatarImageLoaded_t* pCallback)
+				{
+					if (pCallback)
+					{
+						SteamApiManagerPtr->OnAvatarReadyFriendListData.Unbind();
+						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
+
+						GetPlayersData(bAlphabeticalSort, Callback);
+					}
+				});
+		}
+
+		return -1;
+	}
+
+
+	return 1;
 }
 
 int32 UPNetworkingBPLibrary::GetOnlineFriendsFromFriendCount(const int32 FriendsCount)

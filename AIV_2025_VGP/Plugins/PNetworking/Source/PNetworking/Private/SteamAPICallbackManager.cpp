@@ -13,5 +13,7 @@ SteamAPICallbackManager::~SteamAPICallbackManager()
 // No double declaration + implementation to work as STEAM_MACRO callback.
 void SteamAPICallbackManager::OnImageAvatarLoadedCallback(AvatarImageLoaded_t* callback)
 {
-	OnAvatarReadyDelegate.ExecuteIfBound(callback);
+	OnAvatarReadyDelegateLocalUser.ExecuteIfBound(callback);
+	OnAvatarReadyDelegateFriendList.ExecuteIfBound(callback);
+	OnAvatarReadyFriendListData.ExecuteIfBound(callback);
 }

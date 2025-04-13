@@ -22,7 +22,11 @@ struct FUserSteamData;
 
 #pragma region Delegates
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLocalAvatarReady, const UTexture2D*, LocalAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>, FriendsListAvatars);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>, FriendsListDatas);
+
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
 
 
@@ -54,12 +58,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	static bool GetAccountName(FString& AccountName, const int32 UserID = 0);
 
-	/// <summary>
-	/// Get local steam account Avatar.
-	/// </summary>
-	/// <returns> Returns pointer of UTexture2D if found, else nullptr. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
-	static UTexture2D* GetLocalUserAvatar();
+	static int32 GetLocalUserAvatar(const FOnLocalAvatarReady& Callback);
 
 #pragma endregion
 	
@@ -82,13 +82,9 @@ public:
     /// <returns> Returns true if the inital request was successfull. </returns>
     UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
     static bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
-	
-	/// <summary>
-	/// Get all friends Avatars of local user.
-	/// </summary>
-	/// <returns> TArray containing pointers of UTexture2D if found, else nullptr. </returns>
+
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
-	static TArray<UTexture2D*> GetFriendsAvatar();
+	static int32 GetFriendsAvatar(const FOnFriendsAvatarReady& Callback);
 
 	/// <summary>
 	/// Get complete and usable informations of all online Friends of local user.
@@ -96,7 +92,7 @@ public:
 	/// <param name="bAlphabeticalSort"> If TArray elements should be alphabetically sorted using their nicknames. </param>
 	/// <returns> FUserSteamData contains nickname, avatar, accountID(int32 version of a CSteamID). </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
-	static TArray<FUserSteamData> GetPlayersData(const bool bAlphabeticalSort);
+	static int32 GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback);
 
 #pragma endregion
 

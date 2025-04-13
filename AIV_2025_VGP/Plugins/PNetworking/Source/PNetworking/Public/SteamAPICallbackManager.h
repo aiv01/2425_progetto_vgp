@@ -19,7 +19,10 @@ private:
 	STEAM_CALLBACK(SteamAPICallbackManager, OnImageAvatarLoadedCallback, AvatarImageLoaded_t);
 
 public:
-	FOnAvatarReadyFromSteamAPI OnAvatarReadyDelegate;
+	FOnAvatarReadyFromSteamAPI OnAvatarReadyDelegateLocalUser;
+	FOnAvatarReadyFromSteamAPI OnAvatarReadyDelegateFriendList;
+	FOnAvatarReadyFromSteamAPI OnAvatarReadyFriendListData;
+
 
 	SteamAPICallbackManager();
 	~SteamAPICallbackManager();
