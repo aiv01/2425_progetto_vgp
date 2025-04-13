@@ -24,7 +24,7 @@ struct FUserSteamData;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLocalAvatarReady, const UTexture2D*, LocalAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>, FriendsListAvatars);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
@@ -153,4 +153,8 @@ private:
 	static void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 	static void DestroySession();
 
+	// Recursive async callbacks on GameThread.
+	static int32 GetLocalUserAvatarRecursive(TSharedRef<FOnLocalAvatarReady> Callback);
+	static int32 GetFriendsAvatarRecursive(TSharedRef<FOnFriendsAvatarReady> Callback);
+	static int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedRef<FOnFriendsDataReady> Callback);
 };
