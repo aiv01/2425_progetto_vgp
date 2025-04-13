@@ -9,6 +9,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "SteamAPICallbackManager.h"
 #include "PNetworkingBPLibrary.generated.h"
 
 #pragma region ForwardDeclaration
@@ -125,6 +126,8 @@ public:
 
 
 private:
+
+	static TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
 
 	static FDelegateHandle CreateSessionCompleteDelegateHandle;
 	static FDelegateHandle JoinSessionCompleteDelegateHandle;

@@ -14,12 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Online.h"
 
-// To disable "strncpy" security warnings.
-#pragma warning(push)
-#pragma warning(disable:4996)
-#include "AI/NavigationSystemBase.h"
-#include "steam/steam_api.h"
-#pragma warning(pop)
+
 
 FDelegateHandle UPNetworkingBPLibrary::CreateSessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::JoinSessionCompleteDelegateHandle;
@@ -32,9 +27,12 @@ FDelegateHandle UPNetworkingBPLibrary::DestroySessionCompleteDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::OnUnregisterLocalPlayerDelegateHandle;
 FDelegateHandle UPNetworkingBPLibrary::OnSessionPlayerNetworkFailureHandle;
 
+TSharedPtr<SteamAPICallbackManager> UPNetworkingBPLibrary::SteamApiManagerPtr;
+
 UPNetworkingBPLibrary::UPNetworkingBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	UE_LOG(LogTemp, Warning, TEXT("BPL Constructor Called"));
+	SteamApiManagerPtr = MakeShared<SteamAPICallbackManager>();
 }
 
 bool UPNetworkingBPLibrary::GetAppID(FString& AppID)
@@ -145,9 +143,27 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 {
 	int32 AvatarID = SteamFriends()->GetLargeFriendAvatar(SteamID);
 
-	if (AvatarID < 0)
+	if (AvatarID == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar ID!"));
+		return nullptr;
+	}
+
+	if (AvatarID == -1)
+	{
+		if (SteamApiManagerPtr.IsValid())
+		{
+			SteamApiManagerPtr->OnAvatarReadyDelegate.BindLambda([](AvatarImageLoaded_t* pCallback)
+				{
+					if (pCallback)
+					{
+						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
+						SteamApiManagerPtr->OnAvatarReadyDelegate.Unbind();
+						// Richiamare la funzione che lo aveva richiamato GetAvatar inizialmente.
+					}
+				});
+		}
+
 		return nullptr;
 	}
 
