@@ -160,6 +160,8 @@ UTexture2D* UPNetworkingBPLibrary::GetAvatar(const CSteamID SteamID)
 						UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
 						SteamApiManagerPtr->OnAvatarReadyDelegate.Unbind();
 						// Richiamare la funzione che lo aveva richiamato GetAvatar inizialmente.
+						// Il callback da registrarsi non sarà singolo ma multiplo.
+						// Rischio più chiamate per più funzioni registrate.
 					}
 				});
 		}

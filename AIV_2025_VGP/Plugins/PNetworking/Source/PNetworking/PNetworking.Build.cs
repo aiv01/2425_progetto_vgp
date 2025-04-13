@@ -15,7 +15,6 @@ public class PNetworking : ModuleRules
 
         PublicIncludePaths.AddRange(
             new string[] {
-                System.IO.Path.GetFullPath(Target.RelativeEnginePath)+"SteamAPICallbackManager.h",
             }
         );
 
