@@ -46,6 +46,4 @@ private:
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;
 
 #pragma endregion
-
-	static int LobbyCounter;
 };

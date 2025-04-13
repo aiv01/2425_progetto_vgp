@@ -121,7 +121,8 @@ public:
 #pragma endregion Debug
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	static void DestroySession();
+	static void CheckAndDestroyAlreadyExistingSession();
+
 
 private:
 
@@ -151,6 +152,6 @@ private:
 	static void OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft);
 	static void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult); // Da rimuovere poichè probabilmente LAN
 	static void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
-	static void CheckAndDestroyAlreadyExistingSession();
+	static void DestroySession();
 
 };

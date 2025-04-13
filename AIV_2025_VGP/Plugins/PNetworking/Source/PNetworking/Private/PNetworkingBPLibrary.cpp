@@ -320,7 +320,6 @@ void UPNetworkingBPLibrary::OnDestroySessionComplete(FName sessionName, bool bWa
 		SessionParticipantLeftDelegateHandle.Reset();
 	}
 
-
 	if (SessionParticipantRemovedDelegateHandle.IsValid())
 	{
 		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantRemovedDelegate_Handle(SessionParticipantRemovedDelegateHandle);
