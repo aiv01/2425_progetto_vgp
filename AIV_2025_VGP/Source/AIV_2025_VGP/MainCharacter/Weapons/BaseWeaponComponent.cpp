@@ -162,4 +162,64 @@ void UBaseWeaponComponent::GetSecondaryAttackName(FName& SecondaryAttackName)
 {
 	SecondaryAttackName = Weapons[CurrentWeaponIndex]->SecondaryAttackName;
 }
+
+ABaseWeapon* UBaseWeaponComponent::GetCurrentWeapon()
+{
+	if (Weapons.IsValidIndex(CurrentWeaponIndex))
+	{
+		return Weapons[CurrentWeaponIndex];
+	}
+
+	return nullptr;
+}
 #pragma endregion	
+
+bool UBaseWeaponComponent::CanAttack() const
+{
+	if (Weapons.IsValidIndex(CurrentWeaponIndex))
+	{
+		return Weapons[CurrentWeaponIndex] && Weapons[CurrentWeaponIndex]->CanAttack();
+	}
+	return false;
+}
+
+bool UBaseWeaponComponent::CanReload() const
+{
+	
+	if (!Weapons.IsValidIndex(CurrentWeaponIndex))
+		return false;
+
+	ABaseRangedWeapon* RangedWeapon = Cast<ABaseRangedWeapon>(Weapons[CurrentWeaponIndex]);
+	if (!RangedWeapon)
+		return false;
+
+	TSubclassOf<ABaseRangedWeapon> WeaponClass = RangedWeapon->GetClass();
+	const int32* AmmoPtr = RangedWeaponAmmoMap.Find(WeaponClass);
+	if (!AmmoPtr || *AmmoPtr <= 0)
+		return false;
+
+	int32 MissingAmmo = RangedWeapon->GetMaxBullets() - RangedWeapon->GetCurrentBullets();
+	return MissingAmmo > 0 && *AmmoPtr > 0;
+}
+
+void UBaseWeaponComponent::Reload()
+{
+	if (!Weapons.IsValidIndex(CurrentWeaponIndex))
+		return;
+
+	ABaseRangedWeapon* RangedWeapon = Cast<ABaseRangedWeapon>(Weapons[CurrentWeaponIndex]);
+	if (!RangedWeapon)
+		return;
+
+	TSubclassOf<ABaseRangedWeapon> WeaponClass = RangedWeapon->GetClass();
+	int32* AmmoPtr = RangedWeaponAmmoMap.Find(WeaponClass);
+	if (!AmmoPtr || *AmmoPtr <= 0)
+		return;
+
+	int32 AmmoUsed = RangedWeapon->Reload(*AmmoPtr);
+	UE_LOG(LogTemp, Warning, TEXT("AmmoPtr Before: %d ammo"), *AmmoPtr);
+	*AmmoPtr -= AmmoUsed;
+	UE_LOG(LogTemp, Warning, TEXT("AmmoPtr After: %d ammo"), *AmmoPtr);
+	UE_LOG(LogTemp, Warning, TEXT("Map contains: %d ammo"), *RangedWeaponAmmoMap.Find(WeaponClass));
+}
+

@@ -37,6 +37,9 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
 	void SecondaryAttack();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void ReloadWeapon();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
 	void ChangeWeapon(bool bForward);

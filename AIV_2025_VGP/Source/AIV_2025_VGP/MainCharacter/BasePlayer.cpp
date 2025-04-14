@@ -115,6 +115,14 @@ void ABasePlayer::SecondaryAttack_Implementation()
 	}
 }
 
+void ABasePlayer::ReloadWeapon_Implementation()
+{
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_ReloadWeapon(this);
+	}
+}
+
 void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 {	
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))

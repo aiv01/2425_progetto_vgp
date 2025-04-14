@@ -39,6 +39,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
 public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
 	void PrimaryAttackEventStart();
@@ -50,5 +51,8 @@ public:
 	void SecondaryAttackEventEnd();
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
 	void WeaponAnimationStart();
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Weapon")
+	virtual bool CanAttack() const { return true; }
+	
 #pragma endregion Functions
 };

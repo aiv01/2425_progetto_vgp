@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseRangedWeapon.h"
 #include "BaseWeapon.h"
 #include "Components/ActorComponent.h"
 #include "BaseWeaponComponent.generated.h"
@@ -31,10 +32,12 @@ private:
 	int32 CurrentWeaponIndex = 0;	
 	USkeletalMeshComponent* PlayerMesh;
 	UWorld* World;
-	
+			
 public:
-	UPROPERTY(EditAnywhere, Category="Weapon")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
+	TMap<TSubclassOf<ABaseRangedWeapon>, int32> RangedWeaponAmmoMap;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
 	FName CurrentWeaponName = FName("");
 #pragma endregion Properties
@@ -70,5 +73,13 @@ public:
 	void GetPrimaryAttackName(FName& PrimaryAttackName);
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
 	void GetSecondaryAttackName(FName& SecondaryAttackName);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
+	bool CanAttack() const;
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool CanReload() const;
+	UFUNCTION(BlueprintCallable)
+	void Reload();
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	ABaseWeapon* GetCurrentWeapon();
 #pragma endregion Functions
 };

@@ -39,6 +39,7 @@ public:
 	virtual void Look_Implementation(const FVector2D& Value) override;
 	virtual void PrimaryAttack_Implementation() override;
 	virtual void SecondaryAttack_Implementation() override;
+	virtual void ReloadWeapon_Implementation() override;
 	virtual void ChangeWeapon_Implementation(bool bForward) override;
 
 	virtual void IAddHealth_Implementation(float Amount) override;

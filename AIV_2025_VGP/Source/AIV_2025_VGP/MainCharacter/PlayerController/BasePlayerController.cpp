@@ -22,6 +22,7 @@ void ABasePlayerController::FindInputActions()
 	static ConstructorHelpers::FObjectFinder<UInputAction> PrimaryAttackActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmPrimaryAttack.IA_CstmPrimaryAttack"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> ChangeWeaponActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmChangeWeapon.IA_CstmChangeWeapon"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> SecondaryAttackActionAssets(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmSecondaryAttack.IA_CstmSecondaryAttack"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadWeaponActionAssets(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmReloadWeapon.IA_CstmReloadWeapon"));
 	
 	if (IMC_MainCharacterAsset.Succeeded())
 	{
@@ -50,6 +51,10 @@ void ABasePlayerController::FindInputActions()
 	if (SecondaryAttackActionAssets.Succeeded())
 	{
 		IA_CstmSecondaryAttack = SecondaryAttackActionAssets.Object;
+	}
+	if (ReloadWeaponActionAssets.Succeeded())
+	{
+		IA_CstmReloadWeapon = ReloadWeaponActionAssets.Object;
 	}
 }
 
@@ -101,6 +106,10 @@ void ABasePlayerController::SetupInputComponent()
 		{
 			EnhancedInput->BindAction(IA_CstmSecondaryAttack, ETriggerEvent::Triggered, this, &ABasePlayerController::SecondaryAttack);
 		}
+		if(IA_CstmReloadWeapon)
+		{
+			EnhancedInput->BindAction(IA_CstmReloadWeapon, ETriggerEvent::Triggered, this, &ABasePlayerController::ReloadWeapon);
+		}
 	}
 }
 
@@ -151,6 +160,14 @@ void ABasePlayerController::ChangeWeapon(const FInputActionValue& Value)
 	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
 	{
 		ControlledPawn->ChangeWeapon_Implementation(bForward);
+	}
+}
+
+void ABasePlayerController::ReloadWeapon()
+{
+	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
+	{
+		ControlledPawn->ReloadWeapon_Implementation();
 	}
 }
 

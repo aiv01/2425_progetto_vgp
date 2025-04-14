@@ -41,6 +41,9 @@ private:
 	
 	UPROPERTY()
 	UInputAction* IA_CstmChangeWeapon;
+
+	UPROPERTY()
+	UInputAction* IA_CstmReloadWeapon;
 #pragma endregion Properties
 
 #pragma region Functions
@@ -56,6 +59,7 @@ private:
 	void SecondaryAttack();
 	void Jump();
 	void ChangeWeapon(const FInputActionValue& Value);
+	void ReloadWeapon();
 
 	//Init function
 	void FindInputActions();
