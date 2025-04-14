@@ -58,6 +58,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	static bool GetAccountName(FString& AccountName, const int32 UserID = 0);
 
+	/// <summary>
+	/// Get the local user avatar as a Callback. It returns UTexture2D* to Avatar texture.
+	/// </summary>
+	/// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	static int32 GetLocalUserAvatar(const FOnLocalAvatarReady& Callback);
 
@@ -83,14 +88,21 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
     static bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
 
+	/// <summary>
+	/// Get all local user friendlist avatars as a Callback. It returns TArray<UTexture2D>& containing all textures.
+	/// </summary>
+	/// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	static int32 GetFriendsAvatar(const FOnFriendsAvatarReady& Callback);
 
 	/// <summary>
-	/// Get complete and usable informations of all online Friends of local user.
+	/// Get complete and usable informations of all online Friends of local user as a Callback.
+	/// It returns TArray<FUserSteamData>& containing all data to identify in BP a friend.
 	/// </summary>
 	/// <param name="bAlphabeticalSort"> If TArray elements should be alphabetically sorted using their nicknames. </param>
-	/// <returns> FUserSteamData contains nickname, avatar, accountID(int32 version of a CSteamID). </returns>
+	/// /// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	static int32 GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback);
 
@@ -123,6 +135,7 @@ public:
 
 private:
 
+	// Non-static-class or UE-reflection-based manager used for SteamAPI callbacks.
 	static TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
 
 	static FDelegateHandle CreateSessionCompleteDelegateHandle;

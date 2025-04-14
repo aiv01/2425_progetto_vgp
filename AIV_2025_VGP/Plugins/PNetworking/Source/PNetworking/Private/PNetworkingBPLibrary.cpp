@@ -199,8 +199,7 @@ int32 UPNetworkingBPLibrary::GetLocalUserAvatar(const FOnLocalAvatarReady& Callb
 		return 0;
 	}
 
-	GetLocalUserAvatarRecursive(MakeShared<FOnLocalAvatarReady>(Callback));
-	return 1;
+	return GetLocalUserAvatarRecursive(MakeShared<FOnLocalAvatarReady>(Callback));
 }
 
 int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callback)
@@ -210,8 +209,7 @@ int32 UPNetworkingBPLibrary::GetFriendsAvatar(const FOnFriendsAvatarReady& Callb
 		return 0;
 	}
 
-	GetFriendsAvatarRecursive(MakeShared<FOnFriendsAvatarReady>(Callback));
-	return 1;
+	return GetFriendsAvatarRecursive(MakeShared<FOnFriendsAvatarReady>(Callback));
 }
 
 int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
@@ -221,8 +219,7 @@ int32 UPNetworkingBPLibrary::GetPlayersData(const bool bAlphabeticalSort, const 
 		return 0;
 	}
 
-	GetPlayerDataRecursive(bAlphabeticalSort, MakeShared<FOnFriendsDataReady>(Callback));
-	return 1;
+	return GetPlayerDataRecursive(bAlphabeticalSort, MakeShared<FOnFriendsDataReady>(Callback));
 }
 
 int32 UPNetworkingBPLibrary::GetOnlineFriendsFromFriendCount(const int32 FriendsCount)
@@ -313,11 +310,6 @@ void UPNetworkingBPLibrary::DestroySession()
 
 int32 UPNetworkingBPLibrary::GetFriendsAvatarRecursive(TSharedRef<FOnFriendsAvatarReady> Callback)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
-	{
-		return 0;
-	}
-
 	bool bPendingFlag = false;
 	int32 QueryResult = 0;
 
@@ -482,11 +474,6 @@ int32 UPNetworkingBPLibrary::GetPlayerDataRecursive(const bool bAlphabeticalSort
 
 int32 UPNetworkingBPLibrary::GetLocalUserAvatarRecursive(TSharedRef<FOnLocalAvatarReady> Callback)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
-	{
-		return 0;
-	}
-
 	int32 QueryResult = 0;
 	const CSteamID SteamID = SteamUser()->GetSteamID();
 	UTexture2D* AvatarBuffer = GetAvatar(SteamID, QueryResult);
