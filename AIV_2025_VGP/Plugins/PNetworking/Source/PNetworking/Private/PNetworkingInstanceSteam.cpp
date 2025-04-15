@@ -372,14 +372,14 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedRef<FOnFriends
 		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
 		{
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateFriendList.Unbind();
-			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateFriendList.BindLambda([this, Callback](AvatarImageLoaded_t* pCallback)
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateFriendList.BindLambda([Callback](AvatarImageLoaded_t* pCallback)
 				{
 					if (pCallback)
 					{
-						AsyncTask(ENamedThreads::GameThread, [this, Callback]()
+						AsyncTask(ENamedThreads::GameThread, [Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-								GetFriendsAvatarRecursive(Callback);
+								GetUniqueInstance()->GetFriendsAvatarRecursive(Callback);
 							}
 						);
 					}
@@ -462,16 +462,16 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
 		{
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendListData.Unbind();
-			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendListData.BindLambda([this, bAlphabeticalSort, Callback](AvatarImageLoaded_t* pCallback)
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendListData.BindLambda([bAlphabeticalSort, Callback](AvatarImageLoaded_t* pCallback)
 				{
 					if (pCallback)
 					{
-						AsyncTask(ENamedThreads::GameThread, [this, bAlphabeticalSort, Callback]()
+						AsyncTask(ENamedThreads::GameThread, [bAlphabeticalSort, Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
 								GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("RE-Query GetAvatar"));
 
-								GetPlayerDataRecursive(bAlphabeticalSort, Callback);
+								GetUniqueInstance()->GetPlayerDataRecursive(bAlphabeticalSort, Callback);
 							}
 						);
 					}
@@ -509,14 +509,14 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedRef<FOnLocal
 		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
 		{
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateLocalUser.Unbind();
-			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateLocalUser.BindLambda([this, Callback](AvatarImageLoaded_t* pCallback)
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateLocalUser.BindLambda([Callback](AvatarImageLoaded_t* pCallback)
 				{
 					if (pCallback)
 					{
-						AsyncTask(ENamedThreads::GameThread, [this, Callback]()
+						AsyncTask(ENamedThreads::GameThread, [Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-								GetLocalUserAvatarRecursive(Callback);
+								GetUniqueInstance()->GetLocalUserAvatarRecursive(Callback);
 							}
 						);
 					}
