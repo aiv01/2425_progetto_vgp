@@ -32,13 +32,13 @@ UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
 		NetInstanceSteamPtr = NewObject<UPNetworkingInstanceSteam>();
 		if (NetInstanceSteamPtr) 
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Building unique instance of NET manager"))
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Building unique instance of NET Steam manager"));
 			NetInstanceSteamPtr->AddToRoot();
 		}
 	}
 	else
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Requested already valid unique instance of NET manager"))
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Requested already valid unique instance of NET Steam manager"));
 	}
 
 	return NetInstanceSteamPtr;
@@ -48,6 +48,7 @@ void UPNetworkingInstanceSteam::DeleteUniqueInstance()
 {
 	if (NetInstanceSteamPtr != nullptr)
 	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Removing from root NET Steam manager and invaliding ptr"));
 		NetInstanceSteamPtr->RemoveFromRoot();
 		NetInstanceSteamPtr = nullptr;
 	}
@@ -217,7 +218,7 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatar(const FOnLocalAvatarReady& C
 		return 0;
 	}
 
-	return GetLocalUserAvatarRecursive(Callback);
+	return GetLocalUserAvatarRecursive(MakeShared<FOnLocalAvatarReady>(Callback));
 }
 
 int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& Callback)
@@ -227,7 +228,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& C
 		return 0;
 	}
 
-	return GetFriendsAvatarRecursive(Callback);
+	return GetFriendsAvatarRecursive(MakeShared<FOnFriendsAvatarReady>(Callback));
 }
 
 int32 UPNetworkingInstanceSteam::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
@@ -237,7 +238,7 @@ int32 UPNetworkingInstanceSteam::GetPlayersData(const bool bAlphabeticalSort, co
 		return 0;
 	}
 
-	return GetPlayerDataRecursive(bAlphabeticalSort, Callback);
+	return GetPlayerDataRecursive(bAlphabeticalSort, MakeShared<FOnFriendsDataReady>(Callback));
 } 
 
 int32 UPNetworkingInstanceSteam::GetOnlineFriendsFromFriendCount(const int32 FriendsCount)
@@ -326,7 +327,7 @@ void UPNetworkingInstanceSteam::DestroySession()
 	}
 }
 
-int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady Callback)
+int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback)
 {
 	bool bPendingFlag = false;
 	int32 QueryResult = 0;
@@ -336,6 +337,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
 		FriendsCount = 0;
+		return 0;
 	}
 
 	TArray<UTexture2D*> FriendsAvatar;
@@ -365,12 +367,19 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady
 		{
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateFriendList.Unbind();
 		}
+		else
+		{
+			return 0;
+		}
 
-		AsyncTask(ENamedThreads::GameThread, [FriendsAvatar, Callback]()
-			{
-				Callback.ExecuteIfBound(FriendsAvatar);
-			}
-		);
+		if (FriendsAvatar.Num() > 0 && Callback.IsValid())
+		{
+			Callback->ExecuteIfBound(FriendsAvatar);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else
 	{
@@ -391,6 +400,10 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady
 				}
 			);
 		}
+		else
+		{
+			return 0;
+		}
 
 		return -1;
 	}
@@ -398,7 +411,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady
 	return 1;
 }
 
-int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabeticalSort, FOnFriendsDataReady Callback)
+int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedPtr<FOnFriendsDataReady> Callback)
 {
 	TArray<FUserSteamData> UserSteamData;
 	bool bPendingFlag = false;
@@ -409,6 +422,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 	{
 		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
 		FriendsCount = 0;
+		return 0;
 	}
 
 	// Just online friends (better: not offline).
@@ -454,13 +468,19 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 		{
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendListData.Unbind();
 		}
+		else
+		{
+			return 0;
+		}
 
-		AsyncTask(ENamedThreads::GameThread, [UserSteamData, Callback]()
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("All Avatar ready!"));
-				Callback.ExecuteIfBound(UserSteamData);
-			}
-		);
+		if (UserSteamData.Num() > 0 && Callback.IsValid())
+		{
+			Callback->ExecuteIfBound(UserSteamData);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else
 	{
@@ -483,17 +503,22 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 				}
 			);
 		}
+		else
+		{
+			return 0;
+		}
 
 		return -1;
 	}
 
-	return 1;
+	return 1; 
 }
 
-int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(FOnLocalAvatarReady Callback)
+int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback)
 {
 	int32 QueryResult = 0;
 	const CSteamID SteamID = SteamUser()->GetSteamID();
+
 	if (!SteamID.IsValid())
 	{
 		return 0;
@@ -505,28 +530,21 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(FOnLocalAvatarReady
 	{
 		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Valid STEAMAPIMANAGER"));
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateLocalUser.Unbind();
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Invalid STEAMAPIMANAGER"));
 			return 0;
 		}
 
-		AsyncTask(ENamedThreads::GameThread, [AvatarBuffer, Callback]()
-			{
-				if (AvatarBuffer)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Async valid"));
-					Callback.ExecuteIfBound(AvatarBuffer);
-				}
-				else
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("No Async"));
-				}
-			}
-		);
+		if (AvatarBuffer && Callback.IsValid())
+		{
+			Callback->ExecuteIfBound(AvatarBuffer);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else if (AvatarBuffer == nullptr && QueryResult == -1)
 	{
@@ -546,6 +564,10 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(FOnLocalAvatarReady
 					}
 				}
 			);
+		}
+		else
+		{
+			return 0;
 		}
 
 		return -1;
@@ -696,7 +718,7 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 	{
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
-	CheckAndDestroyAlreadyExistingSession();
+	//CheckAndDestroyAlreadyExistingSession();
 
 	//FPNetworkingModule::GetOnlineSessionReference()->EndSession(FPNetworkingModule::GetSessionName());
 	//FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());

@@ -119,8 +119,8 @@ public:
 #pragma region Session
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	bool RequestSessionCreation(const int32 NumberPublicConnections, const int32 NumberPrivateConnections,
-		const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
-		const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
+								const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
+								const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	bool InviteFriend(const int32 SteamID);
@@ -178,7 +178,7 @@ private:
 	void DestroySession();
 
 	// Recursive async callbacks on GameThread.
-	int32 GetLocalUserAvatarRecursive(FOnLocalAvatarReady Callback);
-	int32 GetFriendsAvatarRecursive(FOnFriendsAvatarReady Callback);
-	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, FOnFriendsDataReady Callback);
+	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
+	int32 GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback);
+	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedPtr<FOnFriendsDataReady> Callback);
 };
