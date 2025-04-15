@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static UPNetworkingInstanceSteam* GetUniqueInstance();
 
+	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
+	static void DeleteUniqueInstance();
+
 #pragma region LocalUser
 	/// <summary>
 	

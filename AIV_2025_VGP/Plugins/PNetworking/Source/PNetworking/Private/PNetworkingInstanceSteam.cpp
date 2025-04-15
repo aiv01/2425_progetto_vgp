@@ -19,15 +19,10 @@ UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = null
 
 UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 {
-
 }
 
 UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
 {
-	if (NetInstanceSteamPtr != nullptr)
-	{
-		NetInstanceSteamPtr->RemoveFromRoot();
-	}
 }
 
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
@@ -42,6 +37,15 @@ UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
 	}
 
 	return NetInstanceSteamPtr;
+}
+
+void UPNetworkingInstanceSteam::DeleteUniqueInstance()
+{
+	if (NetInstanceSteamPtr != nullptr)
+	{
+		NetInstanceSteamPtr->RemoveFromRoot();
+		NetInstanceSteamPtr = nullptr;
+	}
 }
 
 bool UPNetworkingInstanceSteam::GetAppID(FString& AppID)
