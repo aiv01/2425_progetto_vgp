@@ -677,7 +677,7 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
 		*FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0), FPNetworkingModule::GetSessionName(), FOnUnregisterLocalPlayerCompleteDelegate::CreateStatic(&UPNetworkingInstanceSteam::OnLocalPlayerUnregistered));*/
 
-	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_Claudio");
+	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu");
 	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 }
 
