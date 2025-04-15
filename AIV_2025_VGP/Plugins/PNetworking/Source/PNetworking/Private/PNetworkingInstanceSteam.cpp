@@ -212,7 +212,7 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatar(const FOnLocalAvatarReady& C
 		return 0;
 	}
 
-	return GetLocalUserAvatarRecursive(MakeShared<FOnLocalAvatarReady>(Callback));
+	return GetLocalUserAvatarRecursive(Callback);
 }
 
 int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& Callback)
@@ -222,7 +222,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& C
 		return 0;
 	}
 
-	return GetFriendsAvatarRecursive(MakeShared<FOnFriendsAvatarReady>(Callback));
+	return GetFriendsAvatarRecursive(Callback);
 }
 
 int32 UPNetworkingInstanceSteam::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
@@ -232,8 +232,8 @@ int32 UPNetworkingInstanceSteam::GetPlayersData(const bool bAlphabeticalSort, co
 		return 0;
 	}
 
-	return GetPlayerDataRecursive(bAlphabeticalSort, MakeShared<FOnFriendsDataReady>(Callback));
-}
+	return GetPlayerDataRecursive(bAlphabeticalSort, Callback);
+} 
 
 int32 UPNetworkingInstanceSteam::GetOnlineFriendsFromFriendCount(const int32 FriendsCount)
 {
@@ -321,7 +321,7 @@ void UPNetworkingInstanceSteam::DestroySession()
 	}
 }
 
-int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedRef<FOnFriendsAvatarReady> Callback)
+int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(FOnFriendsAvatarReady Callback)
 {
 	bool bPendingFlag = false;
 	int32 QueryResult = 0;
@@ -363,7 +363,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedRef<FOnFriends
 
 		AsyncTask(ENamedThreads::GameThread, [FriendsAvatar, Callback]()
 			{
-				Callback->ExecuteIfBound(FriendsAvatar);
+				Callback.ExecuteIfBound(FriendsAvatar);
 			}
 		);
 	}
@@ -379,7 +379,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedRef<FOnFriends
 						AsyncTask(ENamedThreads::GameThread, [Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-								GetUniqueInstance()->GetFriendsAvatarRecursive(Callback);
+								UPNetworkingInstanceSteam::GetUniqueInstance()->GetFriendsAvatarRecursive(Callback);
 							}
 						);
 					}
@@ -393,7 +393,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedRef<FOnFriends
 	return 1;
 }
 
-int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedRef<FOnFriendsDataReady> Callback)
+int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabeticalSort, FOnFriendsDataReady Callback)
 {
 	TArray<FUserSteamData> UserSteamData;
 	bool bPendingFlag = false;
@@ -453,7 +453,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 		AsyncTask(ENamedThreads::GameThread, [UserSteamData, Callback]()
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("All Avatar ready!"));
-				Callback->ExecuteIfBound(UserSteamData);
+				Callback.ExecuteIfBound(UserSteamData);
 			}
 		);
 	}
@@ -471,7 +471,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
 								GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("RE-Query GetAvatar"));
 
-								GetUniqueInstance()->GetPlayerDataRecursive(bAlphabeticalSort, Callback);
+								UPNetworkingInstanceSteam::GetUniqueInstance()->GetPlayerDataRecursive(bAlphabeticalSort, Callback);
 							}
 						);
 					}
@@ -485,10 +485,15 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 	return 1;
 }
 
-int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedRef<FOnLocalAvatarReady> Callback)
+int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(FOnLocalAvatarReady Callback)
 {
 	int32 QueryResult = 0;
 	const CSteamID SteamID = SteamUser()->GetSteamID();
+	if (!SteamID.IsValid())
+	{
+		return 0;
+	}
+
 	UTexture2D* AvatarBuffer = GetAvatar(SteamID, QueryResult);
 
 	if (AvatarBuffer != nullptr && QueryResult == 1)
@@ -500,7 +505,7 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedRef<FOnLocal
 
 		AsyncTask(ENamedThreads::GameThread, [AvatarBuffer, Callback]()
 			{
-				Callback->ExecuteIfBound(AvatarBuffer);
+				Callback.ExecuteIfBound(AvatarBuffer);
 			}
 		);
 	}
@@ -516,7 +521,7 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedRef<FOnLocal
 						AsyncTask(ENamedThreads::GameThread, [Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-								GetUniqueInstance()->GetLocalUserAvatarRecursive(Callback);
+								UPNetworkingInstanceSteam::GetUniqueInstance()->GetLocalUserAvatarRecursive(Callback);
 							}
 						);
 					}
@@ -673,6 +678,7 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
 	}
 	CheckAndDestroyAlreadyExistingSession();
+
 	//FPNetworkingModule::GetOnlineSessionReference()->EndSession(FPNetworkingModule::GetSessionName());
 	//FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
 
@@ -681,8 +687,8 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
 		*FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0), FPNetworkingModule::GetSessionName(), FOnUnregisterLocalPlayerCompleteDelegate::CreateStatic(&UPNetworkingInstanceSteam::OnLocalPlayerUnregistered));*/
 
-	const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu");
-	PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
+	//const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu");
+	//PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 }
 
 void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)

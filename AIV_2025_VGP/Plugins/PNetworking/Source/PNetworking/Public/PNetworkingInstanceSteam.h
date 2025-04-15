@@ -178,7 +178,7 @@ private:
 	void DestroySession();
 
 	// Recursive async callbacks on GameThread.
-	int32 GetLocalUserAvatarRecursive(TSharedRef<FOnLocalAvatarReady> Callback);
-	int32 GetFriendsAvatarRecursive(TSharedRef<FOnFriendsAvatarReady> Callback);
-	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedRef<FOnFriendsDataReady> Callback);
+	int32 GetLocalUserAvatarRecursive(FOnLocalAvatarReady Callback);
+	int32 GetFriendsAvatarRecursive(FOnFriendsAvatarReady Callback);
+	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, FOnFriendsDataReady Callback);
 };
