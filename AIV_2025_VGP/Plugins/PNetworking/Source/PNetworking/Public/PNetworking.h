@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "SteamAPICallbackManager.h"
 #include "Modules/ModuleManager.h"
 
 // Custom Log category.
@@ -31,6 +32,7 @@ public:
 	static class IOnlineSubsystem* GetOnlineSubsystemReference();
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionReference();
 	static FName GetSessionName();
+	static TSharedPtr<SteamAPICallbackManager> GetSteamAPIManager();
 
 #pragma endregion
 
@@ -44,6 +46,9 @@ private:
 	// OSS references.
 	static class IOnlineSubsystem* OnlineSubsystemReference;
 	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;
+
+	// SteamAPI callbacks manager class.
+	static TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
 
 #pragma endregion
 };

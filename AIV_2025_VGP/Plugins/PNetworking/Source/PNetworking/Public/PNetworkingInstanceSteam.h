@@ -11,7 +11,6 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
-#include "SteamAPICallbackManager.h"
 #include "PNetworkingInstanceSteam.generated.h"
 
 #pragma region ForwardDeclaration
@@ -42,6 +41,7 @@ class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 
 public:
 
+	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static UPNetworkingInstanceSteam* GetUniqueInstance();
 
 #pragma region LocalUser
@@ -144,8 +144,7 @@ private:
 	~UPNetworkingInstanceSteam();
 
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
-	// Non Static class or UE-reflection-based manager used for SteamAPI callbacks.
-	TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
+	
 
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
 	FDelegateHandle JoinSessionCompleteDelegateHandle;

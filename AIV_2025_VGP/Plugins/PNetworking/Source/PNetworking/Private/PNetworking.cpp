@@ -5,7 +5,6 @@
 // � Claudio Dallai
 
 #include "PNetworking.h"
-#include "steam/steam_api.h"
 #include "OnlineSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
@@ -13,6 +12,7 @@
 // Initialization of static variables.
 IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
+TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::SteamApiManagerPtr = nullptr;
 bool FPNetworkingModule::bIsComputingNewSession = false;
 FName FPNetworkingModule::SessionName = TEXT("AIV_VGP3_Server"); // Name used for the multiplayer steam session.
 
@@ -30,6 +30,8 @@ void FPNetworkingModule::StartupModule()
 		// Get OSS Session interface.
 		OnlineSessionReference = OnlineSubsystemReference->GetSessionInterface();
 	}
+
+	SteamApiManagerPtr = MakeShared<SteamAPICallbackManager>();
 }
 
 void FPNetworkingModule::ShutdownModule()
@@ -37,6 +39,7 @@ void FPNetworkingModule::ShutdownModule()
 	// Cleanup pointers, refs...
 	OnlineSessionReference.Reset();
 	OnlineSubsystemReference = nullptr;
+	SteamApiManagerPtr.Reset();
 }
 
 #pragma endregion
@@ -103,6 +106,16 @@ IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionReference()
 FName FPNetworkingModule::GetSessionName()
 {
 	return SessionName;
+}
+
+TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::GetSteamAPIManager()
+{
+	if (!IsOnlineAvailable())
+	{
+		return nullptr;
+	}
+
+	return SteamApiManagerPtr;
 }
 
 #pragma endregion
