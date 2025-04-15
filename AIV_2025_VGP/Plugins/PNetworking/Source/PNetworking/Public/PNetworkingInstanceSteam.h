@@ -34,7 +34,7 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSe
 
 #pragma endregion
 
-UCLASS()
+UCLASS(BlueprintType, meta=(NotBlueprintable))
 class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 {
 	GENERATED_BODY()
@@ -42,8 +42,7 @@ class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 
 public:
 
-	UPNetworkingInstanceSteam();
-	~UPNetworkingInstanceSteam();
+	static UPNetworkingInstanceSteam* GetUniqueInstance();
 
 #pragma region LocalUser
 	/// <summary>
@@ -141,7 +140,11 @@ public:
 
 private:
 
-	// Non--class or UE-reflection-based manager used for SteamAPI callbacks.
+	UPNetworkingInstanceSteam();
+	~UPNetworkingInstanceSteam();
+
+	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
+	// Non Static class or UE-reflection-based manager used for SteamAPI callbacks.
 	TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
 
 	FDelegateHandle CreateSessionCompleteDelegateHandle;

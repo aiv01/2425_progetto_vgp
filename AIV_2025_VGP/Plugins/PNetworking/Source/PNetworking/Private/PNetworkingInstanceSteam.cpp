@@ -15,13 +15,33 @@
 #include "Kismet/GameplayStatics.h"
 #include "Online.h"
 
+UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = nullptr;
 
 UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 {
+
 }
 
 UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
 {
+	if (NetInstanceSteamPtr != nullptr)
+	{
+		NetInstanceSteamPtr->RemoveFromRoot();
+	}
+}
+
+UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
+{
+	if (NetInstanceSteamPtr == nullptr)
+	{
+		NetInstanceSteamPtr = NewObject<UPNetworkingInstanceSteam>();
+		if (NetInstanceSteamPtr) 
+		{
+			NetInstanceSteamPtr->AddToRoot();
+		}
+	}
+
+	return NetInstanceSteamPtr;
 }
 
 bool UPNetworkingInstanceSteam::GetAppID(FString& AppID)
