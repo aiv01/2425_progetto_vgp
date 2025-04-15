@@ -8,7 +8,7 @@
 #include "PNetworkingInstanceSteam.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystemTypes.h"
-#include "OnlineSessionSettings.h"
+
 #include "OnlineSubsystem.h"
 #include "UserSteamData.h"
 #include "PNetworking.h"
@@ -304,6 +304,7 @@ void UPNetworkingInstanceSteam::OnDestroySessionComplete(FName sessionName, bool
 	if (bWasSuccessfull)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
+		CreateSession();
 	}
 	else
 	{
@@ -513,6 +514,21 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 
 	return 1; 
 }
+
+void UPNetworkingInstanceSteam::CreateSession()
+{
+	auto SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+
+	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
+
+	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure));
+	SessionParticipantLeftDelegateHandle = SessionInterface->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerLeft));
+	SessionParticipantRemovedDelegateHandle = SessionInterface->AddOnSessionParticipantRemovedDelegate_Handle(FOnSessionParticipantRemovedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerRemoved));
+
+	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
+}
+
+
 
 int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback)
 {
@@ -791,12 +807,8 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(const int32 NumberPublicC
 		return false;
 	}
 
-	CheckAndDestroyAlreadyExistingSession();
-
 	FPNetworkingModule::bIsComputingNewSession = true;
 
-
-	FOnlineSessionSettings NewSessionSettings;
 	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
 	NewSessionSettings.NumPrivateConnections = NumberPrivateConnections;
 	NewSessionSettings.bIsLANMatch = bIsLANMatch;
@@ -809,13 +821,9 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(const int32 NumberPublicC
 	NewSessionSettings.bAllowJoinViaPresence = true;
 	NewSessionSettings.bAllowInvites = true;
 
-	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
+	CheckAndDestroyAlreadyExistingSession();
 
-	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure));
-	SessionParticipantLeftDelegateHandle = SessionInterface->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerLeft));
-	SessionParticipantRemovedDelegateHandle = SessionInterface->AddOnSessionParticipantRemovedDelegate_Handle(FOnSessionParticipantRemovedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerRemoved));
-
-	return SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
+	return true;
 }
 
 bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
@@ -907,6 +915,7 @@ void UPNetworkingInstanceSteam::CheckAndDestroyAlreadyExistingSession()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Sessione non trovata!"));
+		CreateSession();
 	}
 }
 

@@ -10,6 +10,7 @@
 #include "UObject/NoExportTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
+#include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "PNetworkingInstanceSteam.generated.h"
 
@@ -147,7 +148,7 @@ private:
 	~UPNetworkingInstanceSteam();
 
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
-	
+	FOnlineSessionSettings NewSessionSettings;
 
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
@@ -181,4 +182,6 @@ private:
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
 	int32 GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback);
 	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedPtr<FOnFriendsDataReady> Callback);
+
+	void CreateSession();
 };
