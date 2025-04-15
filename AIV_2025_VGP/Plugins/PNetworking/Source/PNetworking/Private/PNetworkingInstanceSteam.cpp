@@ -693,7 +693,7 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 {
 	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
 
-	if (!GEngine)
+	/*if (!GEngine)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Engine error: GEngin invalid!"));
 		return;
@@ -711,13 +711,13 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 	{
 		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: PlayerController is null!"));
 		return;
-	}
+	}*/
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(
+	/*if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(
 		FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
 	{
 		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
-	}
+	}*/
 	//CheckAndDestroyAlreadyExistingSession();
 
 	//FPNetworkingModule::GetOnlineSessionReference()->EndSession(FPNetworkingModule::GetSessionName());
