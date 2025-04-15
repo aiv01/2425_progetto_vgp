@@ -647,6 +647,8 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 			UE_LOG(LogTemp, Warning, TEXT("Sono già in una bellissima sessione!"));
 		}
 
+		FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
+
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 
@@ -917,6 +919,31 @@ void UPNetworkingInstanceSteam::CheckAndDestroyAlreadyExistingSession()
 		UE_LOG(LogTemp, Warning, TEXT("Sessione non trovata!"));
 		CreateSession();
 	}
+}
+
+void UPNetworkingInstanceSteam::TravelBack()
+{
+	if (!GEngine)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Engine error: GEngin invalid!"));
+		return;
+	}
+
+	UWorld* CurrentWorld = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
+	if (!CurrentWorld)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: World is null!"));
+		return;
+	}
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(CurrentWorld, 0);
+	if (!PlayerController)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: PlayerController is null!"));
+		return;
+	}
+
+	PlayerController->ClientTravel(TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu"), ETravelType::TRAVEL_Absolute);
 }
 
 bool UPNetworkingInstanceSteam::InitializeOnlineCallbacks()

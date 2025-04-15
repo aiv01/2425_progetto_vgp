@@ -141,6 +141,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	void CheckAndDestroyAlreadyExistingSession();
 
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	void TravelBack();
+
 
 private:
 
