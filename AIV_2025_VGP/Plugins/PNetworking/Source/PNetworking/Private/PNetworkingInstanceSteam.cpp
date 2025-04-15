@@ -32,8 +32,13 @@ UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
 		NetInstanceSteamPtr = NewObject<UPNetworkingInstanceSteam>();
 		if (NetInstanceSteamPtr) 
 		{
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Building unique instance of NET manager"))
 			NetInstanceSteamPtr->AddToRoot();
 		}
+	}
+	else
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Requested already valid unique instance of NET manager"))
 	}
 
 	return NetInstanceSteamPtr;
@@ -500,12 +505,26 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(FOnLocalAvatarReady
 	{
 		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Valid STEAMAPIMANAGER"));
 			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyDelegateLocalUser.Unbind();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Invalid STEAMAPIMANAGER"));
+			return 0;
 		}
 
 		AsyncTask(ENamedThreads::GameThread, [AvatarBuffer, Callback]()
 			{
-				Callback.ExecuteIfBound(AvatarBuffer);
+				if (AvatarBuffer)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("Async valid"));
+					Callback.ExecuteIfBound(AvatarBuffer);
+				}
+				else
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, TEXT("No Async"));
+				}
 			}
 		);
 	}
