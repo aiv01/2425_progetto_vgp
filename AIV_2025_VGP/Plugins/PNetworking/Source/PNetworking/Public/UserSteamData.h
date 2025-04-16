@@ -24,7 +24,7 @@ struct FUserSteamData
     UPROPERTY(BlueprintReadOnly)
     UTexture2D* UserAvatar;
 
-    FUserSteamData() = default;
+    FUserSteamData() : SteamID(0), UserName(FText::FromString(TEXT("Unknown"))), UserAvatar(nullptr) { } // Pre-compiler "= default" does not work.
     FUserSteamData(const int32 NewSteamID, const FText NewUserName, UTexture2D* NewUserAvatar) : SteamID(NewSteamID), UserName(NewUserName), UserAvatar(NewUserAvatar) { }
     
 };
