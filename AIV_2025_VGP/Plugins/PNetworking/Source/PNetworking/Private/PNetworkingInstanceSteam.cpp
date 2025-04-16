@@ -338,7 +338,7 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 
 	if (bWasSuccessfull)
 	{
-		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+		/*JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), CurrentInviteResult);
 
 		if (bHasJoined)
@@ -349,11 +349,8 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
-		}
+		}*/
 	}
-
-	// Join
-
 }
 
 int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback)
@@ -669,14 +666,6 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 {
 	if (bWasSuccessful)
 	{
-		if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
-		{
-			CurrentInviteResult = InviteResult;
-			OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
-			FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName());
-			return;
-		}
-
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 
@@ -739,43 +728,17 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 {
 	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
 
-	/*if (!GEngine)
+	if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Engine error: GEngin invalid!"));
+		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
+		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+		if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+		{
+			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
+		}
+
 		return;
 	}
-
-	UWorld* CurrentWorld = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
-	if (!CurrentWorld)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: World is null!"));
-		return;
-	}
-
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(CurrentWorld, 0);
-	if (!PlayerController)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: PlayerController is null!"));
-		return;
-	}*/
-
-	/*if (FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(
-		FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
-	{
-		UE_LOG(LogTemp, Error, TEXT("SELF UNREGISTERED!"));
-	}*/
-	//CheckAndDestroyAlreadyExistingSession();
-
-	//FPNetworkingModule::GetOnlineSessionReference()->EndSession(FPNetworkingModule::GetSessionName());
-	//FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
-
-
-	// Local forse si riferisce a LAN.
-	/*FPNetworkingModule::GetOnlineSessionReference()->UnregisterLocalPlayer(
-		*FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0), FPNetworkingModule::GetSessionName(), FOnUnregisterLocalPlayerCompleteDelegate::CreateStatic(&UPNetworkingInstanceSteam::OnLocalPlayerUnregistered));*/
-
-	//const FString MainMenuMap = TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu");
-	//PlayerController->ClientTravel(MainMenuMap, ETravelType::TRAVEL_Absolute);
 }
 
 void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)
@@ -972,6 +935,18 @@ void UPNetworkingInstanceSteam::TravelBack()
 	}
 
 	PlayerController->ClientTravel(TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu"), ETravelType::TRAVEL_Absolute);
+
+	if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
+		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+		if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+		{
+			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
+		}
+
+		return;
+	}
 }
 
 bool UPNetworkingInstanceSteam::InitializeOnlineCallbacks()
