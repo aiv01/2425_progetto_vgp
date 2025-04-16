@@ -338,7 +338,20 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 
 	if (bWasSuccessfull)
 	{
-		/*JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+	}
+}
+
+void UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby(FName sessionName, bool bWasSuccessfull)
+{
+	if (OnClientDestroySessionCompleteFromLobbyHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteFromLobbyHandle);
+		OnClientDestroySessionCompleteFromLobbyHandle.Reset();
+	}
+
+	if (bWasSuccessfull)
+	{
+		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), CurrentInviteResult);
 
 		if (bHasJoined)
@@ -349,7 +362,7 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
-		}*/
+		}
 	}
 }
 
@@ -666,6 +679,20 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 {
 	if (bWasSuccessful)
 	{
+		if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
+			CurrentInviteResult = InviteResult;
+			OnClientDestroySessionCompleteFromLobbyHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby));
+			if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+			{
+				UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
+			}
+
+			return;
+		}
+
+
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 

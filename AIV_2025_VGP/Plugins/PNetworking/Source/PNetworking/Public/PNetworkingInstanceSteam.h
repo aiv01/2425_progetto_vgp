@@ -164,6 +164,8 @@ private:
 	FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
 	FDelegateHandle OnSessionPlayerNetworkFailureHandle;
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
+	FDelegateHandle OnClientDestroySessionCompleteFromLobbyHandle;
+
 
 
 	bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
@@ -183,6 +185,7 @@ private:
 	void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 	void DestroySession();
 	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void OnClientDestroySessionCompleteFromLobby(FName sessionName, bool bWasSuccessfull);
 
 	// Recursive async callbacks on GameThread.
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
