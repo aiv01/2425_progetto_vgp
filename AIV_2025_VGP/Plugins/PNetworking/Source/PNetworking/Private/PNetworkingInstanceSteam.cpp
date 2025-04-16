@@ -328,6 +328,34 @@ void UPNetworkingInstanceSteam::DestroySession()
 	}
 }
 
+void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
+{
+	if (OnClientDestroySessionCompleteHandle.IsValid())
+	{
+		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
+		OnClientDestroySessionCompleteHandle.Reset();
+	}
+
+	if (bWasSuccessfull)
+	{
+		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), CurrentInviteResult);
+
+		if (bHasJoined)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *CurrentInviteResult.Session.OwningUserName);
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
+		}
+	}
+
+	// Join
+
+}
+
 int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback)
 {
 	bool bPendingFlag = false;
@@ -641,13 +669,13 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 {
 	if (bWasSuccessful)
 	{
-		if (FPNetworkingModule::GetOnlineSessionReference()->IsPlayerInSession(
-			FPNetworkingModule::GetSessionName(), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetUniquePlayerId(0)))
+		if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sono già in una bellissima sessione!"));
+			CurrentInviteResult = InviteResult;
+			OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+			FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName());
+			return;
 		}
-
-		FPNetworkingModule::GetOnlineSessionReference()->RemoveNamedSession(FPNetworkingModule::GetSessionName());
 
 		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
 		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);

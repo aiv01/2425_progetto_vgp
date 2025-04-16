@@ -152,6 +152,7 @@ private:
 
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
 	FOnlineSessionSettings NewSessionSettings;
+	FOnlineSessionSearchResult CurrentInviteResult;
 
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
@@ -162,6 +163,7 @@ private:
 	FDelegateHandle OnNetworkFailureDelegateHandle;
 	FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
 	FDelegateHandle OnSessionPlayerNetworkFailureHandle;
+	FDelegateHandle OnClientDestroySessionCompleteHandle;
 
 
 	bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
@@ -180,6 +182,7 @@ private:
 	void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult); // Da rimuovere poichè probabilmente LAN
 	void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 	void DestroySession();
+	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 
 	// Recursive async callbacks on GameThread.
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
