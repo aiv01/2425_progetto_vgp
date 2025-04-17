@@ -14,7 +14,7 @@ class AIV_2025_VGP_API UGOAPGreatSwordStrategy : public UGOAPBaseCombatStrategy
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
-	UAnimSequence* AnimationToPlay;
+	UAnimMontage* AnimationToPlay;
 
 	virtual void Execute() override;
 	
