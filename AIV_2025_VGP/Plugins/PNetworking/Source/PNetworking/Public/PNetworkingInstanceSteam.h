@@ -177,10 +177,6 @@ private:
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
 	FDelegateHandle DestroySessionCompleteDelegateHandle;
 
-	FDelegateHandle SessionParticipantLeftDelegateHandle;
-	FDelegateHandle SessionParticipantRemovedDelegateHandle;
-	FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
-
 	FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
 	FDelegateHandle OnNetworkFailureDelegateHandle;
 	FDelegateHandle OnSessionPlayerNetworkFailureHandle;
