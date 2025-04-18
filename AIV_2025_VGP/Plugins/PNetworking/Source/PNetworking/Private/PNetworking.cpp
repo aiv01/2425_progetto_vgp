@@ -14,7 +14,7 @@ IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
 IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
 TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::SteamApiManagerPtr = nullptr;
 bool FPNetworkingModule::bIsComputingNewSession = false;
-FName FPNetworkingModule::SessionName = TEXT("AIV_VGP3_Server"); // Name used for the multiplayer steam session.
+FName FPNetworkingModule::SessionName = TEXT("AIV_VGP_Server"); // Name used for the multiplayer steam session.
 
 // Define custom Log category.
 DEFINE_LOG_CATEGORY(LogSteamNetworkingPlugin)

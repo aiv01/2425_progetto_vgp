@@ -12,6 +12,15 @@
 // Custom Log category.
 DECLARE_LOG_CATEGORY_EXTERN(LogSteamNetworkingPlugin, Warning, All)
 
+// Identify current session state. 
+enum LocalSessionState
+{
+	SESSION_PENDING, // Computing a session (used for creating or other async funcs).
+	SESSION_DESTROYING, // Destroying a session (specific for destroy async funcs).
+	SESSION_VALID, // Session is present and working.
+	SESSION_INVALID // Session is not present or socket is invalid.
+};
+
 class PNETWORKING_API FPNetworkingModule : public IModuleInterface
 {
 public:

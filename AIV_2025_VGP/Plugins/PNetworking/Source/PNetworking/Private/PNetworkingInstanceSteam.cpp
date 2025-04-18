@@ -17,6 +17,8 @@
 
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = nullptr;
 
+#pragma region SpecialMemberFunctions
+
 UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 {
 }
@@ -24,6 +26,10 @@ UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
 {
 }
+
+#pragma endregion SpecialMemberFunctions
+
+#pragma region SingletonePluginManagement
 
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
 {
@@ -52,7 +58,13 @@ void UPNetworkingInstanceSteam::DeleteUniqueInstance()
 		NetInstanceSteamPtr->RemoveFromRoot();
 		NetInstanceSteamPtr = nullptr;
 	}
+	else
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("NET Steam manager pointer was already invalid"));
+	}
 }
+
+#pragma endregion SingletonePluginManagement
 
 bool UPNetworkingInstanceSteam::GetAppID(FString& AppID)
 {

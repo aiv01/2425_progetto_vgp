@@ -29,6 +29,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, F
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
 
+// Non usato ora sarebbbe bene riuscire a riusarlo.
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
 
 
@@ -42,15 +43,29 @@ class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 
 public:
 
+#pragma region SingletonePluginManagement
+
+	/// <summary>
+	/// Check if a singletone static istance already exists.
+	/// If not, it creates one, save it in a raw pointer and add it to root (prevent Garbage Collector) and return it.
+	/// If it already exists, return it.
+	/// </summary>
+	/// <returns> Unique istance of this class. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static UPNetworkingInstanceSteam* GetUniqueInstance();
 
+	/// <summary>
+	/// Remove from root the unique istance of this class.
+	/// Invalid its pointer.
+	/// </summary>
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static void DeleteUniqueInstance();
 
+#pragma endregion SingletonePluginManagement
+
 #pragma region LocalUser
+
 	/// <summary>
-	
 	/// Get LocalAppID of the game. In case of develop it returns 480.
 	/// </summary>
 	/// <param name="AppID"> Out AppID in FString type. </param>
@@ -147,8 +162,12 @@ public:
 
 private:
 
+#pragma region SpecialMemberFunctions
+
 	UPNetworkingInstanceSteam();
 	~UPNetworkingInstanceSteam();
+
+#pragma endregion SpecialMemberFunctions
 
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
 	FOnlineSessionSettings NewSessionSettings;
@@ -157,11 +176,13 @@ private:
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
 	FDelegateHandle DestroySessionCompleteDelegateHandle;
+
 	FDelegateHandle SessionParticipantLeftDelegateHandle;
 	FDelegateHandle SessionParticipantRemovedDelegateHandle;
+	FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
+
 	FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
 	FDelegateHandle OnNetworkFailureDelegateHandle;
-	FDelegateHandle OnUnregisterLocalPlayerDelegateHandle;
 	FDelegateHandle OnSessionPlayerNetworkFailureHandle;
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientDestroySessionCompleteFromLobbyHandle;
