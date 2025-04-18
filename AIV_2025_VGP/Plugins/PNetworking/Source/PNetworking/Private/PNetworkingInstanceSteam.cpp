@@ -109,11 +109,11 @@ bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32
 bool UPNetworkingInstanceSteam::GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum)
 {
 	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
-
 	if (!OnlineSubsystemPtr)
 	{
 		return false;
 	}
+
 	IOnlineFriendsPtr FriendsInterface = OnlineSubsystemPtr->GetFriendsInterface();
 	if (!FriendsInterface.IsValid())
 	{
@@ -134,7 +134,6 @@ bool UPNetworkingInstanceSteam::GetFriendList(const FOnFriendsListReady& Callbac
 				}
 
 				IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
-
 				if (!OnlineSubsystemPtr)
 				{
 					return;
@@ -176,7 +175,7 @@ UTexture2D* UPNetworkingInstanceSteam::GetAvatar(const CSteamID SteamID, int32& 
 
 	if (AvatarID == 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar ID!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Invalid Avatar ID!"));
 		QueryResult = 0;
 		return nullptr;
 	}
@@ -191,7 +190,7 @@ UTexture2D* UPNetworkingInstanceSteam::GetAvatar(const CSteamID SteamID, int32& 
 	uint32 Width, Height;
 	if (!SteamUtils()->GetImageSize(AvatarID, &Width, &Height))
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: GetImageSize()"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetImageSize()"));
 		return nullptr;
 	}
 
@@ -201,7 +200,7 @@ UTexture2D* UPNetworkingInstanceSteam::GetAvatar(const CSteamID SteamID, int32& 
 	AvatarData.Reserve(BufferSize);
 	if (!SteamUtils()->GetImageRGBA(AvatarID, AvatarData.GetData(), BufferSize))
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: GetImageRGBA()"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetImageRGBA()"));
 		return nullptr;
 	}
 
@@ -209,7 +208,7 @@ UTexture2D* UPNetworkingInstanceSteam::GetAvatar(const CSteamID SteamID, int32& 
 	UTexture2D* AvatarTexture = UTexture2D::CreateTransient(Width, Height, EPixelFormat::PF_R8G8B8A8);
 	if (!AvatarTexture)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: Invalid Avatar Texture!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Invalid Avatar Texture!"));
 		return nullptr;
 	}
 
@@ -265,7 +264,7 @@ int32 UPNetworkingInstanceSteam::GetOnlineFriendsFromFriendCount(const int32 Fri
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
 		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
-		// UE_LOG(LogTemp, Warning, TEXT("ID: %u, NAME: %hs"), CurrentSteamID.GetAccountID(), SteamFriends()->GetFriendPersonaName(CurrentSteamID));
+		// UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("ID: %u, NAME: %hs"), CurrentSteamID.GetAccountID(), SteamFriends()->GetFriendPersonaName(CurrentSteamID));
 		const EPersonaState CurrentPlayerState = SteamFriends()->GetFriendPersonaState(CurrentSteamID);
 		if (CurrentPlayerState != EPersonaState::k_EPersonaStateOffline)
 		{
@@ -289,8 +288,14 @@ FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 		return "";
 	}
 
-	CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
-	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
+	const CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
+	ISteamFriends* SteamFriendsInterface = SteamFriends();
+	if (!SteamFriendsInterface)
+	{
+		return "";
+	}
+
+	return FString(SteamFriendsInterface->GetFriendPersonaName(RealSteamID));
 }
 void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull)
 {
@@ -298,17 +303,16 @@ void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName
 	{
 		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteFromNewHostingUserHandle);
 		OnDestroySessionCompleteFromNewHostingUserHandle.Reset();
-
 	}
 
 	if (bWasSuccessfull)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session destroyed! -> %s"), *sessionName.ToString());
 		CreateSession();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Session not destroyed!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session not destroyed!"));
 	}
 }
 
@@ -320,24 +324,33 @@ void UPNetworkingInstanceSteam::DestroySession()
 
 	if (OnDestroySessionCompleteFromNewHostingUserHandle.IsValid() && FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can't Destroy Session"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Can't Destroy Session"));
 	}
 }
 
 void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
 {
+	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!OnlineSession.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnClientDestroySessionComplete: OnlineSession is null!"));
+		return;
+	}
+
 	if (OnClientDestroySessionCompleteHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
+		OnlineSession->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
 		OnClientDestroySessionCompleteHandle.Reset();
 	}
 
 	if (bWasSuccessfull)
 	{
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnClientDestroySessionComplete: Session %s destroyed"), *sessionName.ToString());
 	}
 }
 
@@ -356,12 +369,12 @@ void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete
 
 		if (bHasJoined)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *CurrentInviteResult.Session.OwningUserName);
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Success by %s"), *CurrentInviteResult.Session.OwningUserName);
 
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Error!"));
 		}
 	}
 }
@@ -371,7 +384,14 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriends
 	bool bPendingFlag = false;
 	int32 QueryResult = 0;
 
-	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
+	ISteamFriends* SteamFriendsInterface = SteamFriends();
+	if (!SteamFriendsInterface)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetFriendsAvatarRecursive: SteamUserInterface steamwork_sdk not valid!"));
+		return 0;
+	}
+
+	int32 FriendsCount = SteamFriendsInterface->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetFriendsCount()"));
@@ -382,7 +402,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriends
 	TArray<UTexture2D*> FriendsAvatar;
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
-		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
+		const CSteamID CurrentSteamID = SteamFriendsInterface->GetFriendByIndex(Index, k_EFriendFlagImmediate);
 		UTexture2D* AvatarBuffer = GetAvatar(CurrentSteamID, QueryResult);
 
 		if (AvatarBuffer != nullptr && QueryResult == 1)
@@ -456,7 +476,14 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 	bool bPendingFlag = false;
 	int32 QueryResult = 0;
 
-	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
+	ISteamFriends* SteamFriendsInterface = SteamFriends();
+	if (!SteamFriendsInterface)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetPlayerDataRecursive: SteamUserInterface steamwork_sdk not valid!"));
+		return 0;
+	}
+
+	int32 FriendsCount = SteamFriendsInterface->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetFriendsCount()"));
@@ -469,13 +496,13 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 
 	for (int32 Index = 0; Index < FriendsCount; Index++)
 	{
-		const CSteamID CurrentSteamID = SteamFriends()->GetFriendByIndex(Index, k_EFriendFlagImmediate);
-		const EPersonaState CurrentPlayerState = SteamFriends()->GetFriendPersonaState(CurrentSteamID);
+		const CSteamID CurrentSteamID = SteamFriendsInterface->GetFriendByIndex(Index, k_EFriendFlagImmediate);
+		const EPersonaState CurrentPlayerState = SteamFriendsInterface->GetFriendPersonaState(CurrentSteamID);
 
 		// Just online friends (better: not offline).
 		if (CurrentPlayerState != EPersonaState::k_EPersonaStateOffline)
 		{
-			const FString CurrentNickname(SteamFriends()->GetFriendPersonaName(CurrentSteamID));
+			const FString CurrentNickname(SteamFriendsInterface->GetFriendPersonaName(CurrentSteamID));
 			UTexture2D* CurrentTexture = GetAvatar(CurrentSteamID, QueryResult);
 
 			if (CurrentTexture != nullptr && QueryResult == 1)
@@ -568,8 +595,15 @@ void UPNetworkingInstanceSteam::CreateSession()
 int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback)
 {
 	int32 QueryResult = 0;
-	const CSteamID SteamID = SteamUser()->GetSteamID();
 
+	ISteamUser* SteamUserInterface = SteamUser();
+	if(!SteamUserInterface)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetLocalUserAvatarRecursive: SteamUserInterface steamwork_sdk not valid!"));
+		return 0;
+	}
+
+	const CSteamID SteamID = SteamUserInterface->GetSteamID();
 	if (!SteamID.IsValid())
 	{
 		return 0;
@@ -678,12 +712,12 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 	{
 		if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 		{
-			UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session existing, need to destroy it!"));
 			CurrentInviteResult = InviteResult;
 			OnClientNewInviteAcceptionDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete));
 			if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 			{
-				UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
+				UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("DestroySession request true!"));
 			}
 
 			return;
@@ -695,17 +729,17 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 
 		if (bHasJoined)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
 
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Error!"));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Invite Acception Error!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Error!"));
 	}
 }
 
@@ -719,46 +753,46 @@ void UPNetworkingInstanceSteam::OnJoinSessionComplete(FName SessionName, EOnJoin
 
 	if (Result != EOnJoinSessionCompleteResult::Success)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Join Session failed!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Join Session failed!"));
 		return;
 	}
 
 	FString ConnectInfo;
 	if (!FPNetworkingModule::GetOnlineSessionPointer()->GetResolvedConnectString(SessionName, ConnectInfo))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Failed to get resolved connect string!"));
 		return;
 	}
 
 	UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 	if (!World)
 	{
-		UE_LOG(LogTemp, Error, TEXT("World is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("World is null!"));
 		return;
 	}
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(World, 0);
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerController is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("PlayerController is null!"));
 		return;
 	}
 
 	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
-	UE_LOG(LogTemp, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
+	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 
 void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
-	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
+	UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Network Failure: %s"), *ErrorString);
 
 	if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session existing, need to destroy it!"));
 		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
 		if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 		{
-			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("DestroySession request true!"));
 		}
 
 		return;
@@ -773,18 +807,18 @@ void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWas
 	{
 		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 		CreateSessionCompleteDelegateHandle.Reset();
-		UE_LOG(LogTemp, Warning, TEXT("OnCreateSessionComplete cleared!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnCreateSessionComplete cleared!"));
 	}
 	if (!bWasSuccessfull)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Creating Session error!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Creating Session error!"));
 		return;
 	}
 
 	UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 	if (!World)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Server Travel Error!"));
 		return;
 	}
 
@@ -792,11 +826,11 @@ void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWas
 	const bool bServerTravelResult = World->ServerTravel(TEXT("/Game/Custom/Networking/Maps/MapTest?listen")); // TODO: Initialize map path into blueprint
 	if (bServerTravelResult)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Server Travel Complete!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Server Travel Complete!"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Server Travel Error!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Server Travel Error!"));
 	}
 }
 
@@ -813,14 +847,14 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(const int32 NumberPublicC
 {
 	if (FPNetworkingModule::GetLocalSessionCurrentState() != ELocalSessionState::SESSION_INVALID)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SteamError: Already computing a session!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("SteamError: Already computing a session!"));
 		return false;
 	}
 
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SteamError: Session interface not valid!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("SteamError: Session interface not valid!"));
 		return false;
 	}
 
@@ -847,12 +881,14 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 {
 	if (FPNetworkingModule::GetLocalSessionCurrentState() != ELocalSessionState::SESSION_VALID)
 	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InviteFriend: Session is begin computed, destroyed or already invalid!"));
 		return false;
 	}
 
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
 	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InviteFriend: SessionInterface is invalid!"));
 		return false;
 	}
 
@@ -861,14 +897,12 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 
 	if (ConvertCSteamIDToFUniqueNetID(FriendSteamID, FriendUniqueNetID))
 	{
-		FOnlineSession* OnlineSession = SessionInterface->GetNamedSession(FPNetworkingModule::GetSessionName());
-		if (!OnlineSession)
+		if (!SessionInterface->GetNamedSession(FPNetworkingModule::GetSessionName()))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Error: Session was not created!"));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("InviteFriend: Session was not created!"));
 			return false;
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("SessionID created: %s"), *OnlineSession->GetSessionIdStr());
 		return SessionInterface->SendSessionInviteToFriend(0, FPNetworkingModule::GetSessionName(), *FriendUniqueNetID);
 	}
 
@@ -877,19 +911,19 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 
 void UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SESSION NET PROBLEMS DETECTED!"));
+	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("SESSION NET PROBLEMS DETECTED!"));
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER(S) CRASHED"));
 
 	if (ErrorType == ESessionFailure::ServiceConnectionLost)
 	{
 		if (CrashedPlayerID.IsValid())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(CrashedPlayerID));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(CrashedPlayerID));
 			FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), CrashedPlayerID);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Lobby named %s networking error!"), *FPNetworkingModule::GetSessionName().ToString());
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Lobby named %s networking error!"), *FPNetworkingModule::GetSessionName().ToString());
 		}
 	}
 }
@@ -906,50 +940,72 @@ void UPNetworkingInstanceSteam::CheckAndDestroyAlreadyExistingSession()
 	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName());
 	if (ExistingSession)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Sessione esistente!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Sessione esistente!"));
 		DestroySession();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Sessione non trovata!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Sessione non trovata!"));
 		CreateSession();
 	}
 }
 
-void UPNetworkingInstanceSteam::TravelBack()
+void UPNetworkingInstanceSteam::QuitSession(const FString& TravelBackMapPath)
 {
+	if (FPNetworkingModule::GetLocalSessionCurrentState() != ELocalSessionState::SESSION_VALID)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: Session is begin computed, destroyed or already invalid!"));
+		return;
+	}
+
 	if (!GEngine)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Engine error: GEngin invalid!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: GEngine invalid!"));
 		return;
 	}
 
 	UWorld* CurrentWorld = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 	if (!CurrentWorld)
 	{
-		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: World is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: World is null!"));
 		return;
 	}
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(CurrentWorld, 0);
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Error, TEXT("OnNetworkFailure: PlayerController is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: PlayerController is null!"));
+		return;
+	}
+	
+	PlayerController->ClientTravel(TravelBackMapPath, ETravelType::TRAVEL_Absolute);
+
+	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!OnlineSession.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: OnlineSession is null!"));
 		return;
 	}
 
-	PlayerController->ClientTravel(TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu"), ETravelType::TRAVEL_Absolute);
-
-	if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+	if (OnlineSession->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
-		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
-		if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
-		{
-			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
-		}
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("QuitSession: Session existing, need to destroy it!"));
+		OnClientDestroySessionCompleteHandle = OnlineSession->AddOnDestroySessionCompleteDelegate_Handle(
+			FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
 
-		return;
+		if (OnlineSession->DestroySession(FPNetworkingModule::GetSessionName()))
+		{
+			FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_DESTROYING);
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("QuitSession: DestroySession request true!"));
+		}
+		else
+		{
+			if (OnClientDestroySessionCompleteHandle.IsValid())
+			{
+				OnlineSession->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
+				OnClientDestroySessionCompleteHandle.Reset();
+			}
+		}
 	}
 }
 
@@ -960,14 +1016,14 @@ bool UPNetworkingInstanceSteam::InitializeOnlineCallbacks()
 		return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
+	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("AcceptInvite Callback Initialized!"));
 	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnSessionUserInviteAcceptedDelegate_Handle(
 		FOnSessionUserInviteAcceptedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnInviteAccepted));
 
 	if (GEngine)
 	{
 		OnNetworkFailureDelegateHandle = GEngine->OnNetworkFailure().AddUObject(this, &UPNetworkingInstanceSteam::OnNetworkFailure);
-		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Network failure delegate registered."));
 	}
 
 	return true;
@@ -995,7 +1051,7 @@ bool UPNetworkingInstanceSteam::DeInitializeOnlineCallbacks()
 	if (GEngine && OnNetworkFailureDelegateHandle.IsValid())
 	{
 		GEngine->OnNetworkFailure().Remove(OnNetworkFailureDelegateHandle);
-		UE_LOG(LogTemp, Warning, TEXT("Network failure delegate registered."));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Network failure delegate registered."));
 		OnNetworkFailureDelegateHandle.Reset();
 	}
 

@@ -145,11 +145,24 @@ public:
 								const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
 								const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
 
+
+	/// <summary>
+	/// Invite a friend to an existing session.
+	/// </summary>
+	/// <param name="SteamID"> SteamID to send invite to. The type is int32 in order to be used in blueprints. </param>
+	/// <returns> Returns True if invite request was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool InviteFriend(const int32 SteamID);
 
+	/// <summary>
+	/// Travel back to a default map and quit current session.
+	/// </summary>
+	/// <param name="TravelBackMapName"> Absolute path (/game/..) of map to travel to. </param>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	void QuitSession(const FString& TravelBackMapName);
+
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	void TravelBack();
+	void CheckAndDestroyAlreadyExistingSession();
 
 #pragma endregion SessionManagement
 
@@ -158,15 +171,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem")
 	bool DeInitializeOnlineCallbacks();
-
-#pragma region Debug
-
-#pragma endregion Debug
-
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	void CheckAndDestroyAlreadyExistingSession();
-
-
 
 private:
 
