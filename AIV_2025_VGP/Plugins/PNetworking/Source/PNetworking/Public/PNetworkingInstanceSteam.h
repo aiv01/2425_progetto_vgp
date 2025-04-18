@@ -182,26 +182,16 @@ private:
 	FOnlineSessionSearchResult CurrentInviteResult;
 
 #pragma region DelegatesHandle
-
-	// Fired when a new session has been created.
-	FDelegateHandle CreateSessionCompleteDelegateHandle; 
-
-	// Fired when successfully joined an existing session.
-	FDelegateHandle JoinSessionCompleteDelegateHandle; 
-
-	// Fired when User accepts an invite.
-	FDelegateHandle SessionUserInviteAcceptedDelegateHandle; 
 	
-	/* Fired when a network failure is called from GameInstance (session socket is invalid).
-	Usually called on clients when host crashes for any reason. */
+	// Delegate handles used to save callbacks registration, or unregister them.
+	FDelegateHandle CreateSessionCompleteDelegateHandle; 
+	FDelegateHandle JoinSessionCompleteDelegateHandle; 
+	FDelegateHandle SessionUserInviteAcceptedDelegateHandle; 
 	FDelegateHandle OnNetworkFailureDelegateHandle; 
-
-	// Fired to server when a client connection is lost.
 	FDelegateHandle OnSessionPlayerNetworkFailureHandle; 
-
-	FDelegateHandle DestroySessionCompleteDelegateHandle; 
+	FDelegateHandle OnDestroySessionCompleteFromNewHostingUserHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
-	FDelegateHandle OnClientDestroySessionCompleteFromLobbyHandle;
+	FDelegateHandle OnClientNewInviteAcceptionDestroySessionCompleteHandle;
 
 #pragma endregion DelegatesHandle
 
@@ -216,16 +206,31 @@ private:
 
 #pragma region CallbackFunctions
 
+	// Fired when a new session has been created.
 	void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
+
+	// Fired when successfully joined an existing session.
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
+	// Fired when User accepts an invite.
 	void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
 
+	/* Fired when a network failure is called from GameInstance (session socket is invalid).
+	Usually called on clients when host crashes for any reason. */
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+
+	// Fired to server when a client connection is lost.
 	void OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 
-	void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	/* Fired when User wants to create a new Session (becoming host).
+	Old session, if existing, has been deleted in order to prevent errors. */
+	void OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull);
+
+	// Fired when client needs to destroy and unregister local session datas, due to crash or quit.
 	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
-	void OnClientDestroySessionCompleteFromLobby(FName sessionName, bool bWasSuccessfull);
+
+	// Fired when client needs to destroy and unregister local session datas, due to invite acception to another session.
+	void OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 
 #pragma endregion CallbackFunctions
 

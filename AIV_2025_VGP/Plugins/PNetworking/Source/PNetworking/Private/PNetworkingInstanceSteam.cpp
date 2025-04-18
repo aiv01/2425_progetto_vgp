@@ -292,12 +292,12 @@ FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 	CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
 	return FString(SteamFriends()->GetFriendPersonaName(RealSteamID));
 }
-void UPNetworkingInstanceSteam::OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
+void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull)
 {
-	if (DestroySessionCompleteDelegateHandle.IsValid())
+	if (OnDestroySessionCompleteFromNewHostingUserHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
-		DestroySessionCompleteDelegateHandle.Reset();
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteFromNewHostingUserHandle);
+		OnDestroySessionCompleteFromNewHostingUserHandle.Reset();
 
 	}
 
@@ -315,10 +315,10 @@ void UPNetworkingInstanceSteam::OnDestroySessionComplete(FName sessionName, bool
 
 void UPNetworkingInstanceSteam::DestroySession()
 {
-	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(
-		FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnDestroySessionComplete));
+	OnDestroySessionCompleteFromNewHostingUserHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(
+		FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser));
 
-	if (DestroySessionCompleteDelegateHandle.IsValid() && FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
+	if (OnDestroySessionCompleteFromNewHostingUserHandle.IsValid() && FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
@@ -341,12 +341,12 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 	}
 }
 
-void UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby(FName sessionName, bool bWasSuccessfull)
+void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
 {
-	if (OnClientDestroySessionCompleteFromLobbyHandle.IsValid())
+	if (OnClientNewInviteAcceptionDestroySessionCompleteHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteFromLobbyHandle);
-		OnClientDestroySessionCompleteFromLobbyHandle.Reset();
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientNewInviteAcceptionDestroySessionCompleteHandle);
+		OnClientNewInviteAcceptionDestroySessionCompleteHandle.Reset();
 	}
 
 	if (bWasSuccessfull)
@@ -680,7 +680,7 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 		{
 			UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
 			CurrentInviteResult = InviteResult;
-			OnClientDestroySessionCompleteFromLobbyHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby));
+			OnClientNewInviteAcceptionDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete));
 			if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 			{
 				UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
