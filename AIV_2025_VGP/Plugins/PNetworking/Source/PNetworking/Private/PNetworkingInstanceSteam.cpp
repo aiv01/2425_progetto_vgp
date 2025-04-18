@@ -106,7 +106,7 @@ bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32
 	return true;
 }
 
-bool UPNetworkingInstanceSteam::GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum)
+bool UPNetworkingInstanceSteam::GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum)
 {
 	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
@@ -160,14 +160,14 @@ bool UPNetworkingInstanceSteam::GetFriendsList(const FOnFriendsListReady& Callba
 	return bGetFriendsSuccessful;
 }
 
-bool UPNetworkingInstanceSteam::GetOnlineFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
+bool UPNetworkingInstanceSteam::GetOnlineFriendListNames(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
 {
-	return GetFriendsList(Callback, EFriendsLists::OnlinePlayers, LocalUserNum);
+	return GetFriendList(Callback, EFriendsLists::OnlinePlayers, LocalUserNum);
 }
 
-bool UPNetworkingInstanceSteam::GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
+bool UPNetworkingInstanceSteam::GetAllFriendListNames(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
 {
-	return GetFriendsList(Callback, EFriendsLists::Default, LocalUserNum);
+	return GetFriendList(Callback, EFriendsLists::Default, LocalUserNum);
 }
 
 UTexture2D* UPNetworkingInstanceSteam::GetAvatar(const CSteamID SteamID, int32& QueryResult)
@@ -282,7 +282,7 @@ void UPNetworkingInstanceSteam::AlphabeticalSortFriends(TArray<FUserSteamData>& 
 }
 
 #pragma region Debug
-FString UPNetworkingInstanceSteam::GetUserNameFromSteamID(const int32 SteamID)
+FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
@@ -374,7 +374,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatarRecursive(TSharedPtr<FOnFriends
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetFriendsCount()"));
 		FriendsCount = 0;
 		return 0;
 	}
@@ -459,7 +459,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 	int32 FriendsCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
 	if (FriendsCount < 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: GetFriendsCount()"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: GetFriendsCount()"));
 		FriendsCount = 0;
 		return 0;
 	}
@@ -533,7 +533,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 						AsyncTask(ENamedThreads::GameThread, [bAlphabeticalSort, Callback]()
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Callback AvatarImageLoaded ready from SteamAPI!"));
-								GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("RE-Query GetAvatar"));
+								//GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("RE-Query GetAvatar"));
 
 								UPNetworkingInstanceSteam::GetUniqueInstance()->GetPlayerDataRecursive(bAlphabeticalSort, Callback);
 							}
@@ -558,7 +558,7 @@ void UPNetworkingInstanceSteam::CreateSession()
 	auto SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
-	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure));
+	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure));
 
 	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
 }
@@ -875,27 +875,7 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 	return false;
 }
 
-void UPNetworkingInstanceSteam::OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER LEFT"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-	FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
-}
-
-void UPNetworkingInstanceSteam::OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER REMOVED"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-	FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
-}
-
-void UPNetworkingInstanceSteam::OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("LOCAL PLAYER UNREGISTERED"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s unregistered!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-}
-
-void UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
+void UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SESSION NET PROBLEMS DETECTED!"));
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER(S) CRASHED"));

@@ -29,9 +29,8 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, F
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
 
-// Non usato ora sarebbbe bene riuscire a riusarlo.
+// Non usato ora sarebbe bene riuscire a riusarlo.
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
-
 
 #pragma endregion
 
@@ -39,7 +38,6 @@ UCLASS(BlueprintType, meta=(NotBlueprintable))
 class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 {
 	GENERATED_BODY()
-
 
 public:
 
@@ -90,9 +88,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	int32 GetLocalUserAvatar(const FOnLocalAvatarReady& Callback);
 
-#pragma endregion
+#pragma endregion LocalUser
 
 #pragma region FriendlistUtilityLocalUser
+
+	/// <summary>
+	/// Get Steam username from a SteamID.
+	/// </summary>
+	/// <param name="SteamID"> SteamID to get the username from. It is int32 type in order to be used in blueprints. </param>
+	/// <returns> Steam username of specified SteamID, or "" if not found/invalid. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
+	FString GetUsernameFromSteamID(const int32 SteamID);
 
 	/// <summary>
 	/// Get all online friends names of specified user.
@@ -101,7 +107,7 @@ public:
 	/// <param name="LocalUserNum"> UserNum to search its friendlist. In default case of 0, it takes local user. </param>
 	/// <returns> Returns true if the inital request was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
-	bool GetOnlineFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+	bool GetOnlineFriendListNames(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
 
 	/// <summary>
 	/// Get all friends names of specified user.
@@ -110,7 +116,7 @@ public:
 	/// <param name="LocalUserNum"> UserNum to search its friendlist. In default case of 0, it takes local user. </param>
 	/// <returns> Returns true if the inital request was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
-	bool GetAllFriendsList(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
+	bool GetAllFriendListNames(const FOnFriendsListReady& Callback, const int32 LocalUserNum = 0);
 
 	/// <summary>
 	/// Get all local user friendlist avatars as a Callback. It returns TArray<UTexture2D>& containing all textures.
@@ -130,34 +136,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	int32 GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback);
 
-#pragma endregion
+#pragma endregion FriendlistUtilityLocalUser
 
-#pragma region Session
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+#pragma region SessionManagement
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool RequestSessionCreation(const int32 NumberPublicConnections, const int32 NumberPrivateConnections,
 								const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
 								const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
 
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool InviteFriend(const int32 SteamID);
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	void TravelBack();
+
+#pragma endregion SessionManagement
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem")
 	bool InitializeOnlineCallbacks();
 
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem")
 	bool DeInitializeOnlineCallbacks();
-#pragma endregion Session
 
 #pragma region Debug
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	FString GetUserNameFromSteamID(const int32 SteamID);
+
 #pragma endregion Debug
 
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
 	void CheckAndDestroyAlreadyExistingSession();
 
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	void TravelBack();
 
 
 private:
@@ -173,41 +181,61 @@ private:
 	FOnlineSessionSettings NewSessionSettings;
 	FOnlineSessionSearchResult CurrentInviteResult;
 
-	FDelegateHandle CreateSessionCompleteDelegateHandle;
-	FDelegateHandle JoinSessionCompleteDelegateHandle;
-	FDelegateHandle DestroySessionCompleteDelegateHandle;
+#pragma region DelegatesHandle
 
-	FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
-	FDelegateHandle OnNetworkFailureDelegateHandle;
-	FDelegateHandle OnSessionPlayerNetworkFailureHandle;
+	// Fired when a new session has been created.
+	FDelegateHandle CreateSessionCompleteDelegateHandle; 
+
+	// Fired when successfully joined an existing session.
+	FDelegateHandle JoinSessionCompleteDelegateHandle; 
+
+	// Fired when User accepts an invite.
+	FDelegateHandle SessionUserInviteAcceptedDelegateHandle; 
+	
+	/* Fired when a network failure is called from GameInstance (session socket is invalid).
+	Usually called on clients when host crashes for any reason. */
+	FDelegateHandle OnNetworkFailureDelegateHandle; 
+
+	// Fired to server when a client connection is lost.
+	FDelegateHandle OnSessionPlayerNetworkFailureHandle; 
+
+	FDelegateHandle DestroySessionCompleteDelegateHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientDestroySessionCompleteFromLobbyHandle;
 
+#pragma endregion DelegatesHandle
 
-
-	bool GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
+	bool GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	UTexture2D* GetAvatar(const CSteamID SteamID, int32& QueryResult);
 	int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
 	void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 	bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
 	CSteamID ConvertInt32toCSteamID(const int32 SteamID);
-	void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
-	void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
-	void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
-	void OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason);
-	void OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft);
-	void OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult); // Da rimuovere poichè probabilmente LAN
-	void OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
 	void DestroySession();
+	void CreateSession();
+
+#pragma region CallbackFunctions
+
+	void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+	void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
+
+	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+	void OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
+
+	void OnDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
 	void OnClientDestroySessionCompleteFromLobby(FName sessionName, bool bWasSuccessfull);
 
-	// Recursive async callbacks on GameThread.
+#pragma endregion CallbackFunctions
+
+#pragma region SteamworksFunctions
+
+	// Recursive async callbacks on GameThread. Used to get avatars from async STEAMWORKS_API sdk.
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
 	int32 GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback);
 	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedPtr<FOnFriendsDataReady> Callback);
 
-	void CreateSession();
+#pragma endregion SteamworksFunctions
+	
 };
