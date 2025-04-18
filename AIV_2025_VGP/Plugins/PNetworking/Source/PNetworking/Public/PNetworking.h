@@ -9,11 +9,14 @@
 #include "SteamAPICallbackManager.h"
 #include "Modules/ModuleManager.h"
 
+// Hardcoded Session Name. It needs to be the same on Client and Server even when inviting.
+#define SESSION_NAME "AIV_VGP_Server"
+
 // Custom Log category.
 DECLARE_LOG_CATEGORY_EXTERN(LogSteamNetworkingPlugin, Warning, All)
 
 // Identify current session state. 
-enum LocalSessionState
+enum ELocalSessionState
 {
 	SESSION_PENDING, // Computing a session (used for creating or other async funcs).
 	SESSION_DESTROYING, // Destroying a session (specific for destroy async funcs).
@@ -31,17 +34,18 @@ public:
 
 #pragma region OnlineManagement
 
-	// Session creation is currently computing. Need to be set/checked as user prefer, it is just a flag.
-	static bool bIsComputingNewSession;
-
 	// Check if everything is correct in order to use OSS/steam_api.
 	static bool IsOnlineAvailable();
 
 	// Getters.
-	static class IOnlineSubsystem* GetOnlineSubsystemReference();
-	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionReference();
-	static FName GetSessionName();
+	static class IOnlineSubsystem* GetOnlineSubsystemPointer();
+	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionPointer();
 	static TSharedPtr<SteamAPICallbackManager> GetSteamAPIManager();
+	static FName GetSessionName();
+	static ELocalSessionState GetLocalSessionCurrentState();
+
+	// Setters.
+	static void SetLocalSessionCurrentState(const ELocalSessionState NewSessionState);
 
 #pragma endregion
 
@@ -52,12 +56,16 @@ private:
 	// Hardcoded name of the session. Declared in .cpp file.
 	static FName SessionName;
 
-	// OSS references.
-	static class IOnlineSubsystem* OnlineSubsystemReference;
-	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionReference;
+	// Current state of the session on this user-side.
+	static ELocalSessionState LocalSessionCurrentState;
+
+	// OSS pointers.
+	static class IOnlineSubsystem* OnlineSubsystemPtr;
+	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> OnlineSessionPtr;
 
 	// SteamAPI callbacks manager class.
 	static TSharedPtr<SteamAPICallbackManager> SteamApiManagerPtr;
 
 #pragma endregion
+
 };

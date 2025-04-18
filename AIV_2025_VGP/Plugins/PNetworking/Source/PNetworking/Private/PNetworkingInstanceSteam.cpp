@@ -68,28 +68,28 @@ void UPNetworkingInstanceSteam::DeleteUniqueInstance()
 
 bool UPNetworkingInstanceSteam::GetAppID(FString& AppID)
 {
-	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
-	if (!OnlineSubsystemReference)
+	if (!OnlineSubsystemPtr)
 	{
 		return false;
 	}
 
-	AppID = OnlineSubsystemReference->GetAppId();
+	AppID = OnlineSubsystemPtr->GetAppId();
 
 	return true;
 }
 
 bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32 UserID)
 {
-	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
-	if (!OnlineSubsystemReference)
+	if (!OnlineSubsystemPtr)
 	{
 		return false;
 	}
 
-	IOnlineIdentityPtr OnlineIdentityPtr = OnlineSubsystemReference->GetIdentityInterface();
+	IOnlineIdentityPtr OnlineIdentityPtr = OnlineSubsystemPtr->GetIdentityInterface();
 	if (!OnlineIdentityPtr.IsValid())
 	{
 		return false;
@@ -108,13 +108,13 @@ bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32
 
 bool UPNetworkingInstanceSteam::GetFriendsList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum)
 {
-	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
-	if (!OnlineSubsystemReference)
+	if (!OnlineSubsystemPtr)
 	{
 		return false;
 	}
-	IOnlineFriendsPtr FriendsInterface = OnlineSubsystemReference->GetFriendsInterface();
+	IOnlineFriendsPtr FriendsInterface = OnlineSubsystemPtr->GetFriendsInterface();
 	if (!FriendsInterface.IsValid())
 	{
 		return false;
@@ -133,14 +133,14 @@ bool UPNetworkingInstanceSteam::GetFriendsList(const FOnFriendsListReady& Callba
 					return;
 				}
 
-				IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+				IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
-				if (!OnlineSubsystemReference)
+				if (!OnlineSubsystemPtr)
 				{
 					return;
 				}
 
-				IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemReference->GetFriendsInterface();
+				IOnlineFriendsPtr OnlineFriendsPtr = OnlineSubsystemPtr->GetFriendsInterface();
 				if (!OnlineFriendsPtr.IsValid())
 				{
 					return;
@@ -296,21 +296,9 @@ void UPNetworkingInstanceSteam::OnDestroySessionComplete(FName sessionName, bool
 {
 	if (DestroySessionCompleteDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
 		DestroySessionCompleteDelegateHandle.Reset();
 
-	}
-
-	if (SessionParticipantLeftDelegateHandle.IsValid())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantLeftDelegate_Handle(SessionParticipantLeftDelegateHandle);
-		SessionParticipantLeftDelegateHandle.Reset();
-	}
-
-	if (SessionParticipantRemovedDelegateHandle.IsValid())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantRemovedDelegate_Handle(SessionParticipantRemovedDelegateHandle);
-		SessionParticipantRemovedDelegateHandle.Reset();
 	}
 
 	if (bWasSuccessfull)
@@ -327,10 +315,10 @@ void UPNetworkingInstanceSteam::OnDestroySessionComplete(FName sessionName, bool
 
 void UPNetworkingInstanceSteam::DestroySession()
 {
-	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(
+	DestroySessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(
 		FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnDestroySessionComplete));
 
-	if (DestroySessionCompleteDelegateHandle.IsValid() && FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+	if (DestroySessionCompleteDelegateHandle.IsValid() && FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session client-side destroyed successfull!"));
 	}
@@ -344,7 +332,7 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 {
 	if (OnClientDestroySessionCompleteHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteHandle);
 		OnClientDestroySessionCompleteHandle.Reset();
 	}
 
@@ -357,14 +345,14 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby(FName se
 {
 	if (OnClientDestroySessionCompleteFromLobbyHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteFromLobbyHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientDestroySessionCompleteFromLobbyHandle);
 		OnClientDestroySessionCompleteFromLobbyHandle.Reset();
 	}
 
 	if (bWasSuccessfull)
 	{
-		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
-		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), CurrentInviteResult);
+		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionPointer()->JoinSession(0, FPNetworkingModule::GetSessionName(), CurrentInviteResult);
 
 		if (bHasJoined)
 		{
@@ -567,13 +555,10 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 
 void UPNetworkingInstanceSteam::CreateSession()
 {
-	auto SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	auto SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
-
 	OnSessionPlayerNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure));
-	SessionParticipantLeftDelegateHandle = SessionInterface->AddOnSessionParticipantLeftDelegate_Handle(FOnSessionParticipantLeftDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerLeft));
-	SessionParticipantRemovedDelegateHandle = SessionInterface->AddOnSessionParticipantRemovedDelegate_Handle(FOnSessionParticipantRemovedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerRemoved));
 
 	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), NewSessionSettings);
 }
@@ -648,9 +633,9 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedPtr<FOnLocal
 
 bool UPNetworkingInstanceSteam::ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID)
 {
-	IOnlineSubsystem* OnlineSubsystemReference = FPNetworkingModule::GetOnlineSubsystemReference();
+	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
 
-	if (!OnlineSubsystemReference)
+	if (!OnlineSubsystemPtr)
 	{
 		return false;
 	}
@@ -658,7 +643,7 @@ bool UPNetworkingInstanceSteam::ConvertCSteamIDToFUniqueNetID(const CSteamID Ste
 	uint64 SteamID64 = SteamID.ConvertToUint64();
 	FString SteamIDString = FString::Printf(TEXT("%llu"), SteamID64);
 
-	IOnlineIdentityPtr IdentityInterface = OnlineSubsystemReference->GetIdentityInterface();
+	IOnlineIdentityPtr IdentityInterface = OnlineSubsystemPtr->GetIdentityInterface();
 	if (!IdentityInterface.IsValid())
 	{
 		return false;
@@ -691,12 +676,12 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 {
 	if (bWasSuccessful)
 	{
-		if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+		if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
 			CurrentInviteResult = InviteResult;
-			OnClientDestroySessionCompleteFromLobbyHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby));
-			if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+			OnClientDestroySessionCompleteFromLobbyHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionCompleteFromLobby));
+			if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 			{
 				UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
 			}
@@ -705,8 +690,8 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 		}
 
 
-		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
-		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionReference()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
+		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionPointer()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 
 		if (bHasJoined)
 		{
@@ -728,7 +713,7 @@ void UPNetworkingInstanceSteam::OnJoinSessionComplete(FName SessionName, EOnJoin
 {
 	if (JoinSessionCompleteDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
 		JoinSessionCompleteDelegateHandle.Reset();
 	}
 
@@ -739,7 +724,7 @@ void UPNetworkingInstanceSteam::OnJoinSessionComplete(FName SessionName, EOnJoin
 	}
 
 	FString ConnectInfo;
-	if (!FPNetworkingModule::GetOnlineSessionReference()->GetResolvedConnectString(SessionName, ConnectInfo))
+	if (!FPNetworkingModule::GetOnlineSessionPointer()->GetResolvedConnectString(SessionName, ConnectInfo))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to get resolved connect string!"));
 		return;
@@ -767,11 +752,11 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 {
 	UE_LOG(LogTemp, Error, TEXT("Network Failure: %s"), *ErrorString);
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+	if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
-		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
-		if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+		if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
 		}
@@ -782,11 +767,11 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 
 void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)
 {
-	FPNetworkingModule::bIsComputingNewSession = false;
+	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_VALID);
 
 	if (CreateSessionCompleteDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 		CreateSessionCompleteDelegateHandle.Reset();
 		UE_LOG(LogTemp, Warning, TEXT("OnCreateSessionComplete cleared!"));
 	}
@@ -826,20 +811,20 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(const int32 NumberPublicC
 	const bool bAllowJoinViaPresenceFriendsOnly,
 	const bool bUseLobbiesIfAvailable)
 {
-	if (FPNetworkingModule::bIsComputingNewSession)
+	if (FPNetworkingModule::GetLocalSessionCurrentState() != ELocalSessionState::SESSION_INVALID)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SteamError: Already computing a session!"));
 		return false;
 	}
 
-	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SteamError: Session interface not valid!"));
 		return false;
 	}
 
-	FPNetworkingModule::bIsComputingNewSession = true;
+	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_PENDING);
 
 	NewSessionSettings.NumPublicConnections = NumberPublicConnections;
 	NewSessionSettings.NumPrivateConnections = NumberPrivateConnections;
@@ -860,12 +845,12 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(const int32 NumberPublicC
 
 bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 {
-	if (FPNetworkingModule::bIsComputingNewSession)
+	if (FPNetworkingModule::GetLocalSessionCurrentState() != ELocalSessionState::SESSION_VALID)
 	{
 		return false;
 	}
 
-	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
 	{
 		return false;
@@ -893,21 +878,21 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 void UPNetworkingInstanceSteam::OnPlayerLeft(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft, EOnSessionParticipantLeftReason reason)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER LEFT"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-	FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
+	UE_LOG(LogTemp, Warning, TEXT("Player %s left!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
+	FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
 }
 
 void UPNetworkingInstanceSteam::OnPlayerRemoved(FName sessionName, const FUniqueNetId& uniqueIdPlayerLeft)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("PLAYER REMOVED"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
-	FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
+	UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
+	FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(sessionName, uniqueIdPlayerLeft);
 }
 
 void UPNetworkingInstanceSteam::OnLocalPlayerUnregistered(const FUniqueNetId& uniqueIdPlayerLeft, const bool bResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Emerald, TEXT("LOCAL PLAYER UNREGISTERED"));
-	UE_LOG(LogTemp, Warning, TEXT("Player %s unregistered!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
+	UE_LOG(LogTemp, Warning, TEXT("Player %s unregistered!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(uniqueIdPlayerLeft));
 }
 
 void UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
@@ -919,8 +904,8 @@ void UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure(const FUniqueNetId
 	{
 		if (CrashedPlayerID.IsValid())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemReference()->GetIdentityInterface()->GetPlayerNickname(CrashedPlayerID));
-			FPNetworkingModule::GetOnlineSessionReference()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), CrashedPlayerID);
+			UE_LOG(LogTemp, Warning, TEXT("Player %s removed!"), *FPNetworkingModule::GetOnlineSubsystemPointer()->GetIdentityInterface()->GetPlayerNickname(CrashedPlayerID));
+			FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), CrashedPlayerID);
 		}
 		else
 		{
@@ -932,13 +917,13 @@ void UPNetworkingInstanceSteam::OnSessionPlayerNetworkFailure(const FUniqueNetId
 
 void UPNetworkingInstanceSteam::CheckAndDestroyAlreadyExistingSession()
 {
-	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionReference();
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface)
 	{
 		return;
 	}
 
-	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName());
+	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName());
 	if (ExistingSession)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Sessione esistente!"));
@@ -975,11 +960,11 @@ void UPNetworkingInstanceSteam::TravelBack()
 
 	PlayerController->ClientTravel(TEXT("/Game/Custom/Networking/Maps/L_Gym_NetMainMenu"), ETravelType::TRAVEL_Absolute);
 
-	if (FPNetworkingModule::GetOnlineSessionReference()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+	if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Session existing, need to destroy it!"));
-		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
-		if (FPNetworkingModule::GetOnlineSessionReference()->DestroySession(FPNetworkingModule::GetSessionName()))
+		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+		if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("DestroySession request true!"));
 		}
@@ -996,7 +981,7 @@ bool UPNetworkingInstanceSteam::InitializeOnlineCallbacks()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("AcceptInvite Callback Initialized!"));
-	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionReference()->AddOnSessionUserInviteAcceptedDelegate_Handle(
+	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnSessionUserInviteAcceptedDelegate_Handle(
 		FOnSessionUserInviteAcceptedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnInviteAccepted));
 
 	if (GEngine)
@@ -1017,31 +1002,13 @@ bool UPNetworkingInstanceSteam::DeInitializeOnlineCallbacks()
 
 	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
 		SessionUserInviteAcceptedDelegateHandle.Reset();
-	}
-
-	if (SessionParticipantRemovedDelegateHandle.IsValid())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantRemovedDelegate_Handle(SessionParticipantRemovedDelegateHandle);
-		SessionParticipantRemovedDelegateHandle.Reset();
-	}
-
-	if (SessionParticipantLeftDelegateHandle.IsValid())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionParticipantLeftDelegate_Handle(SessionParticipantLeftDelegateHandle);
-		SessionParticipantLeftDelegateHandle.Reset();
-	}
-
-	if (OnUnregisterLocalPlayerDelegateHandle.IsValid())
-	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnUnregisterPlayersCompleteDelegate_Handle(OnUnregisterLocalPlayerDelegateHandle);
-		OnUnregisterLocalPlayerDelegateHandle.Reset();
 	}
 
 	if (OnSessionPlayerNetworkFailureHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionReference()->ClearOnSessionFailureDelegate_Handle(OnSessionPlayerNetworkFailureHandle);
+		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnSessionFailureDelegate_Handle(OnSessionPlayerNetworkFailureHandle);
 		OnSessionPlayerNetworkFailureHandle.Reset();
 	}
 

@@ -10,11 +10,11 @@
 #define LOCTEXT_NAMESPACE "FPNetworkingModule"
 
 // Initialization of static variables.
-IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemReference = nullptr;
-IOnlineSessionPtr FPNetworkingModule::OnlineSessionReference = nullptr;
+IOnlineSubsystem* FPNetworkingModule::OnlineSubsystemPtr = nullptr;
+IOnlineSessionPtr FPNetworkingModule::OnlineSessionPtr = nullptr;
 TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::SteamApiManagerPtr = nullptr;
-bool FPNetworkingModule::bIsComputingNewSession = false;
-FName FPNetworkingModule::SessionName = TEXT("AIV_VGP_Server"); // Name used for the multiplayer steam session.
+ELocalSessionState FPNetworkingModule::LocalSessionCurrentState = ELocalSessionState::SESSION_INVALID;
+FName FPNetworkingModule::SessionName = TEXT(SESSION_NAME); // Name used for the multiplayer steam session.
 
 // Define custom Log category.
 DEFINE_LOG_CATEGORY(LogSteamNetworkingPlugin)
@@ -24,11 +24,11 @@ DEFINE_LOG_CATEGORY(LogSteamNetworkingPlugin)
 void FPNetworkingModule::StartupModule()
 {
 	// Get OSS.
-	OnlineSubsystemReference = IOnlineSubsystem::Get();
-	if (OnlineSubsystemReference)
+	OnlineSubsystemPtr = IOnlineSubsystem::Get();
+	if (OnlineSubsystemPtr)
 	{
 		// Get OSS Session interface.
-		OnlineSessionReference = OnlineSubsystemReference->GetSessionInterface();
+		OnlineSessionPtr = OnlineSubsystemPtr->GetSessionInterface();
 	}
 
 	SteamApiManagerPtr = MakeShared<SteamAPICallbackManager>();
@@ -37,8 +37,8 @@ void FPNetworkingModule::StartupModule()
 void FPNetworkingModule::ShutdownModule()
 {
 	// Cleanup pointers, refs...
-	OnlineSessionReference.Reset();
-	OnlineSubsystemReference = nullptr;
+	OnlineSubsystemPtr = nullptr;
+	OnlineSessionPtr.Reset();
 	SteamApiManagerPtr.Reset();
 }
 
@@ -64,16 +64,23 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	}
 
 	// OSS not valid!
-	if (!OnlineSubsystemReference)
+	if (!OnlineSubsystemPtr)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Online Subsystem isn't initialized!"));
 		return false;
 	}
 
 	// SharedPtr of Session interface in OSS not valid!
-	if (!OnlineSessionReference.IsValid())
+	if (!OnlineSessionPtr.IsValid())
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Online Session Interface isn't available!"));
+		return false;
+	}
+
+	// SteamApiManagerPtr is not valid!
+	if (!SteamApiManagerPtr.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: SteamAPIManager isn't available!"));
 		return false;
 	}
 
@@ -81,33 +88,28 @@ bool FPNetworkingModule::IsOnlineAvailable()
 }
 
 // Get OSS pointer.
-IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemReference()
+IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemPointer()
 {
 	if (!IsOnlineAvailable())
 	{
 		return nullptr;
 	}
 
-	return OnlineSubsystemReference;
+	return OnlineSubsystemPtr;
 }
 
 // Get OSS SessionInterface SharedPtr.
-IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionReference()
+IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionPointer()
 {
 	if (!IsOnlineAvailable())
 	{
 		return nullptr;
 	}
 
-	return OnlineSessionReference;
+	return OnlineSessionPtr;
 }
 
-// Getter of hardcoded name of the session.
-FName FPNetworkingModule::GetSessionName()
-{
-	return SessionName;
-}
-
+// Get SteamAPIManager SharedPtr. This uses steam folder files to implement steamworks sdk.
 TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::GetSteamAPIManager()
 {
 	if (!IsOnlineAvailable())
@@ -116,6 +118,27 @@ TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::GetSteamAPIManager()
 	}
 
 	return SteamApiManagerPtr;
+}
+
+// Getter of hardcoded name of the session.
+FName FPNetworkingModule::GetSessionName()
+{
+	return SessionName;
+}
+
+// Get Current local session state.
+ELocalSessionState FPNetworkingModule::GetLocalSessionCurrentState()
+{
+	return LocalSessionCurrentState;
+}
+
+// Set Current local session state.
+void FPNetworkingModule::SetLocalSessionCurrentState(const ELocalSessionState NewSessionState)
+{
+	if (LocalSessionCurrentState != NewSessionState)
+	{
+		LocalSessionCurrentState = NewSessionState;
+	}
 }
 
 #pragma endregion
