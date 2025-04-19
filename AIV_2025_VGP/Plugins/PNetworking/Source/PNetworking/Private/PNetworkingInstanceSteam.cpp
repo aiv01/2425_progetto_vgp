@@ -875,7 +875,8 @@ void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWas
 		return;
 	}
 
-	const bool bServerTravelResult = World->ServerTravel(MapPathToTravel);
+	const FString ServerMap = MapPathToTravel + TEXT("?listen");
+	const bool bServerTravelResult = World->ServerTravel(ServerMap);
 	if (bServerTravelResult)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnCreateSessionComplete: Server Travel Complete!"));
