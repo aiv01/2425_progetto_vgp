@@ -58,8 +58,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static void DeleteUniqueInstance();
 
-	
-
 #pragma endregion SingletonePluginManagement
 
 #pragma region LocalUser
