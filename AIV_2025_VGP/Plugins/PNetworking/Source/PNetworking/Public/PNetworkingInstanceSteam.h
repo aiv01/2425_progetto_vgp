@@ -19,6 +19,7 @@
 class FOnlineFriend;
 class CSteamID;
 struct FUserSteamData;
+struct FSessionCreationParameters;
 
 #pragma endregion
 
@@ -140,11 +141,14 @@ public:
 
 #pragma region SessionManagement
 
+	/// <summary>
+	/// Request the creation of a new session, using localPlayer as new Host.
+	/// Checks for an existing old session, and if found, delete it before creating the new one.
+	/// </summary>
+	/// <param name="SessionCreationParameters"> Struct exposed in blueprint containing all datas necessary to create a session. </param>
+	/// <returns></returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
-	bool RequestSessionCreation(const int32 NumberPublicConnections, const int32 NumberPrivateConnections,
-								const bool bIsLANMatch, const bool bIsDedicated, const bool bShouldAdvertise, const bool bUsesPresence,
-								const bool bAllowJoinViaPresenceFriendsOnly, const bool bUseLobbiesIfAvailable = true);
-
+	bool RequestSessionCreation(struct FSessionCreationParameters SessionCreationParameters);
 
 	/// <summary>
 	/// Invite a friend to an existing session.
@@ -157,12 +161,9 @@ public:
 	/// <summary>
 	/// Travel back to a default map and quit current session.
 	/// </summary>
-	/// <param name="TravelBackMapName"> Absolute path (/game/..) of map to travel to. </param>
+	/// <param name="TravelBackMapPath"> Absolute path (/game/..) of map to travel to. </param>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
-	void QuitSession(const FString& TravelBackMapName);
-
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Metadata")
-	void CheckAndDestroyAlreadyExistingSession();
+	void QuitSession(const FString& TravelBackMapPath);
 
 #pragma endregion SessionManagement
 
@@ -174,16 +175,28 @@ public:
 
 private:
 
+#pragma region PrivateVariables
+	
+	// Unique instance of this class.
+	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
+
+	// Settings established of current session.
+	FOnlineSessionSettings CurrentSessionSettings;
+
+	// Datas communicated by last invite acception.
+	FOnlineSessionSearchResult LastInviteResult;
+
+	// Last map path to travel after SessionCreation.
+	FString MapPathToTravel;
+
+#pragma endregion PrivateVariables
+
 #pragma region SpecialMemberFunctions
 
 	UPNetworkingInstanceSteam();
 	~UPNetworkingInstanceSteam();
 
 #pragma endregion SpecialMemberFunctions
-
-	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
-	FOnlineSessionSettings NewSessionSettings;
-	FOnlineSessionSearchResult CurrentInviteResult;
 
 #pragma region DelegatesHandle
 	
@@ -192,7 +205,7 @@ private:
 	FDelegateHandle JoinSessionCompleteDelegateHandle; 
 	FDelegateHandle SessionUserInviteAcceptedDelegateHandle; 
 	FDelegateHandle OnNetworkFailureDelegateHandle; 
-	FDelegateHandle OnSessionPlayerNetworkFailureHandle; 
+	FDelegateHandle OnPlayerInSessionNetworkFailureHandle; 
 	FDelegateHandle OnDestroySessionCompleteFromNewHostingUserHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientNewInviteAcceptionDestroySessionCompleteHandle;
@@ -200,7 +213,7 @@ private:
 #pragma endregion DelegatesHandle
 
 	bool GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
-	UTexture2D* GetAvatar(const CSteamID SteamID, int32& QueryResult);
+	void HandleOldSessionIfExisting();
 	int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
 	void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
 	bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
@@ -239,6 +252,8 @@ private:
 #pragma endregion CallbackFunctions
 
 #pragma region SteamworksFunctions
+
+	UTexture2D* GetAvatar(const CSteamID SteamID, int32& QueryResult);
 
 	// Recursive async callbacks on GameThread. Used to get avatars from async STEAMWORKS_API sdk.
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
