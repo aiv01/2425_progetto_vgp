@@ -21,6 +21,7 @@ UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = null
 
 UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 {
+	InitializeNetworkingInstance();
 }
 
 UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
@@ -55,6 +56,7 @@ void UPNetworkingInstanceSteam::DeleteUniqueInstance()
 	if (NetInstanceSteamPtr != nullptr)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Removing from root NET Steam manager and invaliding ptr"));
+		NetInstanceSteamPtr->DeInitializeNetworkingInstance();
 		NetInstanceSteamPtr->RemoveFromRoot();
 		NetInstanceSteamPtr = nullptr;
 	}
@@ -618,7 +620,6 @@ void UPNetworkingInstanceSteam::CreateSession()
 	}
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
-	OnPlayerInSessionNetworkFailureHandle = SessionInterface->AddOnSessionFailureDelegate_Handle(FOnSessionFailureDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure));
 
 	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), CurrentSessionSettings);
 }
@@ -956,40 +957,6 @@ bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
 	return false;
 }
 
-void UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType)
-{
-	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnPlayerInSessionNetworkFailure: Session NET problems detected!"));
-
-	IOnlineSubsystem* OnlineSubsystem = FPNetworkingModule::GetOnlineSubsystemPointer();
-	if (!OnlineSubsystem)
-	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnPlayerInSessionNetworkFailure: OSS is invalid!"));
-	}
-
-	IOnlineIdentityPtr IdentityInterface = OnlineSubsystem->GetIdentityInterface();
-	if (!IdentityInterface.IsValid())
-	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnPlayerInSessionNetworkFailure: IdentityInterface is invalid!"));
-	}
-
-	if (ErrorType == ESessionFailure::ServiceConnectionLost)
-	{
-		if (CrashedPlayerID.IsValid())
-		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Player %s crashed!"), *IdentityInterface->GetPlayerNickname(CrashedPlayerID));
-			if (FPNetworkingModule::GetOnlineSessionPointer()->UnregisterPlayer(FPNetworkingModule::GetSessionName(), CrashedPlayerID))
-			{
-				UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Player %s is removed from old session!"), *IdentityInterface->GetPlayerNickname(CrashedPlayerID));
-			}
-		}
-		else
-		{
-			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Lobby named %s networking error!"), *FPNetworkingModule::GetSessionName().ToString());
-		}
-	}
-}
-
-
 bool UPNetworkingInstanceSteam::HandleOldSessionIfExisting()
 {
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
@@ -1074,52 +1041,73 @@ void UPNetworkingInstanceSteam::QuitSession(const FString& TravelBackMapPath)
 	}
 }
 
-bool UPNetworkingInstanceSteam::InitializeOnlineCallbacks()
+bool UPNetworkingInstanceSteam::InitializeNetworkingInstance()
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: Online not available!"));
 		return false;
 	}
 
-	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("AcceptInvite Callback Initialized!"));
+	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
+
 	SessionUserInviteAcceptedDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnSessionUserInviteAcceptedDelegate_Handle(
 		FOnSessionUserInviteAcceptedDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnInviteAccepted));
+
+	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("InitializeNetworkingInstance: AcceptInvite Callback Initialized!"));
+	}
+	else
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: AcceptInvite Callback not initialized!"));
+		return false;
+	}
 
 	if (GEngine)
 	{
 		OnNetworkFailureDelegateHandle = GEngine->OnNetworkFailure().AddUObject(this, &UPNetworkingInstanceSteam::OnNetworkFailure);
-		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Network failure delegate registered."));
+
+		if (OnNetworkFailureDelegateHandle.IsValid())
+		{
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("InitializeNetworkingInstance: Network failure delegate registered!"));
+		}
+		else
+		{
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: Network failure delegate not registered!"));
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: GEngine is invalid!"));
+		return false;
 	}
 
 	return true;
 }
 
-bool UPNetworkingInstanceSteam::DeInitializeOnlineCallbacks()
+void UPNetworkingInstanceSteam::DeInitializeNetworkingInstance()
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!SessionInterface.IsValid())
 	{
-		return false;
+		return;
 	}
 
 	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
+		SessionInterface->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
 		SessionUserInviteAcceptedDelegateHandle.Reset();
 	}
 
-	if (OnPlayerInSessionNetworkFailureHandle.IsValid())
+	if (GEngine)
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnSessionFailureDelegate_Handle(OnPlayerInSessionNetworkFailureHandle);
-		OnPlayerInSessionNetworkFailureHandle.Reset();
+		if (OnNetworkFailureDelegateHandle.IsValid())
+		{
+			GEngine->OnNetworkFailure().Remove(OnNetworkFailureDelegateHandle);
+			OnNetworkFailureDelegateHandle.Reset();
+		}
 	}
-
-	if (GEngine && OnNetworkFailureDelegateHandle.IsValid())
-	{
-		GEngine->OnNetworkFailure().Remove(OnNetworkFailureDelegateHandle);
-		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Network failure delegate registered."));
-		OnNetworkFailureDelegateHandle.Reset();
-	}
-
-	return true;
 }
 

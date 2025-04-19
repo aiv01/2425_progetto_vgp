@@ -57,6 +57,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static void DeleteUniqueInstance();
 
+	
+
 #pragma endregion SingletonePluginManagement
 
 #pragma region LocalUser
@@ -164,12 +166,6 @@ public:
 
 #pragma endregion SessionManagement
 
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem")
-	bool InitializeOnlineCallbacks();
-
-	UFUNCTION(BlueprintCallable, Category = "Online Subsystem")
-	bool DeInitializeOnlineCallbacks();
-
 private:
 
 #pragma region PrivateVariables
@@ -202,7 +198,6 @@ private:
 	FDelegateHandle JoinSessionCompleteDelegateHandle; 
 	FDelegateHandle SessionUserInviteAcceptedDelegateHandle; 
 	FDelegateHandle OnNetworkFailureDelegateHandle; 
-	FDelegateHandle OnPlayerInSessionNetworkFailureHandle; 
 	FDelegateHandle OnDestroySessionCompleteFromNewHostingUserHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientNewInviteAcceptionDestroySessionCompleteHandle;
@@ -225,6 +220,10 @@ private:
 	void DestroySession();
 	void CreateSession();
 
+	// Plugin instance management.
+	bool InitializeNetworkingInstance();
+	void DeInitializeNetworkingInstance();
+
 #pragma endregion PrivateUtilityFunctions
 
 #pragma region CallbackFunctions
@@ -241,10 +240,7 @@ private:
 	/* Fired when a network failure is called from GameInstance (session socket is invalid).
 	Usually called on clients when host crashes for any reason. */
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
-
-	// Fired to server when a client connection is lost.
-	void OnPlayerInSessionNetworkFailure(const FUniqueNetId& CrashedPlayerID, ESessionFailure::Type ErrorType);
-
+	
 	/* Fired when User wants to create a new Session (becoming host).
 	Old session, if existing, has been deleted in order to prevent errors. */
 	void OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull);
