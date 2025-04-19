@@ -364,6 +364,7 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 	if (!OnlineSession.IsValid())
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnClientDestroySessionComplete: OnlineSession is null!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		return;
 	}
 
@@ -816,19 +817,31 @@ void UPNetworkingInstanceSteam::OnJoinSessionComplete(FName SessionName, EOnJoin
 
 void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
-	UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Network Failure: %s"), *ErrorString);
+	UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnNetworkFailure: Error -> %s"), *ErrorString);
+	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!OnlineSession.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnNetworkFailure: OnlineSession is invalid!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
+		return;
+	}
 
 	if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session existing, need to destroy it!"));
-		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+		OnClientDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(
+			FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientDestroySessionComplete));
+
 		if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 		{
 			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("DestroySession request true!"));
+			FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_DESTROYING);
 		}
 
 		return;
 	}
+
+	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 }
 
 void UPNetworkingInstanceSteam::OnCreateSessionComplete(FName NewName, bool bWasSuccessfull)
