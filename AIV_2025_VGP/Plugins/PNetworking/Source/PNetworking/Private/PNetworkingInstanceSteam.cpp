@@ -385,26 +385,41 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 
 void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
 {
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!SessionInterface.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnClientNewInviteAcceptionDestroySessionComplete: SessionInterface is invalid!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
+		return;
+	}
+
 	if (OnClientNewInviteAcceptionDestroySessionCompleteHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnDestroySessionCompleteDelegate_Handle(OnClientNewInviteAcceptionDestroySessionCompleteHandle);
+		SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnClientNewInviteAcceptionDestroySessionCompleteHandle);
 		OnClientNewInviteAcceptionDestroySessionCompleteHandle.Reset();
 	}
 
 	if (bWasSuccessfull)
 	{
-		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
-		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionPointer()->JoinSession(0, FPNetworkingModule::GetSessionName(), LastInviteResult);
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_PENDING);
 
+		JoinSessionCompleteDelegateHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(
+			FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+
+		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionPointer()->JoinSession(0, FPNetworkingModule::GetSessionName(), LastInviteResult);
 		if (bHasJoined)
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Success by %s"), *LastInviteResult.Session.OwningUserName);
-
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnClientNewInviteAcceptionDestroySessionComplete: Invite Acception Success by %s"), *LastInviteResult.Session.OwningUserName);
 		}
 		else
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Error!"));
+			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnClientNewInviteAcceptionDestroySessionComplete: Invite Acception Error!"));
+			FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		}
+	}
+	else
+	{
+		FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
 	}
 }
 
@@ -742,33 +757,58 @@ CSteamID UPNetworkingInstanceSteam::ConvertInt32toCSteamID(const int32 SteamID)
 
 void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult)
 {
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!SessionInterface.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnInviteAccepted: SessionInterface is invalid!"));
+		return;
+	}
+
+	TempoPrevSessionState = FPNetworkingModule::GetLocalSessionCurrentState();
+
 	if (bWasSuccessful)
 	{
-		if (FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName()))
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_PENDING);
+
+		if (SessionInterface->GetNamedSession(FPNetworkingModule::GetSessionName()))
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Session existing, need to destroy it!"));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnInviteAccepted: Session existing, need to destroy it!"));
+
 			LastInviteResult = InviteResult;
-			OnClientNewInviteAcceptionDestroySessionCompleteHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete));
+			OnClientNewInviteAcceptionDestroySessionCompleteHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(
+				FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete));
+
 			if (FPNetworkingModule::GetOnlineSessionPointer()->DestroySession(FPNetworkingModule::GetSessionName()))
 			{
-				UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("DestroySession request true!"));
+				FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_DESTROYING);
+				UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("SetLocalSessionCurrentState: DestroySession request true!"));
+			}
+			else
+			{
+				if (OnClientNewInviteAcceptionDestroySessionCompleteHandle.IsValid())
+				{
+					SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnClientNewInviteAcceptionDestroySessionCompleteHandle);
+					OnClientNewInviteAcceptionDestroySessionCompleteHandle.Reset();
+				}
+
+				FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
 			}
 
 			return;
 		}
 
-
-		JoinSessionCompleteDelegateHandle = FPNetworkingModule::GetOnlineSessionPointer()->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
-		const bool bHasJoined = FPNetworkingModule::GetOnlineSessionPointer()->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
+		JoinSessionCompleteDelegateHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(
+			FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnJoinSessionComplete));
+		const bool bHasJoined = SessionInterface->JoinSession(0, FPNetworkingModule::GetSessionName(), InviteResult);
 
 		if (bHasJoined)
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
-
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnInviteAccepted: Invite Acception Success by %s"), *InviteResult.Session.OwningUserName);
 		}
 		else
 		{
-			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Invite Acception Error!"));
+			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnInviteAccepted: Invite Acception Error!"));
+			FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
 		}
 	}
 	else
@@ -779,40 +819,54 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 
 void UPNetworkingInstanceSteam::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!SessionInterface.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnJoinSessionComplete: SessionInterface is invalid!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
+		return;
+	}
+
 	if (JoinSessionCompleteDelegateHandle.IsValid())
 	{
-		FPNetworkingModule::GetOnlineSessionPointer()->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
 		JoinSessionCompleteDelegateHandle.Reset();
 	}
 
 	if (Result != EOnJoinSessionCompleteResult::Success)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Join Session failed!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnJoinSessionComplete: Join Session failed!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		return;
 	}
 
 	FString ConnectInfo;
-	if (!FPNetworkingModule::GetOnlineSessionPointer()->GetResolvedConnectString(SessionName, ConnectInfo))
+	if (!SessionInterface->GetResolvedConnectString(SessionName, ConnectInfo))
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("Failed to get resolved connect string!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnJoinSessionComplete: Failed to get resolved connect string!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		return;
 	}
 
 	UWorld* World = GEngine->GetWorldContexts().Num() > 0 ? GEngine->GetWorldContexts()[0].World() : nullptr;
 	if (!World)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("World is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnJoinSessionComplete: World is null!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		return;
 	}
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(World, 0);
 	if (!PlayerController)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("PlayerController is null!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnJoinSessionComplete: PlayerController is null!"));
+		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 		return;
 	}
 
+	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_VALID);
 	PlayerController->ClientTravel(ConnectInfo, ETravelType::TRAVEL_Absolute);
+
 	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Client Travel to: %s"), *ConnectInfo);
 }
 

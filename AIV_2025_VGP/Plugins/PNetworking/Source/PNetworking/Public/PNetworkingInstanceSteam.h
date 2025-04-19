@@ -20,6 +20,7 @@ class FOnlineFriend;
 class CSteamID;
 struct FUserSteamData;
 struct FSessionCreationParameters;
+enum ELocalSessionState;
 
 #pragma endregion
 
@@ -182,6 +183,9 @@ private:
 	// Last map path to travel after SessionCreation.
 	FString MapPathToTravel;
 
+	// Tempo var used to checks during invites (to distinguish between inSession/outSession). DO NOT USE IT.
+	ELocalSessionState TempoPrevSessionState;
+
 #pragma endregion PrivateVariables
 
 #pragma region SpecialMemberFunctions
@@ -231,11 +235,11 @@ private:
 	// Fired when a new session has been created.
 	void OnCreateSessionComplete(FName NewName, bool bWasSuccessfull);
 
-	// Fired when successfully joined an existing session.
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-
 	// Fired when User accepts an invite.
 	void OnInviteAccepted(bool bWasSuccessful, int32 LocalUserNum, FUniqueNetIdPtr FriendID, const FOnlineSessionSearchResult& InviteResult);
+
+	// Fired when successfully joined an existing session.
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	/* Fired when a network failure is called from GameInstance (session socket is invalid).
 	Usually called on clients when host crashes for any reason. */
