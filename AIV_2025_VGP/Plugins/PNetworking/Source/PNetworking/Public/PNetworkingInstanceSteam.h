@@ -30,9 +30,6 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, F
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
 
-// Non usato ora sarebbe bene riuscire a riusarlo.
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionCreationCompleted, FName, CreatedSessionName, bool, bCreationWasSuccessfull);
-
 #pragma endregion
 
 UCLASS(BlueprintType, meta=(NotBlueprintable))
@@ -212,14 +209,23 @@ private:
 
 #pragma endregion DelegatesHandle
 
-	bool GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
-	void HandleOldSessionIfExisting();
+#pragma region PrivateUtilityFunctions
+
+	// Friendlist.
 	int32 GetOnlineFriendsFromFriendCount(const int32 FriendsCount);
+	bool GetFriendList(const FOnFriendsListReady& Callback, const EFriendsLists::Type Query, const int32 LocalUserNum = 0);
 	void AlphabeticalSortFriends(TArray<FUserSteamData>& FriendsToSort);
+
+	// Utility and identification.
 	bool ConvertCSteamIDToFUniqueNetID(const CSteamID SteamID, FUniqueNetIdPtr& CorrespondanceNetID);
 	CSteamID ConvertInt32toCSteamID(const int32 SteamID);
+
+	// Session.
+	bool HandleOldSessionIfExisting();
 	void DestroySession();
 	void CreateSession();
+
+#pragma endregion PrivateUtilityFunctions
 
 #pragma region CallbackFunctions
 

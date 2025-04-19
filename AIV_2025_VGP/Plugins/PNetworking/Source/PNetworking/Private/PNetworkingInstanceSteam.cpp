@@ -907,9 +907,7 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(FSessionCreationParameter
 	CurrentSessionSettings.bAllowJoinViaPresenceFriendsOnly = SessionCreationParameters.bAllowJoinViaPresenceFriendsOnly;
 	CurrentSessionSettings.bUseLobbiesIfAvailable = SessionCreationParameters.bUseLobbiesIfAvailable;
 
-	HandleOldSessionIfExisting();
-
-	return true;
+	return HandleOldSessionIfExisting();
 }
 
 bool UPNetworkingInstanceSteam::InviteFriend(const int32 SteamID)
@@ -978,14 +976,14 @@ void UPNetworkingInstanceSteam::OnPlayerInSessionNetworkFailure(const FUniqueNet
 }
 
 
-void UPNetworkingInstanceSteam::HandleOldSessionIfExisting()
+bool UPNetworkingInstanceSteam::HandleOldSessionIfExisting()
 {
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface)
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("HandleOldSessionIfExisting: SessionInterface is invalid!"));
 		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
-		return;
+		return false;
 	}
 
 	FNamedOnlineSession* ExistingSession = FPNetworkingModule::GetOnlineSessionPointer()->GetNamedSession(FPNetworkingModule::GetSessionName());
@@ -999,6 +997,8 @@ void UPNetworkingInstanceSteam::HandleOldSessionIfExisting()
 		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("HandleOldSessionIfExisting: Old session not found!"));
 		CreateSession();
 	}
+
+	return true;
 }
 
 void UPNetworkingInstanceSteam::QuitSession(const FString& TravelBackMapPath)
