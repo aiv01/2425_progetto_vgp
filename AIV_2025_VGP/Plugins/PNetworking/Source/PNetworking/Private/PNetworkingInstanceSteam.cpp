@@ -12,9 +12,9 @@
 #include "UserSteamData.h"
 #include "PNetworking.h"
 #include "Kismet/GameplayStatics.h"
-#include "Online.h"
 #include "SessionCreationParameters.h"
 
+// Static declarations.
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = nullptr;
 
 #pragma region SpecialMemberFunctions
