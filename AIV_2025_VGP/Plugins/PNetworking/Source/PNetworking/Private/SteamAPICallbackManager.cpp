@@ -1,5 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// • Alessandro Caccamo
+// • Claudio Dallai
+
 #include "SteamAPICallbackManager.h"
 
 SteamAPICallbackManager::SteamAPICallbackManager()

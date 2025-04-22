@@ -1,8 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// � Manuel Solano
-// � Alessandro Caccamo
-// � Claudio Dallai
+// • Manuel Solano
+// • Alessandro Caccamo
+// • Claudio Dallai
 
 #pragma once
 
@@ -12,11 +12,15 @@
 // Hardcoded Session Name. It needs to be the same on Client and Server even when inviting.
 #define SESSION_NAME "AIV_VGP_Server"
 
+// Forward declarations.
+class IOnlineSubsystem;
+class IOnlineSession;
+
 // Custom Log category.
 DECLARE_LOG_CATEGORY_EXTERN(LogSteamNetworkingPlugin, Warning, All)
 
 // Identify current session state. 
-enum ELocalSessionState
+enum ELocalSessionState : uint8
 {
 	SESSION_PENDING, // Computing a session (used for creating or other async funcs).
 	SESSION_DESTROYING, // Destroying a session (specific for destroy async funcs).
@@ -38,8 +42,8 @@ public:
 	static bool IsOnlineAvailable();
 
 	// Getters.
-	static class IOnlineSubsystem* GetOnlineSubsystemPointer();
-	static class TSharedPtr<class IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionPointer();
+	static IOnlineSubsystem* GetOnlineSubsystemPointer();
+	static TSharedPtr<IOnlineSession, ESPMode::ThreadSafe> GetOnlineSessionPointer();
 	static TSharedPtr<SteamAPICallbackManager> GetSteamAPIManager();
 	static FName GetSessionName();
 	static ELocalSessionState GetLocalSessionCurrentState();

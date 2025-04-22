@@ -1,10 +1,14 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 // � Manuel Solano
 // � Alessandro Caccamo
 // � Claudio Dallai
 
 #pragma once
+
+// • Manuel Solano
+// • Alessandro Caccamo
+// • Claudio Dallai
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
@@ -20,7 +24,7 @@ class FOnlineFriend;
 class CSteamID;
 struct FUserSteamData;
 struct FSessionCreationParameters;
-enum ELocalSessionState;
+enum ELocalSessionState : uint8;
 
 #pragma endregion
 
@@ -33,6 +37,8 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamDa
 
 #pragma endregion
 
+#define EMPTY_FSTRING ""
+
 UCLASS(BlueprintType, meta=(NotBlueprintable))
 class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 {
@@ -40,19 +46,19 @@ class PNETWORKING_API UPNetworkingInstanceSteam : public UObject
 
 public:
 
-#pragma region SingletonePluginManagement
+#pragma region SingletonPluginManagement
 
 	/// <summary>
-	/// Check if a singletone static istance already exists.
+	/// Check if a singleton static instance already exists.
 	/// If not, it creates one, save it in a raw pointer and add it to root (prevent Garbage Collector) and return it.
 	/// If it already exists, return it.
 	/// </summary>
-	/// <returns> Unique istance of this class. </returns>
+	/// <returns> Unique instance of this class. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
 	static UPNetworkingInstanceSteam* GetUniqueInstance();
 
 	/// <summary>
-	/// Remove from root the unique istance of this class.
+	/// Remove from root the unique instance of this class.
 	/// Invalid its pointer.
 	/// </summary>
 	UFUNCTION(BlueprintCallable, Category = "Steam Net Plugin management")
@@ -71,7 +77,7 @@ public:
 	bool GetAppID(FString& AppID);
 
 	/// <summary>
-	/// Get local steam account Name.
+	/// Get local Steam account name.
 	/// </summary>
 	/// <param name="AccountName"> Out AccountName in FString type. </param>
 	/// <param name="UserID"> ID to look for. In default case of 0, it takes local user. </param>
@@ -80,9 +86,9 @@ public:
 	bool GetAccountName(FString& AccountName, const int32 UserID = 0);
 
 	/// <summary>
-	/// Get the local user avatar as a Callback. It returns UTexture2D* to Avatar texture.
+	/// Get the local user avatar as a callback. It returns UTexture2D* to Avatar texture.
 	/// </summary>
-	/// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <param name="Callback"> Callback to be bound in BP/C++. </param>
 	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	int32 GetLocalUserAvatar(const FOnLocalAvatarReady& Callback);
@@ -120,7 +126,7 @@ public:
 	/// <summary>
 	/// Get all local user friendlist avatars as a Callback. It returns TArray<UTexture2D>& containing all textures.
 	/// </summary>
-	/// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <param name="Callback"> Callback to be bound in BP/C++. </param>
 	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	int32 GetFriendsAvatar(const FOnFriendsAvatarReady& Callback);
@@ -130,7 +136,7 @@ public:
 	/// It returns TArray<FUserSteamData>& containing all data to identify in BP a friend.
 	/// </summary>
 	/// <param name="bAlphabeticalSort"> If TArray elements should be alphabetically sorted using their nicknames. </param>
-	/// /// <param name="Callback"> Callback to be binded in BP/Cpp. </param>
+	/// <param name="Callback"> Callback to be bound in BP/C++. </param>
 	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	int32 GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback);
@@ -181,8 +187,8 @@ private:
 	// Last map path to travel after SessionCreation.
 	FString MapPathToTravel;
 
-	// Tempo var used to checks during invites (to distinguish between inSession/outSession). DO NOT USE IT.
-	ELocalSessionState TempoPrevSessionState;
+	// Temp var used to checks during invites (to distinguish between inSession/outSession). DO NOT USE IT.
+	ELocalSessionState TempPrevSessionState;
 
 #pragma endregion PrivateVariables
 

@@ -1,8 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// � Manuel Solano
-// � Alessandro Caccamo
-// � Claudio Dallai
+// • Manuel Solano
+// • Alessandro Caccamo
+// • Claudio Dallai
 
 #include "PNetworking.h"
 #include "OnlineSubsystem.h"
@@ -126,13 +126,13 @@ FName FPNetworkingModule::GetSessionName()
 	return SessionName;
 }
 
-// Get Current local session state.
+// Get current local session state.
 ELocalSessionState FPNetworkingModule::GetLocalSessionCurrentState()
 {
 	return LocalSessionCurrentState;
 }
 
-// Set Current local session state.
+// Set current local session state.
 void FPNetworkingModule::SetLocalSessionCurrentState(const ELocalSessionState NewSessionState)
 {
 	if (LocalSessionCurrentState != NewSessionState)

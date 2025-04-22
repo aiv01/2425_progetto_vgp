@@ -1,9 +1,12 @@
-﻿
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 // � Manuel Solano
 // � Alessandro Caccamo
 // � Claudio Dallai
+
+// • Manuel Solano
+// • Alessandro Caccamo
+// • Claudio Dallai
 
 #include "PNetworkingInstanceSteam.h"
 #include "Interfaces/OnlineIdentityInterface.h"
@@ -128,14 +131,14 @@ FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
-		return "";
+		return EMPTY_FSTRING;
 	}
 
 	const CSteamID RealSteamID = ConvertInt32toCSteamID(SteamID);
 	ISteamFriends* SteamFriendsInterface = SteamFriends();
 	if (!SteamFriendsInterface)
 	{
-		return "";
+		return EMPTY_FSTRING;
 	}
 
 	return FString(SteamFriendsInterface->GetFriendPersonaName(RealSteamID));
@@ -623,7 +626,7 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 		return;
 	}
 
-	TempoPrevSessionState = FPNetworkingModule::GetLocalSessionCurrentState();
+	TempPrevSessionState = FPNetworkingModule::GetLocalSessionCurrentState();
 
 	if (bWasSuccessful)
 	{
@@ -650,7 +653,7 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 					OnClientNewInviteAcceptionDestroySessionCompleteHandle.Reset();
 				}
 
-				FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
+				FPNetworkingModule::SetLocalSessionCurrentState(TempPrevSessionState);
 			}
 
 			return;
@@ -667,7 +670,7 @@ void UPNetworkingInstanceSteam::OnInviteAccepted(bool bWasSuccessful, int32 Loca
 		else
 		{
 			UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnInviteAccepted: Invite Acception Error!"));
-			FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
+			FPNetworkingModule::SetLocalSessionCurrentState(TempPrevSessionState);
 		}
 	}
 	else
@@ -758,7 +761,7 @@ void UPNetworkingInstanceSteam::OnNetworkFailure(UWorld* World, UNetDriver* NetD
 	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
 }
 
-void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull)
+void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName SessionName, bool bWasSuccessfull)
 {
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
@@ -776,7 +779,7 @@ void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName
 
 	if (bWasSuccessfull)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnDestroySessionCompleteFromNewHostingUser: Session destroyed! -> %s"), *sessionName.ToString());
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnDestroySessionCompleteFromNewHostingUser: Session destroyed! -> %s"), *SessionName.ToString());
 		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_PENDING);
 		CreateSession();
 	}
@@ -787,7 +790,7 @@ void UPNetworkingInstanceSteam::OnDestroySessionCompleteFromNewHostingUser(FName
 	}
 }
 
-void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
+void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName SessionName, bool bWasSuccessfull)
 {
 	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!OnlineSession.IsValid())
@@ -806,17 +809,17 @@ void UPNetworkingInstanceSteam::OnClientDestroySessionComplete(FName sessionName
 	if (bWasSuccessfull)
 	{
 		FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_INVALID);
-		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnClientDestroySessionComplete: Session %s destroyed"), *sessionName.ToString());
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("OnClientDestroySessionComplete: Session %s destroyed"), *SessionName.ToString());
 	}
 }
 
-void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
+void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete(FName SessionName, bool bWasSuccessfull)
 {
 	IOnlineSessionPtr SessionInterface = FPNetworkingModule::GetOnlineSessionPointer();
 	if (!SessionInterface.IsValid())
 	{
 		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("OnClientNewInviteAcceptionDestroySessionComplete: SessionInterface is invalid!"));
-		FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
+		FPNetworkingModule::SetLocalSessionCurrentState(TempPrevSessionState);
 		return;
 	}
 
@@ -846,7 +849,7 @@ void UPNetworkingInstanceSteam::OnClientNewInviteAcceptionDestroySessionComplete
 	}
 	else
 	{
-		FPNetworkingModule::SetLocalSessionCurrentState(TempoPrevSessionState);
+		FPNetworkingModule::SetLocalSessionCurrentState(TempPrevSessionState);
 	}
 }
 
@@ -1080,7 +1083,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 	ISteamFriends* SteamFriendsInterface = SteamFriends();
 	if (!SteamFriendsInterface)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetPlayerDataRecursive: SteamUserInterface steamwork_sdk not valid!"));
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetPlayerDataRecursive: SteamUserInterface steamworks_sdk not valid!"));
 		return 0;
 	}
 
@@ -1108,9 +1111,7 @@ int32 UPNetworkingInstanceSteam::GetPlayerDataRecursive(const bool bAlphabetical
 
 			if (CurrentTexture != nullptr && QueryResult == 1)
 			{
-				UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()),
-					FText::FromString(CurrentNickname),
-					CurrentTexture));
+				UserSteamData.Add(FUserSteamData(static_cast<int32>(CurrentSteamID.GetAccountID()), FText::FromString(CurrentNickname), CurrentTexture));
 			}
 			else if (CurrentTexture == nullptr && QueryResult == -1)
 			{
