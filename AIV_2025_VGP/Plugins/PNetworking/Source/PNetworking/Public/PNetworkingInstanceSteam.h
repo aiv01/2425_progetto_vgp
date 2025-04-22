@@ -1,9 +1,5 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-// � Manuel Solano
-// � Alessandro Caccamo
-// � Claudio Dallai
-
 #pragma once
 
 // • Manuel Solano
