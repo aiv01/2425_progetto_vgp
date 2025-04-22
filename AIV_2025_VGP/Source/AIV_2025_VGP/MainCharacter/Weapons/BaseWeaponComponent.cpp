@@ -31,10 +31,8 @@ void UBaseWeaponComponent::BeginPlay()
 //Blueprint Callable Overload function with index param
 void UBaseWeaponComponent::EquipWeapon(int32 IndexToEquip)
 {
-	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), IndexToEquip);
 	if (IndexToEquip < 0 || IndexToEquip >= Weapons.Num())
 	{
-		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
 		return;
 	}
 
@@ -49,10 +47,8 @@ void UBaseWeaponComponent::EquipWeapon(int32 IndexToEquip)
 //Internal Overload function with no index param
 void UBaseWeaponComponent::EquipWeapon()
 {
-	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
 	if (CurrentWeaponIndex < 0 || CurrentWeaponIndex >= Weapons.Num())
 	{
-		UE_LOG(LogTemp, Error, TEXT("U are trying to equip a fake weapon!"));
 		return;
 	}
 
@@ -63,7 +59,6 @@ void UBaseWeaponComponent::EquipWeapon()
 
 void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 {
-	UE_LOG(LogTemp, Log, TEXT("ChangeWeapon"));
 	if (Weapons.Num() < 2)
 	{
 		return;
@@ -71,10 +66,8 @@ void UBaseWeaponComponent::ChangeWeapon(bool bForward)
 
 	//Hide current weapon
 	Weapons[CurrentWeaponIndex]->SetActorHiddenInGame(true);
-	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
 	//Get next weapon
 	CurrentWeaponIndex = bForward ? CurrentWeaponIndex + 1 : CurrentWeaponIndex - 1;
-	UE_LOG(LogTemp, Log, TEXT("EquipWeapon - Index: %d"), CurrentWeaponIndex);
 	
 	if (CurrentWeaponIndex < 0)
 	{
@@ -95,7 +88,6 @@ void UBaseWeaponComponent::AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon)
 		World = GetWorld();
 		if (!World)
 		{
-			UE_LOG(LogTemp, Error, TEXT("World is null!"));
 			return;
 		}
 	}
@@ -106,7 +98,6 @@ void UBaseWeaponComponent::AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon)
 		Weapons.Add(SpawnedWeapon);
 		SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
 		SpawnedWeapon->SetActorHiddenInGame(true);
-		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *SpawnedWeapon->GetName());
 	}
 }
 
@@ -114,30 +105,43 @@ void UBaseWeaponComponent::SpawnWeapons()
 {
 	if (!PlayerMesh || WeaponClasses.Num() == 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No weapons to spawn or PlayerMesh is null!"));
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %d"), WeaponClasses.Num());
 	for (TSubclassOf<ABaseWeapon> WeaponClass : WeaponClasses)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned, added to array and attached: %s"), *WeaponClass->GetName());
 		AddNewWeapon(WeaponClass);
 	}
 }
 
-void UBaseWeaponComponent::StartAttackWithCurrentWeapon()
+void UBaseWeaponComponent::StartPrimaryAttack()
 {
 	if(Weapons[CurrentWeaponIndex])
 	{
-		Weapons[CurrentWeaponIndex]->AttackEventStart();
+		Weapons[CurrentWeaponIndex]->PrimaryAttackEventStart();
 	}
 }
 
-void UBaseWeaponComponent::EndAttackWithCurrentWeapon()
+void UBaseWeaponComponent::EndPrimaryAttack()
 {
 	if(Weapons[CurrentWeaponIndex])
 	{
-		Weapons[CurrentWeaponIndex]->AttackEventEnd();
+		Weapons[CurrentWeaponIndex]->PrimaryAttackEventEnd();
+	}
+}
+
+void UBaseWeaponComponent::StartSecondaryAttack()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->SecondaryAttackEventStart();
+	}
+}
+
+void UBaseWeaponComponent::EndSecondaryAttack()
+{
+	if(Weapons[CurrentWeaponIndex])
+	{
+		Weapons[CurrentWeaponIndex]->SecondaryAttackEventEnd();
 	}
 }
 
@@ -148,3 +152,14 @@ void UBaseWeaponComponent::StartAnimationCurrentWeapon()
 		Weapons[CurrentWeaponIndex]->WeaponAnimationStart();
 	}
 }
+#pragma region Getter
+void UBaseWeaponComponent::GetPrimaryAttackName(FName& PrimaryAttackName)
+{
+	PrimaryAttackName = Weapons[CurrentWeaponIndex]->PrimaryAttackName;
+}
+
+void UBaseWeaponComponent::GetSecondaryAttackName(FName& SecondaryAttackName)
+{
+	SecondaryAttackName = Weapons[CurrentWeaponIndex]->SecondaryAttackName;
+}
+#pragma endregion	

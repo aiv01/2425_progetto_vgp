@@ -56,7 +56,6 @@ ABasePlayer::ABasePlayer()
 	if (SkeletalMesh)
 	{
 		GetMesh()->SetSkeletalMesh(SkeletalMesh);
-		UE_LOG(LogTemp, Warning, TEXT("BasePlayer::ABasePlayer mesh found!"));
 	}
 }
 
@@ -100,21 +99,43 @@ void ABasePlayer::Look_Implementation(const FVector2D& Value)
 	}
 }
 
-void ABasePlayer::Attack_Implementation()
+void ABasePlayer::PrimaryAttack_Implementation()
 {
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		II_PlayerInput::Execute_Attack(this);
+		Execute_PrimaryAttack(this);
+	}
+}
+
+void ABasePlayer::SecondaryAttack_Implementation()
+{
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_SecondaryAttack(this);
 	}
 }
 
 void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ChangeWeapon chiamato dal BASEPLAYER: %hhd"), bForward);
-	
+{	
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		II_PlayerInput::Execute_ChangeWeapon(this, bForward);
+		Execute_ChangeWeapon(this, bForward);
 	}
 }
+
+void ABasePlayer::IAddHealth_Implementation(float Amount)
+{
+	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
+	{
+		Execute_IAddHealth(this, Amount);
+	}
+}
+void ABasePlayer::IRemoveHealth_Implementation(float Amount)
+{
+	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
+	{
+		Execute_IRemoveHealth(this, Amount);
+	}
+}
+
 
