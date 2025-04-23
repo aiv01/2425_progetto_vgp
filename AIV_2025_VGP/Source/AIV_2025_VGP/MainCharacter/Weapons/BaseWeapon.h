@@ -23,9 +23,15 @@ public:
 	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
-	FString WeaponName;
+	FName WeaponName;
+	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
+	FName PrimaryAttackName;
+	UPROPERTY(EditAnywhere ,BlueprintReadWrite, Category="Weapon Params")
+	FName SecondaryAttackName;
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon Params")
 	FString WeaponDamage;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Weapon State")
+	bool bCanAttack = true;
 	
 #pragma endregion Properties
 
@@ -35,9 +41,13 @@ protected:
 	virtual void BeginPlay() override;
 public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
-	void AttackEventStart();
+	void PrimaryAttackEventStart();
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
-	void AttackEventEnd();
+	void PrimaryAttackEventEnd();
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
+	void SecondaryAttackEventStart();
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
+	void SecondaryAttackEventEnd();
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category="Weapon")
 	void WeaponAnimationStart();
 #pragma endregion Functions

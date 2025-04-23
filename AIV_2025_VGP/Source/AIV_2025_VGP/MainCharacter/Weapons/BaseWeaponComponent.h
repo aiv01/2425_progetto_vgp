@@ -36,7 +36,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> WeaponClasses;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="Weapon")
-	FString CurrentWeaponName = FString("");
+	FName CurrentWeaponName = FName("");
 #pragma endregion Properties
 
 	
@@ -56,10 +56,19 @@ public:
 	void AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon);
 
 	UFUNCTION(BlueprintCallable)
-	void StartAttackWithCurrentWeapon();
+	void StartPrimaryAttack();
 	UFUNCTION(BlueprintCallable)
-	void EndAttackWithCurrentWeapon();
+	void EndPrimaryAttack();
+	UFUNCTION(BlueprintCallable)
+	void StartSecondaryAttack();
+	UFUNCTION(BlueprintCallable)
+	void EndSecondaryAttack();
 	UFUNCTION(BlueprintCallable)
 	void StartAnimationCurrentWeapon();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
+	void GetPrimaryAttackName(FName& PrimaryAttackName);
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
+	void GetSecondaryAttackName(FName& SecondaryAttackName);
 #pragma endregion Functions
 };
