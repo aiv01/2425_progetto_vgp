@@ -55,9 +55,9 @@ void UGridProcessorComponent::DrawDebug (const FGridSurface* CloserSurface) cons
 
 FRotator UGridProcessorComponent::GetTrapRotation (FVector CloserSurfaceOrientation)
 {
-	FVector Forward = CloserSurfaceOrientation.GetSafeNormal(); // Assicura che sia un vettore unitario
-	FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal(); // Ortogonale a Forward
-	FVector Up = FVector::CrossProduct(Forward, Right); // Ortogonale a entrambi
+	FVector Forward = CloserSurfaceOrientation.GetSafeNormal(); // Normalize vector
+	FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal(); // Orthogonal to forward vector
+	FVector Up = FVector::CrossProduct(Forward, Right); // Orthogonal to both vectors
 	FMatrix RotationMatrix = FMatrix(Forward, Right, Up, FVector::ZeroVector);
 	FRotator TargetRotation = RotationMatrix.Rotator();	
 	TargetRotation.Pitch -= 90.0f;

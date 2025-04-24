@@ -19,7 +19,7 @@
  */
 void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& result, bool& Hit)
 {
-	//do a line trace between the player character and it's camera forward
+	//do a line trace between the player character and its camera forward
 	const FVector ownerLocation = GetOwner()->GetActorLocation();
 	const FVector endLocation = ownerLocation + CameraForward * InteractDistance;
 	//draw the debug line for the line trace

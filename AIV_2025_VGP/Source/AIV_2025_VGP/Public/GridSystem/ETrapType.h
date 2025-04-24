@@ -16,7 +16,7 @@
 #pragma once
 
 UENUM(BlueprintType)
-enum ETrapType
+enum ETrapType : uint8
 {
 	Wall		UMETA(DisplayName = "Wall"),
 	Floor		UMETA(DisplayName = "Floor"),

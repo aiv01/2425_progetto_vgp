@@ -15,7 +15,7 @@
 
 struct FGridSurface;
 enum EObjectTypeQuery;
-enum ESurfaceOrientation : int;
+enum ESurfaceOrientation : uint8;
 enum ECollisionChannel;
 /**
  * 
