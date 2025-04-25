@@ -11,28 +11,30 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GridSystem/ESurfaceOrientation.h"
 
+void AGridGeneratorVolume::BeginPlay ()
+{
+	Super::BeginPlay();
+	HalfCellSize = CellSize * 0.5;
+}
+
 void AGridGeneratorVolume::Generate()
 {
 	// clear all of the data
 	GridData.Empty();
 
-	// get volume extents
-	FVector VolumeExtents;
-	VolumeExtents.X = Brush->Bounds.BoxExtent.X * GetActorScale().X;
-	VolumeExtents.Y = Brush->Bounds.BoxExtent.Y * GetActorScale().Y;
-	VolumeExtents.Z = Brush->Bounds.BoxExtent.Z * GetActorScale().Z;
-	
-	// get origin of the generation 
-	FVector Origin = GetActorLocation() - VolumeExtents;
-
 	// get whole size of the volume
-	FVector VolumeSize = VolumeExtents * 2.f;
+	FVector VolumeSize = GetVolumeExtent() * 2.f;
 
 	// at this point we can calculate size in cells
 	CalculateSizeInCells(VolumeSize);
 
 	// start the actual grid generation
-	GenerateGrid(Origin);
+	GenerateGrid(GetOrigin());
+}
+
+TArray<FGridSurface>& AGridGeneratorVolume::GetGridData ()
+{
+	return GridData;
 }
 
 void AGridGeneratorVolume::CalculateSizeInCells(const FVector& VolumeSize)
@@ -210,4 +212,55 @@ bool AGridGeneratorVolume::CheckCorners(const FVector& CellPosition, const FVect
 		}
 	}
 	return true;
+}
+
+FVector AGridGeneratorVolume::GetOrigin () const
+{
+	// get origin of the generation 
+	return GetActorLocation() - GetVolumeExtent();
+}
+
+FVector AGridGeneratorVolume::GetVolumeExtent () const
+{
+	// get volume extents
+	FVector VolumeExtents;
+	VolumeExtents.X = Brush->Bounds.BoxExtent.X * GetActorScale().X;
+	VolumeExtents.Y = Brush->Bounds.BoxExtent.Y * GetActorScale().Y;
+	VolumeExtents.Z = Brush->Bounds.BoxExtent.Z * GetActorScale().Z;
+	return VolumeExtents;
+	
+}
+
+bool AGridGeneratorVolume::IsPointInsideGridSurface (const FGridSurface& Surface, const FVector& Point) const
+{
+	//get the absolute local position
+	const FVector LocalSurfacePoint = (Point - Surface.Position).GetAbs();
+	//check, based on the orientation Vector, if the point is inside the surface
+	if (Surface.Orientation.Z != 0)
+	{	
+		return LocalSurfacePoint.X < HalfCellSize && LocalSurfacePoint.Y < HalfCellSize;
+	}
+	if (Surface.Orientation.X != 0)
+	{	
+		return LocalSurfacePoint.Z < HalfCellSize && LocalSurfacePoint.Y < HalfCellSize;
+	}
+	if (Surface.Orientation.Y != 0)
+	{	
+		return LocalSurfacePoint.X < HalfCellSize && LocalSurfacePoint.Z < HalfCellSize;
+	}
+	return false;
+}
+
+float AGridGeneratorVolume::GetHalfCellSize () const
+{
+	return HalfCellSize;
+}
+
+FTrapData* AGridGeneratorVolume::GetTrapData (const FName TrapRowName) const
+{
+	if(!DataTable)
+	{
+		return nullptr;
+	}
+	return DataTable->FindRow<FTrapData>(TrapRowName, "");
 }
