@@ -19,15 +19,8 @@ void UGOAPGreatSwordStrategy::Execute()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "Melee atk!!!");
 
-			if (StrategyOwner)
-			{
-				USkeletalMeshComponent* MeshComponent = StrategyOwner->GetMesh();
-				if (MeshComponent)
-				{
-					MeshComponent->PlayAnimation(AnimationToPlay, true);
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "Animation is playing correctly");
-				}
-			}
+			StrategyOwner->PlayAnimMontage(AnimationToPlay);
+			
 		}
 	}
 }
