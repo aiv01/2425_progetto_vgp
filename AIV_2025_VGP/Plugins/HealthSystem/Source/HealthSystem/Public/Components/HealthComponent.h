@@ -1,0 +1,63 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "HealthComponent.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLanded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class HEALTHSYSTEM_API UHealthComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	// Sets default values for this component's properties
+	UHealthComponent();
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", ReplicatedUsing=OnRep_Health)
+	float Health;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float MaxHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	bool bCanRevive;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float LandedTimer;
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION()
+	void OnRep_Health(float OldHealth);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ChangeHealth(float Delta);
+
+	void ServerChangeHealth(float Delta);
+
+	UFUNCTION()
+	void OnLandedCallback();
+	UFUNCTION()
+	void OnDeathCallback();
+
+	FTimerHandle DeathTimerHandle;
+public:
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void ChangeHealth(float Delta);
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnLanded OnLanded;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnDeath OnDeath;
+};
