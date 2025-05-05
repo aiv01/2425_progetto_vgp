@@ -6,14 +6,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FTrapData.h"
 #include "GameFramework/Volume.h"
 #include "GridGeneratorVolume.generated.h"
+
 
 #define ERROR_MARGIN 10.f
 
 struct FGridSurface;
 enum EObjectTypeQuery;
-enum ESurfaceOrientation;
+enum ESurfaceOrientation : uint8;
 enum ECollisionChannel;
 /**
  * 
@@ -23,15 +25,37 @@ class AIV_2025_VGP_API AGridGeneratorVolume : public AVolume
 {
 	GENERATED_BODY()
 public:
+	virtual void BeginPlay() override;
 	// "button" to start generation
 	UFUNCTION(CallInEditor, Category="GridGenerator")
 	void Generate();
 
+	UFUNCTION(Blueprintable)
+	TArray<FGridSurface>& GetGridData();
+
+	UFUNCTION(Blueprintable)
+	FVector GetOrigin() const;
+	
+	UFUNCTION(Blueprintable)
+	FVector GetVolumeExtent() const;
+
+	//UFUNCTION(Blueprintable)
+	bool IsPointInsideGridSurface(const FGridSurface& Surface, const FVector& Point) const;
+
+	UFUNCTION(Blueprintable)
+	float GetHalfCellSize() const;
+
+	FTrapData* GetTrapData(const FName TrapRowName) const;
+	
+	
 protected:
+	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
+	UDataTable* DataTable;
+	
 	// size of the grid cells
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
 	float CellSize;
-
+	
 	// types of objects that can interfere with grid generation
 	UPROPERTY(EditInstanceOnly, Category="GridGenerator|Parameters")
 	TArray<TEnumAsByte<EObjectTypeQuery>> DisruptingObjectTypes;
