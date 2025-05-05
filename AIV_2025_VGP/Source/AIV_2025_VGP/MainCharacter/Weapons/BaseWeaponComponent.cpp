@@ -172,6 +172,26 @@ ABaseWeapon* UBaseWeaponComponent::GetCurrentWeapon()
 
 	return nullptr;
 }
+
+bool UBaseWeaponComponent::AddAmmo(TSubclassOf<ABaseRangedWeapon>  WeaponClass, int32 Amount)
+{
+	if (!WeaponClass || Amount <= 0)
+	{
+		return false;
+	}
+
+	//if weapon is not in RangedWeaponAmmoMap, return false (exclude the possibility to obtain ammo without the correct weapon)  
+	if (!RangedWeaponAmmoMap.Contains(WeaponClass))
+	{
+		return false;
+	}
+	else
+	{
+		RangedWeaponAmmoMap[WeaponClass] += Amount;
+	}
+
+	return true;
+}
 #pragma endregion	
 
 bool UBaseWeaponComponent::CanAttack() const

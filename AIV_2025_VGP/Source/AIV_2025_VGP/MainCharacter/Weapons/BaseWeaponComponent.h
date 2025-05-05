@@ -75,11 +75,16 @@ public:
 	void GetSecondaryAttackName(FName& SecondaryAttackName);
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="CurrentWeapon")
 	bool CanAttack() const;
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Ranged Weapons")
 	bool CanReload() const;
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category="Ranged Weapons")
 	void Reload();
+	UFUNCTION(BlueprintCallable, Category="Ranged Weapons")
+	bool AddAmmo (TSubclassOf<ABaseRangedWeapon>  WeaponClass, int32 Amount);
+
 	UFUNCTION(BlueprintCallable,BlueprintPure)
 	ABaseWeapon* GetCurrentWeapon();
+
 #pragma endregion Functions
 };
