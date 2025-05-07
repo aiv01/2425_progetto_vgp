@@ -34,6 +34,11 @@ void UHealthComponent::BeginPlay()
 	
 }
 
+float UHealthComponent::GetPercentHealth() const
+{
+	return Health / MaxHealth;
+}
+
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -54,6 +54,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void ChangeHealth(float Delta);
+	
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetPercentHealth() const;
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
 	FOnLanded OnLanded;

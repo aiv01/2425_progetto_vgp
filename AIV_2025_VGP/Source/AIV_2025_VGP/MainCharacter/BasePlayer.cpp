@@ -123,19 +123,5 @@ void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 	}
 }
 
-void ABasePlayer::IAddHealth_Implementation(float Amount)
-{
-	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
-	{
-		Execute_IAddHealth(this, Amount);
-	}
-}
-void ABasePlayer::IRemoveHealth_Implementation(float Amount)
-{
-	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
-	{
-		Execute_IRemoveHealth(this, Amount);
-	}
-}
 
 
