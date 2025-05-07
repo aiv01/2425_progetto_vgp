@@ -39,7 +39,10 @@ public:
 #pragma region OnlineManagement
 
 	// Check if everything is correct in order to use OSS/steam_api.
-	static bool IsOnlineAvailable();
+	static bool IsOnlineAvailable(const FString Message = TEXT("Online checked called"));
+
+	// Initialize OSS and pointers.
+	static void InternalStartupModule();
 
 	// Getters.
 	static IOnlineSubsystem* GetOnlineSubsystemPointer();

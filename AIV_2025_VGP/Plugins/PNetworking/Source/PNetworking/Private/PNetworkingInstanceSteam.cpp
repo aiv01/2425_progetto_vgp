@@ -15,12 +15,22 @@
 
 // Static declarations.
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::NetInstanceSteamPtr = nullptr;
+bool UPNetworkingInstanceSteam::bIsModuleReady = false;
 
 #pragma region SpecialMemberFunctions
 
 UPNetworkingInstanceSteam::UPNetworkingInstanceSteam()
 {
-	InitializeNetworkingInstance();
+	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Constructor UPNetworkingInstanceSteam Called!"));
+	if (bIsModuleReady)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Module is ready. Calling InitializeNetworkingInstance!"));
+		InitializeNetworkingInstance();
+	}
+	else
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("Module is not ready. Not calling InitializeNetworkingInstance!"));
+	}
 }
 
 UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
@@ -33,6 +43,13 @@ UPNetworkingInstanceSteam::~UPNetworkingInstanceSteam()
 
 UPNetworkingInstanceSteam* UPNetworkingInstanceSteam::GetUniqueInstance()
 {
+	if (!bIsModuleReady)
+	{
+		// The moment this function can be called in blueprint, the plugin, modules, OSS could be taken correctly.
+		// Set relative dirty flag to true, and proceed to initialize NetworkingInstance inside the constructor.
+		bIsModuleReady = true;
+	}
+
 	if (NetInstanceSteamPtr == nullptr)
 	{
 		NetInstanceSteamPtr = NewObject<UPNetworkingInstanceSteam>();
@@ -58,6 +75,7 @@ void UPNetworkingInstanceSteam::DeleteUniqueInstance()
 		NetInstanceSteamPtr->DeInitializeNetworkingInstance();
 		NetInstanceSteamPtr->RemoveFromRoot();
 		NetInstanceSteamPtr = nullptr;
+		bIsModuleReady = false;
 	}
 	else
 	{
@@ -111,7 +129,7 @@ bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32
 
 int32 UPNetworkingInstanceSteam::GetLocalUserAvatar(const FOnLocalAvatarReady& Callback)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: GetLocalUserAvatar Called it")))
 	{
 		return 0;
 	}
@@ -125,7 +143,7 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatar(const FOnLocalAvatarReady& C
 
 FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: GetUsernameFromSteamID Called it")))
 	{
 		return EMPTY_FSTRING;
 	}
@@ -152,7 +170,7 @@ bool UPNetworkingInstanceSteam::GetAllFriendListNames(const FOnFriendsListReady&
 
 int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& Callback)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: GetFriendsAvatar Called it")))
 	{
 		return 0;
 	}
@@ -162,7 +180,7 @@ int32 UPNetworkingInstanceSteam::GetFriendsAvatar(const FOnFriendsAvatarReady& C
 
 int32 UPNetworkingInstanceSteam::GetPlayersData(const bool bAlphabeticalSort, const FOnFriendsDataReady& Callback)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: GetPlayersData Called it")))
 	{
 		return 0;
 	}
@@ -306,7 +324,7 @@ int32 UPNetworkingInstanceSteam::GetOnlineFriendsFromFriendCount(const int32 Fri
 {
 	int32 OnlineFriends = 0;
 
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: GetOnlineFriendsFromFriendCount Called it")))
 	{
 		return OnlineFriends;
 	}
@@ -413,7 +431,7 @@ bool UPNetworkingInstanceSteam::ConvertCSteamIDToFUniqueNetID(const CSteamID Ste
 
 CSteamID UPNetworkingInstanceSteam::ConvertInt32toCSteamID(const int32 SteamID)
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: ConvertInt32toCSteamID Called it")))
 	{
 		return CSteamID();
 	}
@@ -496,9 +514,9 @@ void UPNetworkingInstanceSteam::CreateSession()
 
 bool UPNetworkingInstanceSteam::InitializeNetworkingInstance()
 {
-	if (!FPNetworkingModule::IsOnlineAvailable())
+	if (!FPNetworkingModule::IsOnlineAvailable(TEXT("IsOnlineAvailable: InitializeNetworkingInstance Called it")))
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: Online not available!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("InitializeNetworkingInstance: Online not available!"));
 		return false;
 	}
 

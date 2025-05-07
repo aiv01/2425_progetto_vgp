@@ -171,6 +171,10 @@ private:
 
 #pragma region PrivateVariables
 	
+	// Static flag to check if module is ready. It is used because of the first constructor called by UE itself. 
+	// This plugin is not ready in this case.
+	static bool bIsModuleReady;
+
 	// Unique instance of this class.
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
 

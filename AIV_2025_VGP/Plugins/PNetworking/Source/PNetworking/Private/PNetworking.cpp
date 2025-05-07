@@ -23,15 +23,7 @@ DEFINE_LOG_CATEGORY(LogSteamNetworkingPlugin)
 
 void FPNetworkingModule::StartupModule()
 {
-	// Get OSS.
-	OnlineSubsystemPtr = IOnlineSubsystem::Get();
-	if (OnlineSubsystemPtr)
-	{
-		// Get OSS Session interface.
-		OnlineSessionPtr = OnlineSubsystemPtr->GetSessionInterface();
-	}
-
-	SteamApiManagerPtr = MakeShared<SteamAPICallbackManager>();
+	InternalStartupModule();
 }
 
 void FPNetworkingModule::ShutdownModule()
@@ -47,14 +39,18 @@ void FPNetworkingModule::ShutdownModule()
 #pragma region OnlineManagement
 
 // Check if Steam and Standalone mode are available and working.
-bool FPNetworkingModule::IsOnlineAvailable()
+bool FPNetworkingModule::IsOnlineAvailable(const FString Message)
 {
+	UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("%s"), *Message);
+
+#if WITH_EDITOR
 	// The game must be run in standalone!
 	if (GIsEditor)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
 		return false;
 	}
+#endif
 
 	// The Steam client must be opened!
 	if (!SteamAPI_IsSteamRunning())
@@ -87,10 +83,24 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	return true;
 }
 
+// Called to initialize this module inside StartupModule method.
+void FPNetworkingModule::InternalStartupModule()
+{
+	// Get OSS.
+	OnlineSubsystemPtr = IOnlineSubsystem::Get();
+	if (OnlineSubsystemPtr)
+	{
+		// Get OSS Session interface.
+		OnlineSessionPtr = OnlineSubsystemPtr->GetSessionInterface();
+	}
+
+	SteamApiManagerPtr = MakeShared<SteamAPICallbackManager>();
+}
+
 // Get OSS pointer.
 IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemPointer()
 {
-	if (!IsOnlineAvailable())
+	if (!IsOnlineAvailable(TEXT("IsOnlineAvailable: GetOnlineSubsystemPointer Called it")))
 	{
 		return nullptr;
 	}
@@ -101,7 +111,7 @@ IOnlineSubsystem* FPNetworkingModule::GetOnlineSubsystemPointer()
 // Get OSS SessionInterface SharedPtr.
 IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionPointer()
 {
-	if (!IsOnlineAvailable())
+	if (!IsOnlineAvailable(TEXT("IsOnlineAvailable: GetOnlineSessionPointer Called it")))
 	{
 		return nullptr;
 	}
@@ -112,7 +122,7 @@ IOnlineSessionPtr FPNetworkingModule::GetOnlineSessionPointer()
 // Get SteamAPIManager SharedPtr. This uses steam folder files to implement steamworks sdk.
 TSharedPtr<SteamAPICallbackManager> FPNetworkingModule::GetSteamAPIManager()
 {
-	if (!IsOnlineAvailable())
+	if (!IsOnlineAvailable(TEXT("IsOnlineAvailable: GetSteamAPIManager Called it")))
 	{
 		return nullptr;
 	}
