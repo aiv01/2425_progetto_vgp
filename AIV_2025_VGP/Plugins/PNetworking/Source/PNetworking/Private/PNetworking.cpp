@@ -49,12 +49,15 @@ void FPNetworkingModule::ShutdownModule()
 // Check if Steam and Standalone mode are available and working.
 bool FPNetworkingModule::IsOnlineAvailable()
 {
+
+#if WITH_EDITOR
 	// The game must be run in standalone!
 	if (GIsEditor)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
 		return false;
 	}
+#endif
 
 	// The Steam client must be opened!
 	if (!SteamAPI_IsSteamRunning())
