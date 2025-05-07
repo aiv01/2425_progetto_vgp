@@ -6,6 +6,7 @@
 #include "GOAPAgentComponent.h"
 #include "GOAPAction.h"
 #include "GOAPGoalDefiner.h"
+#include <limits>
 #include "GOAPWorldModel.h"
 
 // Sets default values for this component's properties
@@ -53,7 +54,7 @@ UGOAPAction* UGOAPAgentComponent::PlanAction(UGOAPWorldModel* wdModel, const int
 
 	// Setup of the comparison variables
 	UGOAPAction* BestAction = nullptr;
-	float BestValue = INFINITY;
+	float BestValue = std::numeric_limits<float>::max();
 	UGOAPWorldModel* BestStartingModel = nullptr;
 
 	// Iteration of the zero-depth actions
