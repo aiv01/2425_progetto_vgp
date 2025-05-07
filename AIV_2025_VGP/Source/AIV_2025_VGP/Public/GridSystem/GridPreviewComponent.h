@@ -5,6 +5,8 @@
 // Vernone Michele
 #pragma once
 
+class AStaticMeshActor;
+
 #include "CoreMinimal.h"
 #include "GridProcessorComponent.h"
 #include "GridPreviewComponent.generated.h"

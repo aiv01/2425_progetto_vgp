@@ -498,7 +498,7 @@ bool UPNetworkingInstanceSteam::InitializeNetworkingInstance()
 {
 	if (!FPNetworkingModule::IsOnlineAvailable())
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("InitializeNetworkingInstance: Online not available!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("InitializeNetworkingInstance: Online not available!"));
 		return false;
 	}
 

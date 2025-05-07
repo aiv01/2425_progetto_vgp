@@ -52,7 +52,7 @@ bool FPNetworkingModule::IsOnlineAvailable()
 	// The game must be run in standalone!
 	if (GIsEditor)
 	{
-		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
+		UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("ERROR: Online Subsystem doesn't work because the game is loaded as PIE!"));
 		return false;
 	}
 
