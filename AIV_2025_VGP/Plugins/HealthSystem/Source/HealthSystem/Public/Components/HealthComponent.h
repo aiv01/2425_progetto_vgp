@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLanded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnChangeHealth);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class HEALTHSYSTEM_API UHealthComponent : public UActorComponent
@@ -49,6 +50,8 @@ protected:
 	void OnLandedCallback();
 	UFUNCTION()
 	void OnDeathCallback();
+	UFUNCTION()
+	void OnChangeHealthCallback();
 
 	FTimerHandle DeathTimerHandle;
 public:
@@ -63,4 +66,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
 	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnChangeHealth OnChangeHealth;
 };

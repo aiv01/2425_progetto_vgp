@@ -20,6 +20,7 @@ void UHealthComponent::BeginPlay()
 	Super::BeginPlay();
 	SetIsReplicatedByDefault(true);
 	Health = MaxHealth;
+	OnChangeHealth.AddDynamic(this, &UHealthComponent::OnChangeHealthCallback);
 	if(GetOwner()->HasAuthority())
 	{		
 		if(bCanRevive)
@@ -49,6 +50,7 @@ void UHealthComponent::OnRep_Health(float OldHealth)
 {
 	float Delta = Health - OldHealth;
 	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, Current Health: %f"), Delta, Health);
+	OnChangeHealth.Broadcast();
 	if(Health <= 0 && GetOwner()->HasAuthority())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnLandedBroadcast Called"));
@@ -116,6 +118,10 @@ void UHealthComponent::OnDeathCallback()
 		FColor::Red,
 		FString::Printf(TEXT("Player %s is Dead"), *GetOwner()->GetName())
 	);
+}
+
+void UHealthComponent::OnChangeHealthCallback()
+{
 }
 #pragma endregion Callbacks
 

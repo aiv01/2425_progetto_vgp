@@ -8,7 +8,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "../Interfaces/I_PlayerInput.h"
 
-ABasePlayerController::ABasePlayerController()
+ABasePlayerController::ABasePlayerController(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	FindInputActions();
 }

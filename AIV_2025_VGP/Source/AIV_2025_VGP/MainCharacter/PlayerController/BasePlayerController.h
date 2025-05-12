@@ -61,6 +61,6 @@ private:
 	void FindInputActions();
 
 public:
-	ABasePlayerController();
+	ABasePlayerController(const FObjectInitializer& ObjectInitializer);
 #pragma endregion Functions
 };
