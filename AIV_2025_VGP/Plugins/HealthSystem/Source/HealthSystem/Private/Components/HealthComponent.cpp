@@ -46,18 +46,6 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UHealthComponent, Health);
 }
 
-void UHealthComponent::OnRep_Health(float OldHealth)
-{
-	float Delta = Health - OldHealth;
-	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, Current Health: %f"), Delta, Health);
-	OnChangeHealth.Broadcast();
-	if(Health <= 0 && GetOwner()->HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OnLandedBroadcast Called"));
-		OnLanded.Broadcast();
-	}
-}
-
 void UHealthComponent::ChangeHealth(float Delta)
 {
 	if(GetOwner()->HasAuthority())
@@ -86,6 +74,18 @@ void UHealthComponent::ServerChangeHealth(float Delta)
 	const float OldHealth = Health;
 	Health = FMath::Clamp(Health + Delta, 0.f, MaxHealth);
 	OnRep_Health(Delta);
+}
+
+void UHealthComponent::OnRep_Health(float OldHealth)
+{
+	float Delta = Health - OldHealth;
+	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, Current Health: %f"), Delta, Health);
+	OnChangeHealth.Broadcast();
+	if(Health <= 0.f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnLandedBroadcast Called"));
+		OnLanded.Broadcast();
+	}
 }
 
 #pragma region Callbacks
