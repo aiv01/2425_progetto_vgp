@@ -80,7 +80,7 @@ void UHealthComponent::OnRep_Health(float OldHealth)
 {
 	float Delta = Health - OldHealth;
 	UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, Current Health: %f"), Delta, Health);
-	OnChangeHealth.Broadcast();
+	OnChangeHealth.Broadcast(GetOwner());
 	if(Health <= 0.f)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnLandedBroadcast Called"));
@@ -120,7 +120,7 @@ void UHealthComponent::OnDeathCallback()
 	);
 }
 
-void UHealthComponent::OnChangeHealthCallback()
+void UHealthComponent::OnChangeHealthCallback(AActor* Actor)
 {
 }
 #pragma endregion Callbacks
