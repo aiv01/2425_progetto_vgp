@@ -73,6 +73,7 @@ public:
 
 #pragma region Revive System
 private:
+	UPROPERTY(Replicated)
 	bool bCanReviveFriend = false;	
 
 	UFUNCTION(Server, Reliable)

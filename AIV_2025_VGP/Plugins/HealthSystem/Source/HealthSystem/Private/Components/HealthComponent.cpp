@@ -46,7 +46,7 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UHealthComponent, Health); // Replicate Health variable
 	DOREPLIFETIME(UHealthComponent, bCanReviveFriend);
-	DOREPLIFETIME(UHealthComponent, ActorToRevive);
+	//DOREPLIFETIME(UHealthComponent, ActorToRevive);
 }
 
 #pragma region Health System
@@ -69,10 +69,10 @@ void UHealthComponent::ServerRPC_ChangeHealth_Implementation(float Delta)
 {
 	// Validates server authority again
 	UE_LOG(LogTemp, Warning, TEXT("Server RPC Called"));
-	if (GetOwner()->HasAuthority())
-	{
+	// if (GetOwner()->HasAuthority())
+	// {
 		ServerChangeHealth(Delta);
-	}
+	// }
 }
 
 void UHealthComponent::ServerChangeHealth(float Delta)
