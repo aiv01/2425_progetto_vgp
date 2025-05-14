@@ -35,6 +35,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float LandedTimer;
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
@@ -69,4 +70,21 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
 	FOnChangeHealth OnChangeHealth;
+
+#pragma region Revive System
+private:
+	bool bCanReviveFriend = false;	
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
+
+	void ServerChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+	AActor* ActorToRevive = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
+#pragma endregion
 };

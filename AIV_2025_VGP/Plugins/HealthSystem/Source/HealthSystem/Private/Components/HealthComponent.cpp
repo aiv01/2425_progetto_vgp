@@ -41,18 +41,15 @@ void UHealthComponent::BeginPlay()
 	}
 }
 
-float UHealthComponent::GetPercentHealth() const
-{
-	// Returns health as a percentage of max health
-	return Health / MaxHealth;
-}
-
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UHealthComponent, Health); // Replicate Health variable
+	DOREPLIFETIME(UHealthComponent, bCanReviveFriend);
+	DOREPLIFETIME(UHealthComponent, ActorToRevive);
 }
 
+#pragma region Health System
 void UHealthComponent::ChangeHealth(float Delta)
 {
 	if (GetOwner()->HasAuthority())
@@ -105,6 +102,13 @@ void UHealthComponent::OnRep_Health(float OldHealth)
 	}
 }
 
+float UHealthComponent::GetPercentHealth() const
+{
+	// Returns health as a percentage of max health
+	return Health / MaxHealth;
+}
+#pragma endregion
+
 #pragma region Callbacks
 void UHealthComponent::OnLandedCallback()
 {
@@ -128,5 +132,35 @@ void UHealthComponent::OnChangeHealthCallback(AActor* Actor)
 {
     // Placeholder: Can be expanded to trigger animations, UI changes, etc.
 }
-#pragma endregion Callbacks
+#pragma endregion
 
+#pragma region Revive System
+void UHealthComponent::ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		// Server has authority, apply damage immediately
+		ServerChangeReviveFriendStatus(bNewStatus, NewActor);
+	}
+	else
+	{
+		// Client-side call for server authority to change health
+		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority"), *GetOwner()->GetName());
+		ServerRPC_ChangeReviveFriendStatus(bNewStatus, NewActor);
+	}
+}
+
+void UHealthComponent::ServerRPC_ChangeReviveFriendStatus_Implementation(bool bNewStatus, AActor* NewActor)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		ServerChangeReviveFriendStatus(bNewStatus, NewActor);
+	}
+}
+
+void UHealthComponent::ServerChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor)
+{
+	bCanReviveFriend = bNewStatus;
+	ActorToRevive = NewActor;
+}
+#pragma endregion
