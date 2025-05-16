@@ -52,7 +52,7 @@ void UHealthSystemFunctions::Healing_Internal(float Heal, AActor* TargetActor)
 	}
 }
 
-void UHealthSystemFunctions::FreindCanRevive_Internal(AActor* TargetActor, bool bNewStatus, AActor* SelfRef)
+void UHealthSystemFunctions::FriendCanRevive_Internal(AActor* TargetActor, bool bNewStatus, AActor* SelfRef)
 {
 	if(TargetActor)
 	{

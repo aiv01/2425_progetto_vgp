@@ -28,5 +28,5 @@ public:
 
 	static void Healing_Internal(float Heal, AActor* TargetActor);
 
-	static void FreindCanRevive_Internal(AActor* TargetActor, bool bNewStatus, AActor* SelfRef);
+	static void FriendCanRevive_Internal(AActor* TargetActor, bool bNewStatus, AActor* SelfRef);
 };

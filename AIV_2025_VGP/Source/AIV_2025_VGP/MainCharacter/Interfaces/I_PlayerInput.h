@@ -40,4 +40,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
 	void ChangeWeapon(bool bForward);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void Revive();
 };

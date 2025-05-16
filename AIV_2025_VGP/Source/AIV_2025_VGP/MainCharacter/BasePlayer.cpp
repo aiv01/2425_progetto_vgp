@@ -123,5 +123,13 @@ void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 	}
 }
 
+void ABasePlayer::Revive_Implementation()
+{
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_Revive(this);
+	}
+}
+
 
 

@@ -189,8 +189,9 @@ void UHealthComponent::ChangeReviveFriendStatus(AActor* Target, bool bNewStatus,
 {
 	if (GetOwner()->HasAuthority())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasAutority"), *GetOwner()->GetName());
 		// Server has authority, apply damage immediately
-		UHealthSystemFunctions::FreindCanRevive_Internal(Target, bNewStatus, SelfRef);
+		UHealthSystemFunctions::FriendCanRevive_Internal(Target, bNewStatus, SelfRef);
 	}
 	else
 	{
@@ -202,6 +203,11 @@ void UHealthComponent::ChangeReviveFriendStatus(AActor* Target, bool bNewStatus,
 
 void UHealthComponent::ServerRPC_ChangeReviveFriendStatus_Implementation(AActor* Target, bool bNewStatus, AActor* SelfRef)
 {
-	UHealthSystemFunctions::FreindCanRevive_Internal(Target, bNewStatus, SelfRef);
+	UHealthSystemFunctions::FriendCanRevive_Internal(Target, bNewStatus, SelfRef);
+}
+
+void UHealthComponent::StopLandedTimer()
+{
+	DeathTimerHandle.Invalidate();
 }
 #pragma endregion
