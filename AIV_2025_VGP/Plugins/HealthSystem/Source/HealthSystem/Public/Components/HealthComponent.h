@@ -49,13 +49,19 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator );
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_HealToActor(float Heal, AActor* TargetActor, AActor* Instigator);
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void ChangeHealth(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	void MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator );
+	void MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void HealToActor(float Heal, AActor* TargetActor, AActor* Instigator);
 	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float GetPercentHealth() const;
@@ -86,15 +92,13 @@ private:
 	bool bCanReviveFriend = false;	
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
-
-	void ServerChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
+	void ServerRPC_ChangeReviveFriendStatus(AActor* Target, bool bNewStatus, AActor* SelfRef);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	AActor* ActorToRevive = nullptr;
 
 	UFUNCTION(BlueprintCallable, Category="Health")
-	void ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor);
+	void ChangeReviveFriendStatus(AActor* Target,bool bNewStatus, AActor* SelfRef);
 #pragma endregion
 };

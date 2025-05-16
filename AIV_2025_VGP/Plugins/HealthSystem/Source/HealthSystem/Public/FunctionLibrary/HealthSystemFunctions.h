@@ -25,4 +25,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "HealthSystem|Functions",
 	meta=(Tooltip="Use Positive Value In Heal"))
 	static void Healing(float Heal, AActor* TargetActor);
+
+	static void Healing_Internal(float Heal, AActor* TargetActor);
+
+	static void FreindCanRevive_Internal(AActor* TargetActor, bool bNewStatus, AActor* SelfRef);
 };

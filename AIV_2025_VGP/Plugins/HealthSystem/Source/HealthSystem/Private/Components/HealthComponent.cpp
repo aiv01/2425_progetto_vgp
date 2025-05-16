@@ -51,6 +51,7 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 }
 
 #pragma region Health System
+
 void UHealthComponent::ChangeHealth(float Delta)
 {
 	if (GetOwner()->HasAuthority())
@@ -87,8 +88,6 @@ void UHealthComponent::ServerChangeHealth(float Delta)
 	OnRep_Health(Delta);
 }
 
-
-
 void UHealthComponent::OnRep_Health(float OldHealth)
 {
 	float Delta = Health - OldHealth;
@@ -121,21 +120,42 @@ void UHealthComponent::MakeDamageToActor(float Damage, AActor* TargetActor, AAct
 
 	if(GetOwner()->HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority, Target: %s"), *GetOwner()->GetName(), *TargetActor->GetName());
 		UHealthSystemFunctions::MakeDamage_Internal(Damage, TargetActor);
 	}
 	else
 	{
 		// Client-side call for server authority to apply damage
-		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority, Target: %s"), *GetOwner()->GetName(), *TargetActor->GetName());
 		ServerRPC_MakeDamageToActor(Damage, TargetActor, Instigator);
 	}
 }
 
 void UHealthComponent::ServerRPC_MakeDamageToActor_Implementation(float Damage, AActor* TargetActor, AActor* Instigator)
 {
-	UE_LOG(LogTemp, Warning, TEXT("TargetOnServer: %s - Instigator: %s"), *TargetActor->GetName(), *Instigator->GetName());
 	UHealthSystemFunctions::MakeDamage_Internal(Damage, TargetActor);
+}
+
+void UHealthComponent::HealToActor(float Heal, AActor* TargetActor, AActor* Instigator)
+{
+	if(Heal <= 0 || TargetActor == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Error To Use Method"));
+		return;
+	}
+
+	if(GetOwner()->HasAuthority())
+	{
+		UHealthSystemFunctions::Healing_Internal(Heal, TargetActor);
+	}
+	else
+	{
+		// Client-side call for server authority to apply damage
+		ServerRPC_HealToActor(Heal, TargetActor, Instigator);
+	}
+}
+
+void UHealthComponent::ServerRPC_HealToActor_Implementation(float Heal, AActor* TargetActor, AActor* Instigator)
+{
+	UHealthSystemFunctions::Healing_Internal(Heal, TargetActor);
 }
 #pragma endregion
 
@@ -165,32 +185,23 @@ void UHealthComponent::OnChangeHealthCallback(AActor* Actor)
 #pragma endregion
 
 #pragma region Revive System
-void UHealthComponent::ChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor)
+void UHealthComponent::ChangeReviveFriendStatus(AActor* Target, bool bNewStatus, AActor* SelfRef)
 {
 	if (GetOwner()->HasAuthority())
 	{
 		// Server has authority, apply damage immediately
-		ServerChangeReviveFriendStatus(bNewStatus, NewActor);
+		UHealthSystemFunctions::FreindCanRevive_Internal(Target, bNewStatus, SelfRef);
 	}
 	else
 	{
 		// Client-side call for server authority to change health
 		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority"), *GetOwner()->GetName());
-		ServerRPC_ChangeReviveFriendStatus(bNewStatus, NewActor);
+		ServerRPC_ChangeReviveFriendStatus(Target, bNewStatus, SelfRef);
 	}
 }
 
-void UHealthComponent::ServerRPC_ChangeReviveFriendStatus_Implementation(bool bNewStatus, AActor* NewActor)
+void UHealthComponent::ServerRPC_ChangeReviveFriendStatus_Implementation(AActor* Target, bool bNewStatus, AActor* SelfRef)
 {
-	if (GetOwner()->HasAuthority())
-	{
-		ServerChangeReviveFriendStatus(bNewStatus, NewActor);
-	}
-}
-
-void UHealthComponent::ServerChangeReviveFriendStatus(bool bNewStatus, AActor* NewActor)
-{
-	bCanReviveFriend = bNewStatus;
-	ActorToRevive = NewActor;
+	UHealthSystemFunctions::FreindCanRevive_Internal(Target, bNewStatus, SelfRef);
 }
 #pragma endregion
