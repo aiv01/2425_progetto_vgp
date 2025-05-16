@@ -18,8 +18,10 @@ class HEALTHSYSTEM_API UHealthSystemFunctions : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "HealthSystem|Functions",
 		meta=(Tooltip="Use Positive Value In Damage"))
-	static void MakeDamage(float Damage, AActor* TargetActor);
+	static void MakeDamage(float Damage, AActor* TargetActor );
 
+	static void MakeDamage_Internal(float Damage, AActor* TargetActor);
+	
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "HealthSystem|Functions",
 	meta=(Tooltip="Use Positive Value In Heal"))
 	static void Healing(float Heal, AActor* TargetActor);

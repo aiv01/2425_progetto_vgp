@@ -3,6 +3,7 @@
 
 #include "Components/HealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "FunctionLibrary/HealthSystemFunctions.h"
 
 UHealthComponent::UHealthComponent()
 {
@@ -86,6 +87,8 @@ void UHealthComponent::ServerChangeHealth(float Delta)
 	OnRep_Health(Delta);
 }
 
+
+
 void UHealthComponent::OnRep_Health(float OldHealth)
 {
 	float Delta = Health - OldHealth;
@@ -106,6 +109,33 @@ float UHealthComponent::GetPercentHealth() const
 {
 	// Returns health as a percentage of max health
 	return Health / MaxHealth;
+}
+
+void UHealthComponent::MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator)
+{
+	if(Damage <= 0 || TargetActor == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Error To Use Method"));
+		return;
+	}
+
+	if(GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority, Target: %s"), *GetOwner()->GetName(), *TargetActor->GetName());
+		UHealthSystemFunctions::MakeDamage_Internal(Damage, TargetActor);
+	}
+	else
+	{
+		// Client-side call for server authority to apply damage
+		UE_LOG(LogTemp, Warning, TEXT("Client: %s, HasNoAutority, Target: %s"), *GetOwner()->GetName(), *TargetActor->GetName());
+		ServerRPC_MakeDamageToActor(Damage, TargetActor, Instigator);
+	}
+}
+
+void UHealthComponent::ServerRPC_MakeDamageToActor_Implementation(float Damage, AActor* TargetActor, AActor* Instigator)
+{
+	UE_LOG(LogTemp, Warning, TEXT("TargetOnServer: %s - Instigator: %s"), *TargetActor->GetName(), *Instigator->GetName());
+	UHealthSystemFunctions::MakeDamage_Internal(Damage, TargetActor);
 }
 #pragma endregion
 

@@ -6,6 +6,11 @@
 
 void UHealthSystemFunctions::MakeDamage(float Damage, AActor* TargetActor)
 {
+	MakeDamage_Internal(Damage, TargetActor);
+}
+
+void UHealthSystemFunctions::MakeDamage_Internal(float Damage, AActor* TargetActor)
+{
 	if(Damage <= 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Damage Must Be Positive"));
@@ -17,8 +22,7 @@ void UHealthSystemFunctions::MakeDamage(float Damage, AActor* TargetActor)
 	if(TargetActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Target Called"));
-		II_HealthInterface* HealthInterface = Cast<II_HealthInterface>(TargetActor);
-		if(HealthInterface)
+		if (TargetActor->GetClass()->ImplementsInterface(UI_HealthInterface::StaticClass()))
 		{
 			II_HealthInterface::Execute_I_SetHealth(TargetActor, Damage);
 		}

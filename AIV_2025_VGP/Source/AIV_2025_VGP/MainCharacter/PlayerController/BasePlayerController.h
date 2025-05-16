@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "../BasePlayer.h"
 
 #include "BasePlayerController.generated.h"
 
@@ -62,5 +63,7 @@ private:
 
 public:
 	ABasePlayerController(const FObjectInitializer& ObjectInitializer);
+	UFUNCTION(BlueprintCallable)
+	TArray<ABasePlayer*> GetAllBasePlayers() const;
 #pragma endregion Functions
 };

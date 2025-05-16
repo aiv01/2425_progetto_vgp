@@ -47,17 +47,15 @@ protected:
 
 	void ServerChangeHealth(float Delta);
 
-	UFUNCTION()
-	void OnLandedCallback();
-	UFUNCTION()
-	void OnDeathCallback();
-	UFUNCTION()
-	void OnChangeHealthCallback(AActor* Actor);
-
-	FTimerHandle DeathTimerHandle;
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator );
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void ChangeHealth(float Delta);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator );
 	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float GetPercentHealth() const;
@@ -70,7 +68,18 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
 	FOnChangeHealth OnChangeHealth;
-
+	
+#pragma region Callbacks
+protected:
+	UFUNCTION()
+	void OnLandedCallback();
+	UFUNCTION()
+	void OnDeathCallback();
+	UFUNCTION()
+	void OnChangeHealthCallback(AActor* Actor);
+	FTimerHandle DeathTimerHandle;
+#pragma endregion
+	
 #pragma region Revive System
 private:
 	UPROPERTY(Replicated)

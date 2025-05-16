@@ -26,4 +26,5 @@ public:
 	void I_SetHealth(float Delta);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
 	void I_FriendCanRevive(bool bIsInRange, AActor* Actor);
+
 };

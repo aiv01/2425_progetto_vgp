@@ -7,11 +7,29 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "../Interfaces/I_PlayerInput.h"
+#include "Kismet/GameplayStatics.h"
 
 ABasePlayerController::ABasePlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	FindInputActions();
+}
+
+TArray<ABasePlayer*> ABasePlayerController::GetAllBasePlayers() const
+{
+		TArray<AActor*> TempActor;
+		TArray<ABasePlayer*> BasePlayers;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABasePlayer::StaticClass(), TempActor);
+		for (auto Actor : TempActor)
+		{
+			if(Actor == GetOwner())
+			{
+				continue;
+			}
+			// Cast the actor to ABasePlayer and add it to the array
+			BasePlayers.Add(Cast<ABasePlayer>(Actor));
+		}
+		return BasePlayers;
 }
 
 void ABasePlayerController::FindInputActions()
