@@ -14,6 +14,7 @@ ABasePlayerController::ABasePlayerController(const FObjectInitializer& ObjectIni
 	: Super(ObjectInitializer)
 {
 	FindInputActions();
+	
 }
 
 TArray<AActor*> ABasePlayerController::GetAllBasePlayers() const

@@ -15,4 +15,5 @@ class AIV_2025_VGP_API AGM_AIV_2025_VGP : public AGameMode
 	GENERATED_BODY()
 public:
 	AGM_AIV_2025_VGP();
+	
 };
