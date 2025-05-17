@@ -12,14 +12,14 @@ UHealthComponent::UHealthComponent()
 
 	// Default maximum health value
 	MaxHealth = 100.f;
+	
+	// Enables replication for the component
+	SetIsReplicatedByDefault(true);
 }
 
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Enables replication for the component
-	SetIsReplicatedByDefault(true);
 
 	// Initialize current health to maximum
 	Health = MaxHealth;
