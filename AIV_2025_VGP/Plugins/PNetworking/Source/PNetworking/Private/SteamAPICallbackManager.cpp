@@ -22,4 +22,5 @@ void SteamAPICallbackManager::OnImageAvatarLoadedCallback(AvatarImageLoaded_t* c
 	OnAvatarReadyDelegateLocalUser.ExecuteIfBound(callback);
 	OnAvatarReadyDelegateFriendList.ExecuteIfBound(callback);
 	OnAvatarReadyFriendListData.ExecuteIfBound(callback);
+	OnAvatarReadyFriendRequested.ExecuteIfBound(callback);
 }
