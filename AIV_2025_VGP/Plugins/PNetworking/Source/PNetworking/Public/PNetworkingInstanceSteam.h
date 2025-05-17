@@ -73,6 +73,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	bool GetAppID(FString& AppID);
 
+	/// <summary>
+	/// Get LocalCSteamID converted into int32 to be used in blueprint.
+	/// </summary>
+	/// <param name="OutSteamID"> Out converted CSteamID. </param>
+	/// <returns> Returns true if the operation was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
 	bool GetLocalCSteamID(int32& OutSteamID);
 
@@ -105,6 +110,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	FString GetUsernameFromSteamID(const int32 SteamID);
 
+	/// <summary>
+	/// Get Friend Avatar from SteamID.
+	/// </summary>
+	/// <param name="SteamID"> CSteamID to get Avatar from. It is int32 type in order to be used in blueprints. </param>
+	/// <param name="Callback"> Fired when the search and data retreive is completed. </param>
+	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	int32 GetAvatarFromSteamID(const int32 SteamID, const FOnRequestedFriendAvatarReady& Callback);
 
