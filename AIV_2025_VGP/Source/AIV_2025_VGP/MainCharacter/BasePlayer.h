@@ -7,7 +7,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/I_PlayerInput.h"
-#include "Interfaces/I_HealthSystem.h"
 #include "Logging/LogMacros.h"
 #include "BasePlayer.generated.h"
 
@@ -20,7 +19,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class ABasePlayer : public ACharacter, public II_PlayerInput, public II_HealthSystem
+class ABasePlayer : public ACharacter, public II_PlayerInput
 {
 	GENERATED_BODY()
 
@@ -40,9 +39,8 @@ public:
 	virtual void PrimaryAttack_Implementation() override;
 	virtual void SecondaryAttack_Implementation() override;
 	virtual void ChangeWeapon_Implementation(bool bForward) override;
+	virtual void Revive_Implementation() override;
 
-	virtual void IAddHealth_Implementation(float Amount) override;
-	virtual void IRemoveHealth_Implementation(float Amount) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* MontageToPlay;

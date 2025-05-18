@@ -37,6 +37,7 @@ public:
 	FOnAvatarReadyFromSteamAPI OnAvatarReadyDelegateLocalUser;
 	FOnAvatarReadyFromSteamAPI OnAvatarReadyDelegateFriendList;
 	FOnAvatarReadyFromSteamAPI OnAvatarReadyFriendListData;
+	FOnAvatarReadyFromSteamAPI OnAvatarReadyFriendRequested;
 
 	SteamAPICallbackManager();
 	~SteamAPICallbackManager();

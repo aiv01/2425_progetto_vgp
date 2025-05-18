@@ -101,6 +101,26 @@ bool UPNetworkingInstanceSteam::GetAppID(FString& AppID)
 	return true;
 }
 
+bool UPNetworkingInstanceSteam::GetLocalCSteamID(int32& OutSteamID)
+{
+	ISteamUser* SteamUserInterface = SteamUser();
+	if (!SteamUserInterface)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetLocalCSteamID: SteamUserInterface steamwork_sdk not valid!"));
+		return false;
+	}
+
+	const CSteamID RequestedSteamID = SteamUserInterface->GetSteamID();
+	if (!RequestedSteamID.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetLocalCSteamID: Obtained CSteamID not valid!"));
+		return false;
+	}
+
+	OutSteamID = static_cast<int32>(RequestedSteamID.GetAccountID());
+	return true;
+}
+
 bool UPNetworkingInstanceSteam::GetAccountName(FString& AccountName, const int32 UserID)
 {
 	IOnlineSubsystem* OnlineSubsystemPtr = FPNetworkingModule::GetOnlineSubsystemPointer();
@@ -156,6 +176,23 @@ FString UPNetworkingInstanceSteam::GetUsernameFromSteamID(const int32 SteamID)
 	}
 
 	return FString(SteamFriendsInterface->GetFriendPersonaName(RealSteamID));
+}
+
+int32 UPNetworkingInstanceSteam::GetAvatarFromSteamID(const int32 SteamID, const FOnRequestedFriendAvatarReady& Callback)
+{
+	if (!FPNetworkingModule::IsOnlineAvailable())
+	{
+		return 0;
+	}
+
+	CSteamID TargetFriendID = ConvertInt32toCSteamID(SteamID);
+	if (!TargetFriendID.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetAvatarFromSteamID: CSteamID not valid!"));
+		return 0;
+	}
+
+	return GetRequestedFriendAvatarRecursive(TargetFriendID, MakeShared<FOnRequestedFriendAvatarReady>(Callback));
 }
 
 bool UPNetworkingInstanceSteam::GetOnlineFriendListNames(const FOnFriendsListReady& Callback, const int32 LocalUserNum)
@@ -976,6 +1013,67 @@ int32 UPNetworkingInstanceSteam::GetLocalUserAvatarRecursive(TSharedPtr<FOnLocal
 							{
 								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("GetLocalUserAvatarRecursive: Callback AvatarImageLoaded ready from SteamAPI!"));
 								UPNetworkingInstanceSteam::GetUniqueInstance()->GetLocalUserAvatarRecursive(Callback);
+							}
+						);
+					}
+				}
+			);
+		}
+		else
+		{
+			return 0;
+		}
+
+		return -1;
+	}
+	else
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int32 UPNetworkingInstanceSteam::GetRequestedFriendAvatarRecursive(const CSteamID SteamID, TSharedPtr<FOnRequestedFriendAvatarReady> Callback)
+{
+	int32 QueryResult = 0;
+	
+	UTexture2D* RequestedFriendAvatar;
+	RequestedFriendAvatar = GetAvatar(SteamID, QueryResult);
+
+	if (RequestedFriendAvatar != nullptr && QueryResult == 1)
+	{
+		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
+		{
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendRequested.Unbind();
+		}
+		else
+		{
+			return 0;
+		}
+
+		if (RequestedFriendAvatar && Callback.IsValid())
+		{
+			Callback->ExecuteIfBound(RequestedFriendAvatar);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else if (RequestedFriendAvatar == nullptr && QueryResult == -1)
+	{
+		if (FPNetworkingModule::GetSteamAPIManager().IsValid())
+		{
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendRequested.Unbind();
+			FPNetworkingModule::GetSteamAPIManager()->OnAvatarReadyFriendRequested.BindLambda([SteamID, Callback](AvatarImageLoaded_t* pCallback)
+				{
+					if (pCallback)
+					{
+						AsyncTask(ENamedThreads::GameThread, [SteamID, Callback]()
+							{
+								UE_LOG(LogSteamNetworkingPlugin, Warning, TEXT("GetRequestedFriendAvatarRecursive: Callback AvatarImageLoaded ready from SteamAPI!"));
+								UPNetworkingInstanceSteam::GetUniqueInstance()->GetRequestedFriendAvatarRecursive(SteamID, Callback);
 							}
 						);
 					}

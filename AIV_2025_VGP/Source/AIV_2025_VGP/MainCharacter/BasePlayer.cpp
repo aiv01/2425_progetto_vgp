@@ -10,6 +10,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/GameModeBase.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -123,19 +125,13 @@ void ABasePlayer::ChangeWeapon_Implementation(bool bForward)
 	}
 }
 
-void ABasePlayer::IAddHealth_Implementation(float Amount)
+void ABasePlayer::Revive_Implementation()
 {
-	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		Execute_IAddHealth(this, Amount);
+		Execute_Revive(this);
 	}
 }
-void ABasePlayer::IRemoveHealth_Implementation(float Amount)
-{
-	if (GetClass()->ImplementsInterface(UI_HealthSystem::StaticClass()))
-	{
-		Execute_IRemoveHealth(this, Amount);
-	}
-}
+
 
 

@@ -7,13 +7,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
-
 #include "BasePlayerController.generated.h"
-
 UCLASS()
 class AIV_2025_VGP_API ABasePlayerController : public APlayerController
 {
@@ -23,24 +20,27 @@ class AIV_2025_VGP_API ABasePlayerController : public APlayerController
 private:
 	UPROPERTY()
 	UInputMappingContext* IMC_MainCharacter;
-
+	
 	UPROPERTY()
 	UInputAction* IA_CstmJump;
-
+	
 	UPROPERTY()
 	UInputAction* IA_CstmMove;
-
+	
 	UPROPERTY()
 	UInputAction* IA_CstmLook;
-
+	
 	UPROPERTY()
 	UInputAction* IA_CstmPrimaryAttack;
-
+	
 	UPROPERTY()
 	UInputAction* IA_CstmSecondaryAttack;
 	
 	UPROPERTY()
 	UInputAction* IA_CstmChangeWeapon;
+	
+	UPROPERTY()
+	UInputAction* IA_CstmRevive;
 #pragma endregion Properties
 
 #pragma region Functions
@@ -56,11 +56,14 @@ private:
 	void SecondaryAttack();
 	void Jump();
 	void ChangeWeapon(const FInputActionValue& Value);
+	void Revive();
 
 	//Init function
 	void FindInputActions();
 
 public:
-	ABasePlayerController();
+	ABasePlayerController(const FObjectInitializer& ObjectInitializer);
+	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> GetAllBasePlayers() const;
 #pragma endregion Functions
 };

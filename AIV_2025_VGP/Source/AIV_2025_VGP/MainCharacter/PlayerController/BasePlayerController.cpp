@@ -7,10 +7,21 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "../Interfaces/I_PlayerInput.h"
+#include "Kismet/GameplayStatics.h"
+#include "../BasePlayer.h"
 
-ABasePlayerController::ABasePlayerController()
+ABasePlayerController::ABasePlayerController(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	FindInputActions();
+	
+}
+
+TArray<AActor*> ABasePlayerController::GetAllBasePlayers() const
+{
+		TArray<AActor*> AllBasePlayer;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABasePlayer::StaticClass(), AllBasePlayer);
+		return AllBasePlayer;
 }
 
 void ABasePlayerController::FindInputActions()
@@ -22,6 +33,7 @@ void ABasePlayerController::FindInputActions()
 	static ConstructorHelpers::FObjectFinder<UInputAction> PrimaryAttackActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmPrimaryAttack.IA_CstmPrimaryAttack"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> ChangeWeaponActionAsset(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmChangeWeapon.IA_CstmChangeWeapon"));
 	static ConstructorHelpers::FObjectFinder<UInputAction> SecondaryAttackActionAssets(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmSecondaryAttack.IA_CstmSecondaryAttack"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> ReviveActionAssets(TEXT("/Game/Custom/Characters/MainCharacter/Inputs/IA_CstmRevive.IA_CstmRevive"));
 	
 	if (IMC_MainCharacterAsset.Succeeded())
 	{
@@ -50,6 +62,10 @@ void ABasePlayerController::FindInputActions()
 	if (SecondaryAttackActionAssets.Succeeded())
 	{
 		IA_CstmSecondaryAttack = SecondaryAttackActionAssets.Object;
+	}
+	if(ReviveActionAssets.Succeeded())
+	{
+		IA_CstmRevive = ReviveActionAssets.Object;
 	}
 }
 
@@ -101,6 +117,10 @@ void ABasePlayerController::SetupInputComponent()
 		{
 			EnhancedInput->BindAction(IA_CstmSecondaryAttack, ETriggerEvent::Triggered, this, &ABasePlayerController::SecondaryAttack);
 		}
+		if(IA_CstmRevive)
+		{
+			EnhancedInput->BindAction(IA_CstmRevive, ETriggerEvent::Started, this, &ABasePlayerController::Revive);
+		}
 	}
 }
 
@@ -151,6 +171,14 @@ void ABasePlayerController::ChangeWeapon(const FInputActionValue& Value)
 	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
 	{
 		ControlledPawn->ChangeWeapon_Implementation(bForward);
+	}
+}
+
+void ABasePlayerController::Revive()
+{
+	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
+	{
+		ControlledPawn->Revive_Implementation();
 	}
 }
 

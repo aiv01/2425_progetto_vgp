@@ -29,6 +29,7 @@ enum ELocalSessionState : uint8;
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLocalAvatarReady, const UTexture2D*, LocalAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, FriendsListNames);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnRequestedFriendAvatarReady, const UTexture2D*, RequestedFriendAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
 
 #pragma endregion
@@ -73,6 +74,14 @@ public:
 	bool GetAppID(FString& AppID);
 
 	/// <summary>
+	/// Get LocalCSteamID converted into int32 to be used in blueprint.
+	/// </summary>
+	/// <param name="OutSteamID"> Out converted CSteamID. </param>
+	/// <returns> Returns true if the operation was successfull. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem local user functions")
+	bool GetLocalCSteamID(int32& OutSteamID);
+
+	/// <summary>
 	/// Get local Steam account name.
 	/// </summary>
 	/// <param name="AccountName"> Out AccountName in FString type. </param>
@@ -100,6 +109,15 @@ public:
 	/// <returns> Steam username of specified SteamID, or "" if not found/invalid. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
 	FString GetUsernameFromSteamID(const int32 SteamID);
+
+	/// <summary>
+	/// Get Friend Avatar from SteamID.
+	/// </summary>
+	/// <param name="SteamID"> CSteamID to get Avatar from. It is int32 type in order to be used in blueprints. </param>
+	/// <param name="Callback"> Fired when the search and data retreive is completed. </param>
+	/// <returns> int32 flag. 0 means error, 1 means result correct, -1 means in loading waiting for STEAMAPI. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem friendlist utility functions")
+	int32 GetAvatarFromSteamID(const int32 SteamID, const FOnRequestedFriendAvatarReady& Callback);
 
 	/// <summary>
 	/// Get all online friends names of specified user.
@@ -267,6 +285,7 @@ private:
 
 	// Recursive async callbacks on GameThread. Used to get avatars from async STEAMWORKS_API sdk.
 	int32 GetLocalUserAvatarRecursive(TSharedPtr<FOnLocalAvatarReady> Callback);
+	int32 GetRequestedFriendAvatarRecursive(const CSteamID SteamID, TSharedPtr<FOnRequestedFriendAvatarReady> Callback);
 	int32 GetFriendsAvatarRecursive(TSharedPtr<FOnFriendsAvatarReady> Callback);
 	int32 GetPlayerDataRecursive(const bool bAlphabeticalSort, TSharedPtr<FOnFriendsDataReady> Callback);
 

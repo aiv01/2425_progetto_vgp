@@ -1,0 +1,107 @@
+// Fabrizio Conni
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "HealthComponent.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLanded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeHealth, AActor*, Actor);
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class HEALTHSYSTEM_API UHealthComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	// Sets default values for this component's properties
+	UHealthComponent();
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", ReplicatedUsing=OnRep_Health)
+	float Health;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float MaxHealth;
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION()
+	void OnRep_Health(float OldHealth);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ChangeHealth(float Delta);
+
+	void ServerChangeHealth(float Delta);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator );
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_HealToActor(float Heal, AActor* TargetActor, AActor* Instigator);
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void ChangeHealth(float Delta);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void MakeDamageToActor(float Damage, AActor* TargetActor, AActor* Instigator);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void HealToActor(float Heal, AActor* TargetActor, AActor* Instigator);
+	
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetPercentHealth() const;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnChangeHealth OnChangeHealth;
+	
+#pragma region Callbacks
+protected:
+	UFUNCTION()
+	void OnLandedCallback();
+
+	UFUNCTION()
+	void OnDeathCallback();
+	
+	UFUNCTION()
+	void OnChangeHealthCallback(AActor* Actor);
+
+	FTimerHandle DeathTimerHandle;
+#pragma endregion
+	
+#pragma region Revive System
+private:
+	UPROPERTY(Replicated)
+	bool bCanReviveFriend = false;	
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ChangeReviveFriendStatus(AActor* Target, bool bNewStatus, AActor* SelfRef);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float LandedTimer = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	bool bCanRevive = false;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Health")
+	FOnLanded OnLanded;
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void ChangeReviveFriendStatus(AActor* Target,bool bNewStatus, AActor* SelfRef);
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void StopLandedTimer();
+#pragma endregion
+};
