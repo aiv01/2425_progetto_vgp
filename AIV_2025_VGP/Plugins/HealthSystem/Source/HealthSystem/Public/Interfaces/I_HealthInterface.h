@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Fabrizio Conni
 
 #pragma once
 
@@ -13,9 +13,6 @@ class UI_HealthInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class HEALTHSYSTEM_API II_HealthInterface
 {
 	GENERATED_BODY()

@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Fabrizio Conni
 
 #include "Interfaces/I_HealthInterface.h"

@@ -1,15 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Fabrizio Conni
 
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "HealthSystemFunctions.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class HEALTHSYSTEM_API UHealthSystemFunctions : public UBlueprintFunctionLibrary
 {
