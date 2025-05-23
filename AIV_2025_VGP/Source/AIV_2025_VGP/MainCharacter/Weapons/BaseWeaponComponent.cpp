@@ -97,6 +97,7 @@ void UBaseWeaponComponent::AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon)
 	{
 		Weapons.Add(SpawnedWeapon);
 		SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+		SpawnedWeapon->SetOwner(GetOwner());
 		SpawnedWeapon->SetActorHiddenInGame(true);
 	}
 }

@@ -8,7 +8,7 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
-void UPC_MeleeStrategy::Execute()
+void UPC_MeleeStrategy::Execute(AActor* Executor)
 {
 	if (CanAttack())
 	{ 

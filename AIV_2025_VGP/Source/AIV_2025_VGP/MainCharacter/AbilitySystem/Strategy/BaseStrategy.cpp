@@ -5,4 +5,8 @@
 
 #include "BaseStrategy.h"
 
-void UBaseStrategy::Execute() {}
+void UBaseStrategy::Execute(AActor* Executor) {}
+
+void UBaseStrategy::Execute()
+{
+}

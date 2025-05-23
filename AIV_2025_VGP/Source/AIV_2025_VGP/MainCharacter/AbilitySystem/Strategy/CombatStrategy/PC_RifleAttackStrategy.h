@@ -21,5 +21,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
 	UAnimMontage* MontageToPlay;
 	
-	virtual void Execute() override;
+	virtual void Execute(AActor* Executor) override;
 };

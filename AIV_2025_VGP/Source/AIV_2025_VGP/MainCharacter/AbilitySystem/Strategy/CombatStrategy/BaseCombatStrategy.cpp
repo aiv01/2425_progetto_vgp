@@ -16,6 +16,6 @@ bool UBaseCombatStrategy::CanAttack()
 	return false;
 }
 
-void UBaseCombatStrategy::Execute()
+void UBaseCombatStrategy::Execute(AActor* Executor)
 {
 }

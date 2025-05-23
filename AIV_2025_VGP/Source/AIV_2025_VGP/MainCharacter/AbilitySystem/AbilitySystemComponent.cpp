@@ -37,7 +37,7 @@ void UAbilitySystemComponent::ExecuteStrategy(FName StrategyName)
 			if (StrategyInterface)
 			{
 				//UE_LOG(LogStrategy, Log, TEXT("StrategyComponent: Eseguendo la strategia %s"), *StrategyInstance->GetName());
-				StrategyInterface->Execute();
+				StrategyInterface->Execute(GetOwner());
 			}
 		}
 		else
