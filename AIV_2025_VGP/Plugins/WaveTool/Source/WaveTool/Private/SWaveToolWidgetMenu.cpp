@@ -15,79 +15,99 @@
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 {
-
-	//The issue is that your widget isn't assigning its UI tree to its root slot. 
-	// In Slate (when subclassing SCompoundWidget), you must wrap your UI in a ChildSlot
+	GenerateDataTableWidget();
+	WidgetTab = EWidgetTab::WaveContainers;
 	ChildSlot
 	[
-		SNew(SHorizontalBox) + SHorizontalBox::Slot()
-		[
-			SNew(SBorder)
-            .BorderBackgroundColor(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f))
+		SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight()
 			[
-				SNew(SVerticalBox) + SVerticalBox::Slot()
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.VAlign(EVerticalAlignment::VAlign_Center).AutoHeight()
-				[
-					SNew(SBorder)
-						.BorderBackgroundColor(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f))
-						.HAlign(EHorizontalAlignment::HAlign_Center)
-						.VAlign(EVerticalAlignment::VAlign_Center)
-						[
-							SNew(SHorizontalBox) + SHorizontalBox::Slot().HAlign(EHorizontalAlignment::HAlign_Center)
-								.VAlign(EVerticalAlignment::VAlign_Center).AutoWidth().Padding(10, 0)
-								[
-									SNew(STextBlock).Text(FText::FromString(TEXT("Create new Wave Data Asset")))
-								]
-								+ SHorizontalBox::Slot()
-								[
-									SNew(SButton)
-										.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave Container")))
-										.OnClicked(this, &SWaveToolWidgetMenu::OnWaveContainerPlusButtonClicked)
-								]
-						]
-				]
-					+ SVerticalBox::Slot()
-				[
-					SAssignNew(PropertyList, SVerticalBox)	//don't even think i need this anymore
-				]
-			]	
-		]
-		/*
-		+ SHorizontalBox::Slot()
-		[
-			SNew(SBorder)
-                .BorderBackgroundColor(FLinearColor(1.0f, 0.0f, 0.5f, 1.0f))
-                .HAlign(EHorizontalAlignment::HAlign_Center)
-                .VAlign(EVerticalAlignment::VAlign_Center)
-			[
-				SNew(SVerticalBox) + SVerticalBox::Slot().AutoHeight()
-				[
-					SNew(SHorizontalBox) + SHorizontalBox::Slot().AutoWidth()
+				SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot().AutoWidth()
 					[
-						SNew(STextBlock).Text(FText::FromString(TEXT("Wave Data Asset")))
+						SNew(SBox).HAlign(EHorizontalAlignment::HAlign_Left).Padding(0, 6)
+							[
+								SNew(SButton).Text(FText::FromString(TEXT("DataWave Containers")))
+									.OnClicked_Lambda([this]
+										{
+											WidgetTab = EWidgetTab::WaveContainers;
+											return FReply::Handled();
+										})
+							]
 					]
-					+ SHorizontalBox::Slot()
+					+ SHorizontalBox::Slot().AutoWidth()
 					[
-						SNew(SClassPropertyEntryBox)
-							.MetaClass(UPDataWaveContainer::StaticClass())
-							//.MetaClass(UPDataWaveContainer::)
-							.SelectedClass_Lambda([this] { return WManagerDataWaveContainer; })
-							.AllowNone(true)
-							.OnSetClass_Lambda([this](const UClass* NewClass) {
-							if (NewClass && NewClass->IsChildOf(UPDataWaveContainer::StaticClass()))
-							{
-								WManagerDataWaveContainer = const_cast<UClass*>(NewClass);
-								UE_LOG(LogTemp, Log, TEXT("Selected Wave Container Class: %s"), *NewClass->GetName());
-							}
-							})
+						SNew(SBox).HAlign(EHorizontalAlignment::HAlign_Left).Padding(0, 6)
+							[
+								SNew(SButton).Text(FText::FromString(TEXT("Wave Managers"))).HAlign(EHorizontalAlignment::HAlign_Center)
+									.OnClicked_Lambda([this]
+										{
+											WidgetTab = EWidgetTab::WaveManagers;
+											return FReply::Handled();
+										})
+							]
 					]
-				]
 			]
-		]
-		*/
+			+ SVerticalBox::Slot()
+			[
+				SNew(SBorder)
+					.Visibility_Lambda([this]
+						{
+							return (WidgetTab == EWidgetTab::WaveContainers) ? EVisibility::Visible : EVisibility::Collapsed;
+						})
+					[
+						SNew(SVerticalBox) + SVerticalBox::Slot()
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.VAlign(EVerticalAlignment::VAlign_Center).AutoHeight()
+							[
+								SNew(SBorder)
+									.HAlign(EHorizontalAlignment::HAlign_Center)
+									.VAlign(EVerticalAlignment::VAlign_Center)
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											.HAlign(EHorizontalAlignment::HAlign_Center)
+											.VAlign(EVerticalAlignment::VAlign_Center)
+											.AutoWidth()
+											.Padding(10, 0)
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Create new Wave Data Asset")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SButton)
+													.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave Container")))
+													.OnClicked_Lambda([this]()
+														{
+															auto container = NewObject<UPDataWaveContainer>();
+															SaveWaveDataAsset(container);
+															RefreshDisplayedDataAssets();
+
+															return FReply::Handled();
+														})
+											]
+									]
+							]
+							+ SVerticalBox::Slot()
+							[
+								SNew(STreeView<TSharedPtr<FBaseTreeNode>>)
+									.TreeItemsSource(&RootNodes)
+									.OnGenerateRow(this, &SWaveToolWidgetMenu::OnGenerateRow)
+									.OnGetChildren(this, &SWaveToolWidgetMenu::OnGetChildren)
+							]
+					]
+			]
+			+ SVerticalBox::Slot()
+			[
+				SNew(SBorder).Visibility_Lambda([this]
+					{
+						return (WidgetTab == EWidgetTab::WaveContainers) ? EVisibility::Collapsed : EVisibility::Visible;
+					})
+					[
+						SNew(STextBlock).Text(FText::FromString(TEXT("awawa")))
+					]
+			]
 	];
-	GenerateDataTableWidget();
 	// ENUM DROP DOWN MENU STUFF //
 	EnemyTypes.Add(MakeShared<EEnemyTypes>(EEnemyTypes::Melee));
 	EnemyTypes.Add(MakeShared<EEnemyTypes>(EEnemyTypes::Ranged));
@@ -110,21 +130,6 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 void SWaveToolWidgetMenu::GenerateDataTableWidget()
 {
 	DataWaveContainersArray = GetDataWaveContainersFromPaths();
-	if (!PropertyList.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PropertyList is not valid"));
-		return;
-	}
-
-	if (DataWaveContainersArray.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No DataWaveContainers found"));
-		PropertyList->AddSlot()
-		[
-			SNew(STextBlock).Text(FText::FromString(TEXT("No DataWaveContainers found")))
-		];
-		return;
-	}
 	int32 l = 0;
 	// Transfer data from the array of AssetDataWaveContainers to my custom struct
 	TArray<TArray<TSharedPtr<FWaveContainerNode>>> RootNodesContainer;
@@ -164,15 +169,6 @@ void SWaveToolWidgetMenu::GenerateDataTableWidget()
 		WaveContainerNodes.Add(waveContainerNode);
 		RootNodes.Add(waveContainerNode);
 	}
-
-	// Display the data
-	PropertyList->AddSlot()
-	[
-		SNew(STreeView<TSharedPtr<FBaseTreeNode>>)
-			.TreeItemsSource(&RootNodes)
-			.OnGenerateRow(this, &SWaveToolWidgetMenu::OnGenerateRow)
-			.OnGetChildren(this, &SWaveToolWidgetMenu::OnGetChildren)
-	];
 }
 
 TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNode> InItem, const TSharedRef<STableViewBase>& OwnerTable)
@@ -202,16 +198,35 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 								SNew(SEditableTextBox)
 									.OnTextChanged_Lambda([this, containerIndex](const FText& NewText)
 										{
-											OnWaveContainerNameChanged(NewText, containerIndex);
+											FString name = PackageTools::SanitizePackageName(NewText.ToString());
+											WaveContainerNodes[containerIndex]->WaveContainerName = name;
 										})
-									.Text(GetWaveContainerNameEditableText(containerIndex))
+									.Text_Lambda([this, containerIndex]()
+										{
+											return FText::FromString(WaveContainerNodes[containerIndex]->WaveContainerName);
+										})
 							]
 						]
 						+ SHorizontalBox::Slot().AutoWidth().Padding(FMargin(10, 0))
 						[
 							SNew(SButton)
-								.Text(FText::FromString(TEXT("-"))).ToolTipText(FText::FromString(TEXT("Remove Wave Container")))
-								.OnClicked(this, &SWaveToolWidgetMenu::OnMinusButtonPressed, ContainerNode->WaveContainerName)
+								.Text(FText::FromString(TEXT("-")))
+								.ToolTipText(FText::FromString(TEXT("Remove Wave Container")))
+								.OnClicked_Lambda([this, ContainerNode]()
+									{
+										bool bDeleted = DeleteDataAsset(ContainerNode->WaveContainerName);
+
+										RefreshDisplayedDataAssets();
+
+										if (bDeleted)
+										{
+											return FReply::Handled();
+										}
+										else
+										{
+											return FReply::Unhandled();
+										}
+									})
 						]
 				]
 				+ SVerticalBox::Slot()
@@ -225,9 +240,12 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 						SNew(SEditableTextBox)
 							.OnTextChanged_Lambda([this, containerIndex](const FText& NewText)
 								{
-									OnWaveContainerDescriptionChanged(NewText, containerIndex);
+									WaveContainerNodes[containerIndex]->ContainerDescription = NewText.ToString();
 								})
-							.Text(GetWaveContainerDescriptionEditableText(containerIndex))
+							.Text_Lambda([this, containerIndex]()
+								{
+									return FText::FromString(WaveContainerNodes[containerIndex]->ContainerDescription);
+								})
 					]
 				]
 				+ SVerticalBox::Slot()
@@ -244,8 +262,14 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 					[
 						SNew(SButton)
 							.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave")))
-							.OnClicked(this, &SWaveToolWidgetMenu::OnWavesArrayPlusButtonClicked, containerArrayIndex)
 							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.OnClicked_Lambda([this, containerArrayIndex]()
+								{
+									FWaveOrder* wave = new FWaveOrder();
+									DataWaveContainersArray[containerArrayIndex]->WavesArray.Add(*wave);
+									RefreshDisplayedDataAssets();
+									return FReply::Handled();
+								})
 					]
 				]
 				+ SVerticalBox::Slot()
@@ -290,9 +314,12 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 								SNew(SEditableTextBox)
 								.OnTextChanged_Lambda([this, WaveNode](const FText& NewText)
 								{
-									OnWaveDecriptionTextChanged(NewText, WaveNode->WaveContainerID, WaveNode->WaveID);
+									WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->Description = NewText.ToString();
 								})
-								.Text(GetWaveDescriptionEditableText(WaveNode->WaveContainerID, WaveNode->WaveID))
+								.Text_Lambda([this, WaveNode]()
+								{
+									return FText::FromString(WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->Description);
+								})
 							]
 						]
 						+ SVerticalBox::Slot().AutoHeight()
@@ -304,45 +331,70 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 							+ SHorizontalBox::Slot()
 							[
 								SNew(SSpinBox<int32>)	// This is the numeric editable field with scroll
-								//.OnValueChanged(this, &SWaveToolWidgetMenu::OnWaveTotalPointsTextChanged, containerIndex, waveIndex)
 								.OnValueChanged_Lambda([this, WaveNode](const int32 NewValue)
 									{
-										OnWaveTotalPointsTextChanged(NewValue, WaveNode->WaveContainerID, WaveNode->WaveID);
+										WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->TotalPoints = NewValue;
 									})
 								.MinValue(0)
-								.Value(GetWaveTotalPointsEditableText(WaveNode->WaveContainerID, WaveNode->WaveID))
+								.Value_Lambda([this, WaveNode]()
+									{
+										return WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->TotalPoints;
+									})
 							]
 						]
 						+ SVerticalBox::Slot()
 						[
 							SNew(SHorizontalBox) + SHorizontalBox::Slot().AutoWidth()
 							[
-								SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("Enemy Types N.  %d"), WaveNode->EnemyTypes.Num())))
+								SNew(STextBlock)
+									.Text(FText::FromString(FString::Printf(TEXT("Enemy Types N.  %d"), WaveNode->EnemyTypes.Num())))
 							]
 							+ SHorizontalBox::Slot()
-							.HAlign(EHorizontalAlignment::HAlign_Left)
-							.VAlign(EVerticalAlignment::VAlign_Center)
-							.AutoWidth()
-							.Padding(10, 0)
+								.HAlign(EHorizontalAlignment::HAlign_Left)
+								.VAlign(EVerticalAlignment::VAlign_Center)
+								.AutoWidth()
+								.Padding(10, 0)
 							[
 								SNew(SButton)
-									.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Enemy Type")))
-									.OnClicked(this, &SWaveToolWidgetMenu::OnEnemyTypesPlusButtonClicked, WaveNode->WaveContainerID, WaveNode->WaveID)
+									.Text(FText::FromString(TEXT("+")))
+									.ToolTipText(FText::FromString(TEXT("Add new Enemy Type")))
 									.HAlign(EHorizontalAlignment::HAlign_Center)
+									.OnClicked_Lambda([this, WaveNode]()
+										{
+											FInternalDumbEnemyType* enemyType = new FInternalDumbEnemyType();
+											DataWaveContainersArray[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID].WaveSettings.EnemyTypes.Add(*enemyType);
+											RefreshDisplayedDataAssets();
+											return FReply::Handled();
+										})
 							]
 						]
 						+ SVerticalBox::Slot()
 						[
 							SNew(SComboBox<TSharedPtr<ESpawnOrder>>)
 								.OptionsSource(&SpawnOrders)
-								.OnGenerateWidget(this, &SWaveToolWidgetMenu::GenerateSpawnOrderComboItem)
-								.OnSelectionChanged_Lambda([this, WaveNode]
-								(TSharedPtr<ESpawnOrder> NewValue, ESelectInfo::Type SelectInfo) {
-										SWaveToolWidgetMenu::OnSpawnOrderSelectionChanged(NewValue, SelectInfo, WaveNode->WaveContainerID, WaveNode->WaveID);
+								.OnGenerateWidget_Lambda([this](TSharedPtr<ESpawnOrder> Item)
+									{
+										return SNew(STextBlock).Text(EnumToText(*Item));
+									})
+								.OnSelectionChanged_Lambda(
+									[this, WaveNode]
+									(TSharedPtr<ESpawnOrder> NewValue, ESelectInfo::Type SelectInfo)
+									{
+										if (NewValue.IsValid())
+										{
+											UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
+											SelectedSpawnOrder = NewValue;
+											DataWaveContainersArray[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID].SpawnOrder = *NewValue.Get();
+											WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->SpawnOrder = *NewValue.Get();
+										}
 									})
 								.InitiallySelectedItem(SelectedSpawnOrder)
 								[
-									SNew(STextBlock).Text(this, &SWaveToolWidgetMenu::GetCurrentSpawnOrderLabel, WaveNode->WaveContainerID, WaveNode->WaveID)
+									SNew(STextBlock)
+										.Text_Lambda([this, WaveNode]()
+											{
+												return EnumToText(WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->SpawnOrder);
+											})
 								]
 						]
 					]
@@ -351,7 +403,13 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 						SNew(SButton)
 							.Text(FText::FromString(TEXT("-")))
 							.ToolTipText(FText::FromString(TEXT("Remove Wave")))
-							.OnClicked(this, &SWaveToolWidgetMenu::OnWavesArrayMinusButtonClicked, WaveNode->WaveContainerID, WaveNode->WaveID)
+							.OnClicked_Lambda([this, WaveNode]()
+								{
+									DataWaveContainersArray[WaveNode->WaveContainerID]->WavesArray.RemoveAt(WaveNode->WaveID);
+									SaveWaveDataAsset(DataWaveContainersArray[WaveNode->WaveContainerID]);
+									RefreshDisplayedDataAssets();
+									return FReply::Handled();
+								})
 					]
 				]
 			]
@@ -368,124 +426,176 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 			[
 				SNew(SBorder).Padding(5, 7)
 				[
-					SNew(SVerticalBox) + SVerticalBox::Slot().AutoHeight()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Class")))
-						]
-						// CLASS LIST SELECTION MENU //
+					SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
-							SNew(SClassPropertyEntryBox)
-								.MetaClass(AActor::StaticClass())
-								.SelectedClass(this, &SWaveToolWidgetMenu::GetSelectedClass, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID)
-								.AllowNone(true)
-								.OnSetClass_Lambda([this, EnemyType](const UClass* SelectedClass) {
-								this->OnClassSelected(SelectedClass, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-									})
-						]
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Use Enemy Cost")))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SCheckBox)
-								.IsChecked_Lambda([this, EnemyType]()
-								{
-									return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-								})
-								.OnCheckStateChanged_Lambda([this, EnemyType](ECheckBoxState NewState)
-								{
-									OnWaveEnemyUseEnemyCostStateChanged(NewState, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-								})
-						]
-					]
-					+ SVerticalBox::Slot()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Min Enemies")))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SSpinBox<int32>)
-								.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
-									{
-										OnWaveEnemyMinEnemiesTextChanged(NewValue, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-									})
-								.MinValue(0)
-								.IsEnabled_Lambda([this, EnemyType]()
-									{
-										return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID) == ECheckBoxState::Checked;
-									})
-								.Value(GetWaveEnemyMinEnemiesEditableText(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID))
-						]
-					]
-					+ SVerticalBox::Slot()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Max Enemies")))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SSpinBox<int32>)
-								.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
-									{
-										OnWaveEnemyMaxEnemiesTextChanged(NewValue, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-									})
-								.MinValue(0)
-								.IsEnabled_Lambda([this, EnemyType]()
-									{
-										return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID) == ECheckBoxState::Checked;
-									})
-								.Value(GetWaveEnemyMaxEnemiesEditableText(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID))
-						]
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Cost")))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SSpinBox<int32>)
-								.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
-									{
-										OnWaveEnemyCostTextChanged(NewValue, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-									})
-								.MinValue(0)
-								.Value(GetWaveEnemyCostEditableText(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID))
-						]
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					[
-						SNew(SHorizontalBox) + SHorizontalBox::Slot()
-						[
-							SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Type")))
-						]
-						// ENUM DROP DOWN MENU //
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SComboBox<TSharedPtr<EEnemyTypes>>)
-								.OptionsSource(&EnemyTypes)
-								.OnGenerateWidget(this, &SWaveToolWidgetMenu::GenerateComboItem)
-								.OnSelectionChanged_Lambda([this, EnemyType]
-								(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo) {
-										SWaveToolWidgetMenu::OnEnemyTypeSelectionChanged(NewValue, SelectInfo, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
-									})
-								.InitiallySelectedItem(SelectedEnemyType)
+							SNew(SVerticalBox) + SVerticalBox::Slot().AutoHeight()
 								[
-									SNew(STextBlock).Text(this, &SWaveToolWidgetMenu::GetCurrentItemLabel, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID)
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Class")))
+										]
+										// CLASS LIST SELECTION MENU //
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SClassPropertyEntryBox)
+												.MetaClass(AActor::StaticClass())
+												.SelectedClass_Lambda([this, EnemyType]()
+													{
+														return WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->EnemyClass.Get();
+													})
+												.AllowNone(true)
+												.OnSetClass_Lambda([this, EnemyType](const UClass* SelectedClass) {
+												this->OnClassSelected(SelectedClass, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
+													})
+										]
+								]
+								+ SVerticalBox::Slot().AutoHeight()
+								[
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Use Enemy Cost")))
+										]
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SCheckBox)
+												.IsChecked_Lambda([this, EnemyType]()
+													{
+														return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
+													})
+												.OnCheckStateChanged_Lambda([this, EnemyType](ECheckBoxState NewState)
+													{
+														WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->UseEnemyCost = (NewState == ECheckBoxState::Checked);
+													})
+										]
+								]
+								+ SVerticalBox::Slot()
+								[
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Min Enemies")))
+										]
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SSpinBox<int32>)
+												.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
+													{
+														WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->MinEnemies = NewValue;
+													})
+												.MinValue(0)
+												.IsEnabled_Lambda([this, EnemyType]()
+													{
+														return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID) == ECheckBoxState::Unchecked;
+													})
+												.Value_Lambda([this, EnemyType]()
+													{
+														return WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->MinEnemies;
+													})
+										]
+								]
+								+ SVerticalBox::Slot()
+								[
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Max Enemies")))
+										]
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SSpinBox<int32>)
+												.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
+													{
+														WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->MaxEnemies = NewValue;
+													})
+												.MinValue(0)
+												.IsEnabled_Lambda([this, EnemyType]()
+													{
+														return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID) == ECheckBoxState::Unchecked;
+													})
+												.Value_Lambda([this, EnemyType]()
+													{
+														return WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->MaxEnemies;
+													})
+										]
+								]
+								+ SVerticalBox::Slot().AutoHeight()
+								[
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Cost")))
+										]
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SSpinBox<int32>)
+												.OnValueChanged_Lambda([this, EnemyType](const int32 NewValue)
+													{
+														WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->Cost = NewValue;
+													})
+												.MinValue(0)
+												.Value_Lambda([this, EnemyType]()
+													{
+														return WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->Cost;
+													})
+												.IsEnabled_Lambda([this, EnemyType]()
+													{
+														return GetWaveEnemyUseEnemyCostState(EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID) == ECheckBoxState::Checked;
+													})
+										]
+								]
+								+ SVerticalBox::Slot().AutoHeight()
+								[
+									SNew(SHorizontalBox) + SHorizontalBox::Slot()
+										[
+											SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Type")))
+										]
+										// ENUM DROP DOWN MENU //
+										+ SHorizontalBox::Slot()
+										[
+											SNew(SComboBox<TSharedPtr<EEnemyTypes>>)
+												.OptionsSource(&EnemyTypes)
+												.OnGenerateWidget_Lambda([this](TSharedPtr<EEnemyTypes> Item)
+													{
+														return SNew(STextBlock).Text(EnumToText(*Item));
+													})
+												.OnSelectionChanged_Lambda(
+													[this, EnemyType]
+													(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo)
+													{
+														if (NewValue.IsValid())
+														{
+															UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
+															SelectedEnemyType = NewValue;
+															DataWaveContainersArray[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID].WaveSettings.EnemyTypes[EnemyType->EnemyTypesID].EnemyType = *NewValue.Get();
+															WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->EnemyType = *NewValue.Get();
+														}
+													})
+												.InitiallySelectedItem(SelectedEnemyType)
+												[
+													SNew(STextBlock)
+														.Text_Lambda([this, EnemyType]()
+															{
+																return EnumToText(WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->EnemyType);
+															})
+												]
+										]
 								]
 						]
-					]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						.Padding(15, 0)
+						[
+							SNew(SButton)
+								.Text(FText::FromString(TEXT("-")))
+								.ToolTipText(FText::FromString(TEXT("Delete EnemyType Entry")))
+								.OnClicked_Lambda([this, EnemyType]()
+									{
+										DataWaveContainersArray[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID].WaveSettings.EnemyTypes.RemoveAt(EnemyType->EnemyTypesID);
+										SaveWaveDataAsset(DataWaveContainersArray[EnemyType->WaveContainerID]);
+										RefreshDisplayedDataAssets();
+										return FReply::Handled();
+									})
+						]
 				]
 			]
 		];
@@ -526,18 +636,6 @@ void SWaveToolWidgetMenu::OnGetChildren(TSharedPtr<FBaseTreeNode> InItem, TArray
 		break;
 	}
 	};
-}
-
-FReply SWaveToolWidgetMenu::OnMinusButtonPressed(FString assetName)
-{
-	bool bDeleted = DeleteDataAsset(assetName);
-
-	RefreshDisplayedDataAssets();
-
-	if (bDeleted)
-		return FReply::Handled();
-	else
-		return FReply::Unhandled();
 }
 
 void SWaveToolWidgetMenu::RefreshDisplayedDataAssets()
@@ -586,121 +684,10 @@ TArray<UPDataWaveContainer*> SWaveToolWidgetMenu::GetDataWaveContainersFromPaths
 	return DataWaveContainersArray;
 }
 
-#pragma region EDITABLE VALUES
-// wave container
-FText SWaveToolWidgetMenu::GetWaveContainerNameEditableText(const int32 containerIndex) const
-{
-	return FText::FromString(WaveContainerNodes[containerIndex]->WaveContainerName);
-}
-
-void SWaveToolWidgetMenu::OnWaveContainerNameChanged(const FText& NewText, int32 containerIndex)
-{
-	FString name = PackageTools::SanitizePackageName(NewText.ToString());
-	WaveContainerNodes[containerIndex]->WaveContainerName = name;
-}
-
-FText SWaveToolWidgetMenu::GetWaveContainerDescriptionEditableText(const int32 containerIndex) const
-{
-	return FText::FromString(WaveContainerNodes[containerIndex]->ContainerDescription);
-}
-
-void SWaveToolWidgetMenu::OnWaveContainerDescriptionChanged(const FText& NewText, int32 containerIndex)
-{
-	WaveContainerNodes[containerIndex]->ContainerDescription = NewText.ToString();
-}
-
-// wave
-FText SWaveToolWidgetMenu::GetWaveDescriptionEditableText(const int32 containerIndex, const int32 waveIndex) const
-{
-	return FText::FromString(WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->Description);
-}
-
-void SWaveToolWidgetMenu::OnWaveDecriptionTextChanged(const FText& NewText, const int32 containerIndex, const int32 waveIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->Description = NewText.ToString();
-}
-
-int32 SWaveToolWidgetMenu::GetWaveTotalPointsEditableText(const int32 containerIndex, const int32 waveIndex) const
-{
-	return WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->TotalPoints;
-}
-
-void SWaveToolWidgetMenu::OnWaveTotalPointsTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->TotalPoints = NewValue;
-}
-
-FText SWaveToolWidgetMenu::GetWaveSpawnOrderEditableText(int32 containerIndex, const int32 waveIndex) const
-{
-	const UEnum* enumptr = StaticEnum<EEnemyTypes>();
-	FString str = enumptr ? 
-		enumptr->GetDisplayNameTextByValue((int64)WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->SpawnOrder).ToString()
-		: TEXT("Invalid");
-	FText txt = FText::FromString(str);
-	return txt;
-}
-
-void SWaveToolWidgetMenu::OnWaveSpawnOrdertextChanged(const ESpawnOrder NewValue, const int32 containerIndex, const int32 waveIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->SpawnOrder = NewValue;
-}
-
-// enemy type
 ECheckBoxState SWaveToolWidgetMenu::GetWaveEnemyUseEnemyCostState(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const
 {
 	return WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->UseEnemyCost == true ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
-
-void SWaveToolWidgetMenu::OnWaveEnemyUseEnemyCostStateChanged(const ECheckBoxState NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->UseEnemyCost = (NewValue == ECheckBoxState::Checked);
-}
-
-int32 SWaveToolWidgetMenu::GetWaveEnemyMinEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const
-{
-	return WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->MinEnemies;
-}
-
-void SWaveToolWidgetMenu::OnWaveEnemyMinEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->MinEnemies = NewValue;
-}
-
-int32 SWaveToolWidgetMenu::GetWaveEnemyMaxEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const
-{
-	return WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->MaxEnemies;
-}
-
-void SWaveToolWidgetMenu::OnWaveEnemyMaxEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->MaxEnemies = NewValue;
-}
-
-int32 SWaveToolWidgetMenu::GetWaveEnemyCostEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const
-{
-	return WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->Cost;
-}
-
-void SWaveToolWidgetMenu::OnWaveEnemyCostTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->Cost = NewValue;
-}
-
-FText SWaveToolWidgetMenu::GetWaveEnemyTypeEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const
-{
-	const UEnum* enumptr = StaticEnum<EEnemyTypes>();
-	FString str = enumptr ?
-		enumptr->GetDisplayNameTextByValue((int64)WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyType).ToString()
-		: TEXT("Invalid");
-	FText txt = FText::FromString(str);
-	return txt;
-}
-
-void SWaveToolWidgetMenu::OnWaveEnemyTypeTextChanged(const EEnemyTypes NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex)
-{
-	WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyType = NewValue;
-}
-#pragma endregion
 
 FReply SWaveToolWidgetMenu::OnWaveContainerSaveButtonClicked(TSharedPtr<FWaveContainerNode> containerNode)
 {
@@ -739,53 +726,6 @@ FReply SWaveToolWidgetMenu::OnWaveContainerSaveButtonClicked(TSharedPtr<FWaveCon
 	return FReply::Handled();
 }
 
-FReply SWaveToolWidgetMenu::OnWaveContainerPlusButtonClicked()
-{
-	auto container = NewObject<UPDataWaveContainer>();
-	SaveWaveDataAsset(container);
-	RefreshDisplayedDataAssets();
-
-	return FReply::Handled();
-}
-
-FReply SWaveToolWidgetMenu::OnWavesArrayPlusButtonClicked(int32 containerIndex)
-{
-	FWaveOrder* wave = new FWaveOrder();
-	DataWaveContainersArray[containerIndex]->WavesArray.Add(*wave);
-	/*TSharedPtr<FWaveContainerNode> waveContainerNode = WaveContainerNodes[containerIndex];
-	FWavesArrayNode* waveArrayNode = new FWavesArrayNode();
-	waveContainerNode->WavesArray.Add(MakeShared<FWavesArrayNode>(*waveArrayNode));
-	waveContainerNode->Children.Add(MakeShared<FWavesArrayNode>(*waveArrayNode));
-	RootNodes[containerIndex] = waveContainerNode;*/
-	//SaveWaveDataAsset(DataWaveContainersArray[containerIndex]);
-	RefreshDisplayedDataAssets();
-	return FReply::Handled();
-}
-
-FReply SWaveToolWidgetMenu::OnWavesArrayMinusButtonClicked(int32 containerIndex, int32 waveIndex)
-{
-	DataWaveContainersArray[containerIndex]->WavesArray.RemoveAt(waveIndex);
-	SaveWaveDataAsset(DataWaveContainersArray[containerIndex]);
-	RefreshDisplayedDataAssets();
-	return FReply::Handled();
-}
-
-FReply SWaveToolWidgetMenu::OnEnemyTypesPlusButtonClicked(int32 containerIndex, int32 waveIndex)
-{
-	FInternalDumbEnemyType* enemyType = new FInternalDumbEnemyType();
-	DataWaveContainersArray[containerIndex]->WavesArray[waveIndex].WaveSettings.EnemyTypes.Add(*enemyType);
-	RefreshDisplayedDataAssets();
-	return FReply::Handled();
-}
-
-FReply SWaveToolWidgetMenu::OnEnemyTypesMinusButtonClicked(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex)
-{
-	DataWaveContainersArray[containerIndex]->WavesArray[waveIndex].WaveSettings.EnemyTypes.RemoveAt(enemyTypeIndex);
-	SaveWaveDataAsset(DataWaveContainersArray[containerIndex]);
-	RefreshDisplayedDataAssets();
-	return FReply::Handled();
-}
-
 void SWaveToolWidgetMenu::FindOrCreateManager()
 {
 	UWorld* World = GEditor->GetEditorWorldContext().World();
@@ -806,104 +746,62 @@ void SWaveToolWidgetMenu::FindOrCreateManager()
 }
 
 // ENUM DROP DOWN MENU //
-void SWaveToolWidgetMenu::OnEnemyTypeSelectionChanged(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex)
-{
-	if (NewValue.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
-		SelectedEnemyType = NewValue;
-		DataWaveContainersArray[containerIndex]->WavesArray[waveIndex].WaveSettings.EnemyTypes[enemyTypeIndex].EnemyType = *NewValue.Get();
-		WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyType = *NewValue.Get();
-	}
-}
-
-TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateComboItem(TSharedPtr<EEnemyTypes> Item)
-{
-	return SNew(STextBlock).Text(EnumToText(*Item));
-}
-
-FText SWaveToolWidgetMenu::GetCurrentItemLabel(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex) const
-{
-	return EnumToText(WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyType);
-}
-
 FText SWaveToolWidgetMenu::EnumToText(EEnemyTypes EnumValue) const
 {
 	switch (EnumValue)
 	{
 	case EEnemyTypes::Melee:
-		return FText::FromString("Melee");
+		return FText::FromString(TEXT("Melee"));
 		break;
 	case EEnemyTypes::Ranged:
-		return FText::FromString("Ranged");
+		return FText::FromString(TEXT("Ranged"));
 		break;
 	case EEnemyTypes::Tank:
-		return FText::FromString("Tank");
+		return FText::FromString(TEXT("Tank"));
 		break;
 	default:
-		return FText::FromString("Unknown");
+		return FText::FromString(TEXT("Unknown"));
 		break;
 	}
 }
 
 // Spawn Order Drop Down Menu //
-void SWaveToolWidgetMenu::OnSpawnOrderSelectionChanged(TSharedPtr<ESpawnOrder> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex)
-{
-	if (NewValue.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
-		SelectedSpawnOrder = NewValue;
-		DataWaveContainersArray[containerIndex]->WavesArray[waveIndex].SpawnOrder = *NewValue.Get();
-		WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->SpawnOrder = *NewValue.Get();
-	}
-}
-
-TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateSpawnOrderComboItem(TSharedPtr<ESpawnOrder> Item)
-{
-	return SNew(STextBlock).Text(EnumToText(*Item));
-}
-
-FText SWaveToolWidgetMenu::GetCurrentSpawnOrderLabel(int32 containerIndex, int32 waveIndex) const
-{
-	return EnumToText(WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->SpawnOrder);
-}
-
 FText SWaveToolWidgetMenu::EnumToText(ESpawnOrder EnumValue) const
 {
 	switch (EnumValue)
 	{
 	case ESpawnOrder::Order1:
-		return FText::FromString("Order1");
+		return FText::FromString(TEXT("Order1"));
 		break;
 	case ESpawnOrder::Order2:
-		return FText::FromString("Order2");
+		return FText::FromString(TEXT("Order2"));
 		break;
 	case ESpawnOrder::Order3:
-		return FText::FromString("Order3");
+		return FText::FromString(TEXT("Order3"));
 		break;
 	case ESpawnOrder::Order4:
-		return FText::FromString("Order4");
+		return FText::FromString(TEXT("Order4"));
 		break;
 	case ESpawnOrder::Order5:
-		return FText::FromString("Order5");
+		return FText::FromString(TEXT("Order5"));
 		break;
 	case ESpawnOrder::Order6:
-		return FText::FromString("Order6");
+		return FText::FromString(TEXT("Order6"));
 		break;
 	case ESpawnOrder::Order7:
-		return FText::FromString("Order7");
+		return FText::FromString(TEXT("Order7"));
 		break;
 	case ESpawnOrder::Order8:
-		return FText::FromString("Order8");
+		return FText::FromString(TEXT("Order8"));
 		break;
 	case ESpawnOrder::Order9:
-		return FText::FromString("Order9");
+		return FText::FromString(TEXT("Order9"));
 		break;
 	case ESpawnOrder::Order10:
-		return FText::FromString("Order10");
+		return FText::FromString(TEXT("Order10"));
 		break;
 	default:
-		return FText::FromString("Unknown");
+		return FText::FromString(TEXT("Unknown"));
 		break;
 	}
 }
@@ -942,11 +840,6 @@ void SWaveToolWidgetMenu::OnClassSelected(const UClass* selectedClass, int32 con
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Selected class is not a valid AActor subclass."));
 	}
-}
-
-const UClass* SWaveToolWidgetMenu::GetSelectedClass(int32 containerIndex, int32 arrayWaveIndex, int32 enemyTypeIndex) const
-{
-	return WaveContainerNodes[containerIndex]->WavesArray[arrayWaveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass.Get();
 }
 
 FReply SWaveToolWidgetMenu::SaveWaveDataAsset(UPDataWaveContainer* container)
