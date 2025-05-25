@@ -19,7 +19,7 @@ void UPC_MeleeStrategy::Execute(AActor* Executor)
 
 		if (MontageToPlay)
 		{
-			ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			ACharacter* PlayerCharacter = Cast<ACharacter>(Executor);
 			if(PlayerCharacter)
 			{
 				PlayerCharacter->PlayAnimMontage(MontageToPlay);				
