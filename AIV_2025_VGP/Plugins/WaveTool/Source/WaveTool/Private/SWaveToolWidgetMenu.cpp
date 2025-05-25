@@ -99,12 +99,28 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 			]
 			+ SVerticalBox::Slot()
 			[
+				//SECOND TAB//
 				SNew(SBorder).Visibility_Lambda([this]
 					{
 						return (WidgetTab == EWidgetTab::WaveContainers) ? EVisibility::Collapsed : EVisibility::Visible;
 					})
 					[
-						SNew(STextBlock).Text(FText::FromString(TEXT("awawa")))
+						SNew(SBox)
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							[
+								SNew(SButton).Text(FText::FromString(TEXT("Spawn WaveManager")))
+									.Visibility_Lambda([this]
+										{
+											FindWaveManager();
+											return (WaveManagerInstance == NULL) ? EVisibility::Visible : EVisibility::Collapsed;
+										})
+									.OnClicked_Lambda([this]
+										{
+											SpawnWaveManager();
+											return FReply::Handled();
+										})
+							]
 					]
 			]
 	];
@@ -124,6 +140,26 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 	SpawnOrders.Add(MakeShared<ESpawnOrder>(ESpawnOrder::Order9));
 	SpawnOrders.Add(MakeShared<ESpawnOrder>(ESpawnOrder::Order10));
 	SelectedSpawnOrder = SpawnOrders[0];
+}
+
+void SWaveToolWidgetMenu::SpawnWaveManager()
+{
+    UWorld* World = GEditor->GetEditorWorldContext().World();
+    if (!World) return;
+
+    FStringAssetReference BPRef(TEXT("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager_C"));
+    UClass* WaveManagerBPClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, *BPRef.ToString()));
+
+    if (WaveManagerBPClass)
+    {
+		FActorSpawnParameters SpawnParams;
+        World->SpawnActor<APWaveManager>(WaveManagerBPClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		UE_LOG(LogTemp, Warning, TEXT("Spawned WaveManager"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not find bp_wavemanager Blueprint class!"));
+    }
 }
 
 // Show properties, detached from the construct function
@@ -726,22 +762,23 @@ FReply SWaveToolWidgetMenu::OnWaveContainerSaveButtonClicked(TSharedPtr<FWaveCon
 	return FReply::Handled();
 }
 
-void SWaveToolWidgetMenu::FindOrCreateManager()
+void SWaveToolWidgetMenu::FindWaveManager()
 {
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	if (!World) return;
-
-	for (TActorIterator<APWaveManager> ItActor(World); ItActor; ++ItActor)
+	if (UWorld* world = GEditor->GetEditorWorldContext().World())
 	{
-		WaveManager = *ItActor;
-		UE_LOG(LogTemp, Log, TEXT("Found Wave Manager"));
-		break;
-	}
-
-	if (!WaveManager)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Creating Wave Manager"));
-		WaveManager = NewObject<APWaveManager>(World);
+		for (TActorIterator<APWaveManager> iterator(world); iterator; ++iterator)
+		{
+			APWaveManager* waveManager = *iterator;
+			if (waveManager)
+			{
+				UClass* WaveManagerClass = waveManager->GetClass();
+				if (WaveManagerClass->GetName().Contains(TEXT("bp_wavemanager"), ESearchCase::IgnoreCase))
+				{
+					WaveManagerInstance = waveManager;
+					break;
+				}
+			}
+		}
 	}
 }
 

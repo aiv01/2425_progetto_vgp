@@ -105,9 +105,10 @@ private:
 	EWidgetTab WidgetTab;
 
 	//runtime//
-	APWaveManager* WaveManager;
+	APWaveManager* WaveManagerInstance;
 	UClass* WManagerDataWaveContainer;
-	void FindOrCreateManager();
+	void FindWaveManager();
+	void SpawnWaveManager();
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;
