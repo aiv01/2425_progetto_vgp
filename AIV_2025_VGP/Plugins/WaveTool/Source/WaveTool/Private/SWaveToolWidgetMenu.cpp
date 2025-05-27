@@ -16,12 +16,37 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 {
 	GenerateDataTableWidget();
+	//set default tab to first one
 	WidgetTab = EWidgetTab::WaveContainers;
+	//populate tool second tab info to the ones of the asset
+	UBlueprint* Blueprint = Cast<UBlueprint>(
+		StaticLoadObject(UBlueprint::StaticClass(), nullptr, TEXT("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager"))
+	);
+	if (Blueprint && Blueprint->GeneratedClass)
+	{
+		APWaveManager* waveManager = Cast<APWaveManager>(Blueprint->GeneratedClass->GetDefaultObject());
+		WaveManagerData_Instance.SelectedWaveContainerAsset = waveManager->WaveDataAsset;
+		WaveManagerData_Instance.WaveInterval = waveManager->WaveInterval;
+		WaveManagerData_Instance.FormationSpawnFrequency = waveManager->FormationSpawnFrequency;
+		WaveManagerData_Instance.SpawnFrequency = waveManager->SpawnFrequency;
+		WaveManagerData_Instance.AutoStartWaveSystem = waveManager->bAutoStartWaveSystem == true ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+		WaveManagerData_Instance.FormationDataAssets = waveManager->FormationDataAssets;
+		WaveManagerData_Instance.UseFormation = waveManager->bUseFormation == true ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	//populate inscene spawners
+	for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
+	{
+		WaveManagerData_Instance.Spawners.Add(*It);
+		FString Name = It->GetName();
+		WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
+		WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
+	}
 	ChildSlot
 	[
 		SNew(SVerticalBox)
 			+ SVerticalBox::Slot().AutoHeight()
 			[
+				//BUTTONS//
 				SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot().AutoWidth()
 					[
@@ -50,6 +75,7 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 			]
 			+ SVerticalBox::Slot()
 			[
+				//FIRST TAB//
 				SNew(SBorder)
 					.Visibility_Lambda([this]
 						{
@@ -108,18 +134,186 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 						SNew(SBox)
 							.HAlign(EHorizontalAlignment::HAlign_Center)
 							.VAlign(EVerticalAlignment::VAlign_Center)
+							// how to make this thicker?? ^
 							[
-								SNew(SButton).Text(FText::FromString(TEXT("Spawn WaveManager")))
-									.Visibility_Lambda([this]
-										{
-											FindWaveManager();
-											return (WaveManagerInstance == NULL) ? EVisibility::Visible : EVisibility::Collapsed;
-										})
-									.OnClicked_Lambda([this]
-										{
-											SpawnWaveManager();
-											return FReply::Handled();
-										})
+								SNew(SVerticalBox)
+									+ SVerticalBox::Slot()
+									[
+										SNew(SButton)
+											.Text_Lambda([this]
+												{
+													FindWaveManager();
+													return (WaveManagerInstance == NULL) ? FText::FromString(TEXT("Spawn WaveManager")) : FText::FromString(TEXT("Update WaveManager"));
+												})
+											.OnClicked_Lambda([this]
+												{
+													SaveWaveManagerAsset();
+													if (WaveManagerInstance)
+													{
+														GWorld->DestroyActor(WaveManagerInstance);
+														UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Removed BP Instance"));
+													}
+													SpawnBPInstance("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager_C");
+													return FReply::Handled();
+												})
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox) + SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Enemy Class")))
+											]
+											// CLASS LIST SELECTION MENU //
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SObjectPropertyEntryBox)
+													.AllowedClass(UPDataWaveContainer::StaticClass())
+													.ObjectPath_Lambda([this]() -> FString
+														{
+															//if asset is selected show its path, otherwise empty string
+															return (WaveManagerData_Instance.SelectedWaveContainerAsset ? WaveManagerData_Instance.SelectedWaveContainerAsset->GetPathName() : FString());
+														})
+													.OnObjectChanged_Lambda([this](const FAssetData& AssetData)
+														{
+															WaveManagerData_Instance.SelectedWaveContainerAsset = Cast<UPDataWaveContainer>(AssetData.GetAsset());
+														})
+													.AllowClear(true)
+											]
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Wave Interval")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SSpinBox<float>)
+													.MinValue(0.0f)
+													.OnValueChanged_Lambda([this](const int32 NewValue)
+														{
+															WaveManagerData_Instance.WaveInterval = NewValue;
+														})
+													.Value_Lambda([this]
+														{
+															return WaveManagerData_Instance.WaveInterval;
+														})
+											]
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Formation Spawn Frequency")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SSpinBox<float>)
+													.MinValue(0.0f)
+													.OnValueChanged_Lambda([this](const int32 NewValue)
+														{
+															WaveManagerData_Instance.FormationSpawnFrequency = NewValue;
+														})
+													.Value_Lambda([this]
+														{
+															return WaveManagerData_Instance.FormationSpawnFrequency;
+														})
+											]
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Spawn Frequency")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SSpinBox<float>)
+													.MinValue(0.0f)
+													.OnValueChanged_Lambda([this](const int32 NewValue)
+														{
+															WaveManagerData_Instance.SpawnFrequency = NewValue;
+														})
+													.Value_Lambda([this]
+														{
+															return WaveManagerData_Instance.SpawnFrequency;
+														})
+											]
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Auto Start Wave System")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SCheckBox)
+													.IsChecked_Lambda([this]
+														{
+															return WaveManagerData_Instance.AutoStartWaveSystem;
+														})
+													.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState)
+														{
+															WaveManagerData_Instance.AutoStartWaveSystem = NewState;
+														})
+											]
+									]
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock).Text(FText::FromString(TEXT("Spawners")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SComboBox<TSharedPtr<FString>>)
+													.OptionsSource(&WaveManagerData_Instance.SpawnerNames)
+													.OnGenerateWidget_Lambda([this](TSharedPtr<FString> InItem)
+														{
+															return SNew(STextBlock).Text(FText::FromString(*InItem));
+														})
+													.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
+														{
+															if (NewSelection.IsValid())
+															{
+																WaveManagerData_Instance.CurrentSelection = NewSelection;
+																AWaveSpawner* SelectedSpawner = WaveManagerData_Instance.NameToSpawnerMap[*NewSelection];
+															}
+														})
+													[
+														SNew(STextBlock)
+															.Text_Lambda([this]
+																{
+																	return WaveManagerData_Instance.CurrentSelection.IsValid()
+																		? FText::FromString(*WaveManagerData_Instance.CurrentSelection)
+																		: FText::FromString(TEXT("Select Spawner"));
+																})
+													]
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SButton).Text(FText::FromString(TEXT("Spawn Spawner")))
+													.OnClicked_Lambda([this]
+														{
+															SpawnBPInstance("/Game/Custom/WaveSystem/BP_WaveSpawner.BP_WaveSpawner_C");
+															for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
+															{
+																if (WaveManagerData_Instance.Spawners.Contains(*It)) continue;
+																WaveManagerData_Instance.Spawners.Add(*It);
+																FString Name = It->GetName();
+																WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
+																WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
+															}
+															return FReply::Handled();
+														})
+											]
+									]
 							]
 					]
 			]
@@ -142,23 +336,81 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 	SelectedSpawnOrder = SpawnOrders[0];
 }
 
-void SWaveToolWidgetMenu::SpawnWaveManager()
+bool SWaveToolWidgetMenu::SaveWaveManagerAsset()
+{
+	UBlueprint* Blueprint = Cast<UBlueprint>(
+		StaticLoadObject(UBlueprint::StaticClass(), nullptr, TEXT("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager"))
+	);
+	if (Blueprint && Blueprint->GeneratedClass)
+	{
+		APWaveManager* waveManager = Cast<APWaveManager>(Blueprint->GeneratedClass->GetDefaultObject());
+		if (waveManager)
+		{
+			waveManager->WaveDataAsset = WaveManagerData_Instance.SelectedWaveContainerAsset;
+			waveManager->WaveInterval = WaveManagerData_Instance.WaveInterval;
+			waveManager->FormationSpawnFrequency = WaveManagerData_Instance.FormationSpawnFrequency;
+			waveManager->SpawnFrequency = WaveManagerData_Instance.SpawnFrequency;
+			waveManager->bAutoStartWaveSystem = WaveManagerData_Instance.AutoStartWaveSystem == ECheckBoxState::Checked ? true : false;
+			waveManager->Spawners = WaveManagerData_Instance.Spawners;
+			waveManager->FormationDataAssets = WaveManagerData_Instance.FormationDataAssets;
+			waveManager->bUseFormation = WaveManagerData_Instance.UseFormation == ECheckBoxState::Checked ? true : false;
+
+			waveManager->Modify();
+			Blueprint->Modify();
+			Blueprint->MarkPackageDirty();
+
+			UPackage* container = Blueprint->GetOutermost();
+			FString containerFileName = FPackageName::LongPackageNameToFilename(container->GetName(), FPackageName::GetAssetPackageExtension());
+
+			container->SetFlags(RF_Public | RF_Standalone);
+			container->MarkPackageDirty();
+
+			FAssetRegistryModule::AssetCreated(container);
+
+			bool bSaved = UPackage::SavePackage(
+				container,
+				container,
+				EObjectFlags::RF_Public | EObjectFlags::RF_Standalone,
+				*containerFileName,
+				GError,
+				nullptr,
+				true,
+				true,
+				SAVE_NoError
+			);
+
+			if (bSaved)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || WaveManager BP Saved"));
+				return true;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Failed to save WaveManager BP"));
+				return false;
+			}
+		}
+	}
+	return false;
+}
+
+void SWaveToolWidgetMenu::SpawnBPInstance(FString BPPath)
 {
     UWorld* World = GEditor->GetEditorWorldContext().World();
     if (!World) return;
 
-    FStringAssetReference BPRef(TEXT("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager_C"));
-    UClass* WaveManagerBPClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, *BPRef.ToString()));
+    FStringAssetReference BPRef(BPPath);
+    UClass* BPClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, *BPRef.ToString()));
 
-    if (WaveManagerBPClass)
+    if (BPClass)
     {
 		FActorSpawnParameters SpawnParams;
-        World->SpawnActor<APWaveManager>(WaveManagerBPClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		UE_LOG(LogTemp, Warning, TEXT("Spawned WaveManager"));
+		World->SpawnActor<AActor>(BPClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Spawned BP Instance"));
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Could not find bp_wavemanager Blueprint class!"));
+        UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Could not find Blueprint class!"));
     }
 }
 
@@ -418,7 +670,7 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 									{
 										if (NewValue.IsValid())
 										{
-											UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
+											UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Selected: %d"), static_cast<int32>(*NewValue));
 											SelectedSpawnOrder = NewValue;
 											DataWaveContainersArray[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID].SpawnOrder = *NewValue.Get();
 											WaveContainerNodes[WaveNode->WaveContainerID]->WavesArray[WaveNode->WaveID]->SpawnOrder = *NewValue.Get();
@@ -482,7 +734,7 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 													})
 												.AllowNone(true)
 												.OnSetClass_Lambda([this, EnemyType](const UClass* SelectedClass) {
-												this->OnClassSelected(SelectedClass, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
+												this->OnEnemyClassSelected(SelectedClass, EnemyType->WaveContainerID, EnemyType->WaveID, EnemyType->EnemyTypesID);
 													})
 										]
 								]
@@ -598,7 +850,7 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 													{
 														if (NewValue.IsValid())
 														{
-															UE_LOG(LogTemp, Warning, TEXT("Selected: %d"), static_cast<int32>(*NewValue));
+															UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Selected: %d"), static_cast<int32>(*NewValue));
 															SelectedEnemyType = NewValue;
 															DataWaveContainersArray[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID].WaveSettings.EnemyTypes[EnemyType->EnemyTypesID].EnemyType = *NewValue.Get();
 															WaveContainerNodes[EnemyType->WaveContainerID]->WavesArray[EnemyType->WaveID]->EnemyTypes[EnemyType->EnemyTypesID]->EnemyType = *NewValue.Get();
@@ -647,7 +899,7 @@ void SWaveToolWidgetMenu::OnGetChildren(TSharedPtr<FBaseTreeNode> InItem, TArray
 {
 	if (!InItem.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnGetChildren called with an invalid InItem."));
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || OnGetChildren called with an invalid InItem."));
 		OutChildren.Empty();
 		return;
 	}
@@ -687,7 +939,7 @@ void SWaveToolWidgetMenu::RefreshDisplayedDataAssets()
 FReply SWaveToolWidgetMenu::OnSetWaveDataButtonClicked()
 {
 #if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Warning, TEXT("Set Wave Data"));
+	UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Set Wave Data"));
 #endif
 	//APWaveManager::Instance->SetWaveData(DataWaveContainer, false);
 	return FReply::Handled();
@@ -706,7 +958,7 @@ TArray<UPDataWaveContainer*> SWaveToolWidgetMenu::GetDataWaveContainersFromPaths
 	TArray<FString> WaveDataAssetPaths = GetAllWaveDataAssetPaths();
 	if (WaveDataAssetPaths.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No WaveData Assets found"));
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || No WaveData Assets found"));
 		return TArray<UPDataWaveContainer*>();
 	}
 	for (FString assetPath : WaveDataAssetPaths)
@@ -844,11 +1096,11 @@ FText SWaveToolWidgetMenu::EnumToText(ESpawnOrder EnumValue) const
 }
 
 // class selection
-void SWaveToolWidgetMenu::OnClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex)
+void SWaveToolWidgetMenu::OnEnemyClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex)
 {
 	if (!selectedClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No class selected or selection cleared."));
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || No class selected or selection cleared."));
 		return;
 	}
 	if (selectedClass->IsChildOf(UBlueprint::StaticClass()))
@@ -858,24 +1110,24 @@ void SWaveToolWidgetMenu::OnClassSelected(const UClass* selectedClass, int32 con
 		{
 			WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass = Blueprint->GeneratedClass;
 
-			UE_LOG(LogTemp, Log, TEXT("Stored Blueprint Actor Class: %s"),
+			UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Stored Blueprint Actor Class: %s"),
 				*WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass->GetName());
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid Blueprint class or not derived from AActor."));
+			UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Invalid Blueprint class or not derived from AActor."));
 		}
 	}
 	// Handle native C++ classes
 	else if (selectedClass->IsChildOf(AActor::StaticClass()))
 	{
 		WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass = const_cast<UClass*>(selectedClass);
-		UE_LOG(LogTemp, Log, TEXT("Stored Native Actor Class: %s"),
+		UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Stored Native Actor Class: %s"),
 			*WaveContainerNodes[containerIndex]->WavesArray[waveIndex]->EnemyTypes[enemyTypeIndex]->EnemyClass->GetName());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Selected class is not a valid AActor subclass."));
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Selected class is not a valid AActor subclass."));
 	}
 }
 
@@ -891,7 +1143,7 @@ FReply SWaveToolWidgetMenu::SaveWaveDataAsset(UPDataWaveContainer* container)
 		Package = CreatePackage(*FullPackageName);
 		if (!Package)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to create package"));
+			UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Failed to create package"));
 			return FReply::Unhandled();
 		}
 		container->Rename(*containerName, Package, REN_DontCreateRedirectors);
@@ -918,12 +1170,12 @@ FReply SWaveToolWidgetMenu::SaveWaveDataAsset(UPDataWaveContainer* container)
 
 	if (bSaved)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Saved package %s"), *PackageFileName);
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Saved package %s"), *PackageFileName);
 		return FReply::Handled();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to save package %s"), *PackageFileName);
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Failed to save package %s"), *PackageFileName);
 		return FReply::Unhandled();
 	}
 }
@@ -939,7 +1191,7 @@ bool SWaveToolWidgetMenu::DeleteDataAsset(FString assetName)
 	bool bDeleted = UEditorAssetLibrary::DeleteAsset(assetPathToDelete);
 	if (bDeleted)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Deleted asset at path : %s"), *FString(assetPathToDelete));
+		UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Deleted asset at path : %s"), *FString(assetPathToDelete));
 
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 		AssetRegistryModule.Get().ScanPathsSynchronous({ assetPathToDelete });
@@ -954,4 +1206,5 @@ bool SWaveToolWidgetMenu::DeleteDataAsset(FString assetName)
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 /*
 * longpackagename warning fix
+* add the remaining 2 fields missing
 */

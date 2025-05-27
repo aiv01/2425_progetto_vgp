@@ -104,11 +104,44 @@ private:
 
 	EWidgetTab WidgetTab;
 
-	//runtime//
+	//Second Tab//
 	APWaveManager* WaveManagerInstance;
 	UClass* WManagerDataWaveContainer;
 	void FindWaveManager();
-	void SpawnWaveManager();
+	void SpawnBPInstance(FString BPPath);
+	struct WaveManagerData
+	{
+		UPDataWaveContainer* SelectedWaveContainerAsset;
+		float WaveInterval;
+		float FormationSpawnFrequency;
+		float SpawnFrequency;
+		ECheckBoxState AutoStartWaveSystem;
+
+		TArray<AWaveSpawner*> Spawners;
+		TArray<TSharedPtr<FString>> SpawnerNames;
+		TMap<FString, AWaveSpawner*> NameToSpawnerMap;
+		TSharedPtr<FString> CurrentSelection;
+
+		TArray<UFormationDataAsset*> FormationDataAssets;
+		ECheckBoxState UseFormation;
+
+		WaveManagerData() :
+			SelectedWaveContainerAsset(nullptr),
+			WaveInterval(0.0f),
+			FormationSpawnFrequency(0.0f),
+			SpawnFrequency(0.0f),
+			AutoStartWaveSystem(ECheckBoxState::Unchecked),
+			Spawners(TArray<AWaveSpawner*>()),
+			SpawnerNames(TArray<TSharedPtr<FString>>()),
+			NameToSpawnerMap(TMap<FString, AWaveSpawner*>()),
+			CurrentSelection(nullptr),
+			FormationDataAssets(TArray<UFormationDataAsset*>()),
+			UseFormation(ECheckBoxState::Unchecked)
+		{ }
+	};
+	WaveManagerData WaveManagerData_Instance;
+	bool SaveWaveManagerAsset();
+
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;
@@ -121,7 +154,7 @@ private:
 	FText EnumToText(ESpawnOrder EnumValue) const;
 
 	// Class Selection Menu //
-	void OnClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
+	void OnEnemyClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 	
 	ECheckBoxState GetWaveEnemyUseEnemyCostState(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
 };
