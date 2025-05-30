@@ -11,6 +11,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "OnlineSessionSettings.h"
+#include "SessionCreationParameters.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "PNetworkingInstanceSteam.generated.h"
 
@@ -31,6 +32,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, F
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnRequestedFriendAvatarReady, const UTexture2D*, RequestedFriendAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionParametersUpdateReady, FName, SessionName, bool, bWasSuccessfull);
 
 #pragma endregion
 
@@ -183,6 +185,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	void QuitSession(const FString& TravelBackMapPath);
 
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool GetSessionParameters(FGetSessionParameters& SessionParameters) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool UpdateSessionParameters_AuthorityOnly(const FUpdateSessionParameters& SessionParameters, const FOnSessionParametersUpdateReady& Callback);
+
 #pragma endregion SessionManagement
 
 private:
@@ -196,8 +204,9 @@ private:
 	// Unique instance of this class.
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
 
-	// Settings established of current session.
-	FOnlineSessionSettings CurrentSessionSettings;
+	// Settings established of current session, accessible by the host, set during creation.
+	// They're not updated. Use "GetSessionParameters()" to get them.
+	FOnlineSessionSettings TempCreationSessionSettings;
 
 	// Datas communicated by last invite acception.
 	FOnlineSessionSearchResult LastInviteResult;

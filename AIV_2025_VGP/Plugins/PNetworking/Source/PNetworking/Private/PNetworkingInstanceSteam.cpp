@@ -247,17 +247,17 @@ bool UPNetworkingInstanceSteam::RequestSessionCreation(FSessionCreationParameter
 	FPNetworkingModule::SetLocalSessionCurrentState(ELocalSessionState::SESSION_PENDING);
 
 	MapPathToTravel = SessionCreationParameters.TravelToMapPath;
-	CurrentSessionSettings.NumPublicConnections = SessionCreationParameters.NumPublicConnections;
-	CurrentSessionSettings.NumPrivateConnections = SessionCreationParameters.NumPrivateConnections;
-	CurrentSessionSettings.bShouldAdvertise = SessionCreationParameters.bShouldAdvertise;
-	CurrentSessionSettings.bAllowJoinInProgress = SessionCreationParameters.bAllowJoinInProgress;
-	CurrentSessionSettings.bIsLANMatch = SessionCreationParameters.bIsLANMatch;
-	CurrentSessionSettings.bIsDedicated = SessionCreationParameters.bIsDedicated;
-	CurrentSessionSettings.bAllowInvites = SessionCreationParameters.bAllowInvites;
-	CurrentSessionSettings.bUsesPresence = SessionCreationParameters.bUsesPresence;
-	CurrentSessionSettings.bAllowJoinViaPresence = SessionCreationParameters.bAllowJoinViaPresence;
-	CurrentSessionSettings.bAllowJoinViaPresenceFriendsOnly = SessionCreationParameters.bAllowJoinViaPresenceFriendsOnly;
-	CurrentSessionSettings.bUseLobbiesIfAvailable = SessionCreationParameters.bUseLobbiesIfAvailable;
+	TempCreationSessionSettings.NumPublicConnections = SessionCreationParameters.NumPublicConnections;
+	TempCreationSessionSettings.NumPrivateConnections = SessionCreationParameters.NumPrivateConnections;
+	TempCreationSessionSettings.bShouldAdvertise = SessionCreationParameters.bShouldAdvertise;
+	TempCreationSessionSettings.bAllowJoinInProgress = SessionCreationParameters.bAllowJoinInProgress;
+	TempCreationSessionSettings.bIsLANMatch = SessionCreationParameters.bIsLANMatch;
+	TempCreationSessionSettings.bIsDedicated = SessionCreationParameters.bIsDedicated;
+	TempCreationSessionSettings.bAllowInvites = SessionCreationParameters.bAllowInvites;
+	TempCreationSessionSettings.bUsesPresence = SessionCreationParameters.bUsesPresence;
+	TempCreationSessionSettings.bAllowJoinViaPresence = SessionCreationParameters.bAllowJoinViaPresence;
+	TempCreationSessionSettings.bAllowJoinViaPresenceFriendsOnly = SessionCreationParameters.bAllowJoinViaPresenceFriendsOnly;
+	TempCreationSessionSettings.bUseLobbiesIfAvailable = SessionCreationParameters.bUseLobbiesIfAvailable;
 
 	return HandleOldSessionIfExisting();
 }
@@ -351,6 +351,79 @@ void UPNetworkingInstanceSteam::QuitSession(const FString& TravelBackMapPath)
 			}
 		}
 	}
+}
+
+bool UPNetworkingInstanceSteam::GetSessionParameters(FGetSessionParameters& SessionParameters) const
+{
+	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!OnlineSession.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetSessionParameters: OnlineSession is null!"));
+		return false;
+	}
+
+	FOnlineSessionSettings* SessionSettings = OnlineSession->GetSessionSettings(FPNetworkingModule::GetSessionName());
+	if (!SessionSettings)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("GetSessionParameters: SessionSettings is null!"));
+		return false;
+	}
+	
+	SessionParameters.NumPublicConnections = SessionSettings->NumPublicConnections;
+	SessionParameters.NumPrivateConnections = SessionSettings->NumPrivateConnections;
+	SessionParameters.bShouldAdvertise = SessionSettings->bShouldAdvertise;
+	SessionParameters.bAllowJoinInProgress = SessionSettings->bAllowJoinInProgress;
+	SessionParameters.bIsLANMatch = SessionSettings->bIsLANMatch;
+	SessionParameters.bIsDedicated = SessionSettings->bIsDedicated;
+	SessionParameters.bAllowInvites = SessionSettings->bAllowInvites;
+
+	return true;
+}
+
+bool UPNetworkingInstanceSteam::UpdateSessionParameters_AuthorityOnly(const FUpdateSessionParameters& SessionParameters, const FOnSessionParametersUpdateReady& Callback)
+{
+	IOnlineSessionPtr OnlineSession = FPNetworkingModule::GetOnlineSessionPointer();
+	if (!OnlineSession.IsValid())
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("UpdateSessionParameters_AuthorityOnly: OnlineSession is null!"));
+		return false;
+	}
+
+	FOnlineSessionSettings* SessionSettings = OnlineSession->GetSessionSettings(FPNetworkingModule::GetSessionName());
+	if (!SessionSettings)
+	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("UpdateSessionParameters_AuthorityOnly: SessionSettings is null!"));
+		return false;
+	}
+
+	SessionSettings->NumPublicConnections = SessionParameters.NumPublicConnections;
+	SessionSettings->NumPrivateConnections = SessionParameters.NumPrivateConnections;
+	SessionSettings->bShouldAdvertise = SessionParameters.bShouldAdvertise;
+	SessionSettings->bAllowJoinInProgress = SessionParameters.bAllowJoinInProgress;
+	SessionSettings->bIsLANMatch = SessionParameters.bIsLANMatch;
+	SessionSettings->bIsDedicated = SessionParameters.bIsDedicated;
+	SessionSettings->bAllowInvites = SessionParameters.bAllowInvites;
+
+	OnlineSession->AddOnUpdateSessionCompleteDelegate_Handle(FOnUpdateSessionCompleteDelegate::CreateLambda([Callback, OnlineSession](FName SessionName, bool bWasSuccessful) mutable
+	{
+		if (!bWasSuccessful)
+		{
+			return;
+		}
+		
+		Callback.ExecuteIfBound(SessionName, bWasSuccessful);
+
+		if (!OnlineSession.IsValid())
+		{
+			return;
+		}
+
+		OnlineSession->ClearOnUpdateSessionCompleteDelegates(GetUniqueInstance());
+	}));
+	
+	OnlineSession->UpdateSession(FPNetworkingModule::GetSessionName(), *SessionSettings);
+
+	return true;
 }
 
 #pragma endregion SessionManagement
@@ -546,7 +619,7 @@ void UPNetworkingInstanceSteam::CreateSession()
 
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPNetworkingInstanceSteam::OnCreateSessionComplete));
 
-	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), CurrentSessionSettings);
+	SessionInterface->CreateSession(0, FPNetworkingModule::GetSessionName(), TempCreationSessionSettings);
 }
 
 bool UPNetworkingInstanceSteam::InitializeNetworkingInstance()

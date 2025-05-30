@@ -7,6 +7,68 @@
 #include "CoreMinimal.h"
 #include "SessionCreationParameters.generated.h"
 
+// Struct to get session parameters retrieved from an existing session.
+USTRUCT(BlueprintType)
+struct FGetSessionParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "The number of publicly available connections advertised."))
+	int32 NumPublicConnections;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "The number of connections that are private (invite/password) only."))
+	int32 NumPrivateConnections;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether this match is publicly advertised on the online service."))
+	bool bShouldAdvertise;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether joining in progress is allowed or not."))
+	bool bAllowJoinInProgress;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "This game will be lan only and not be visible to external players."))
+	bool bIsLANMatch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether the server is dedicated or player hosted."))
+	bool bIsDedicated;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether the match allows invitations for this session or not."))
+	bool bAllowInvites;
+
+	FGetSessionParameters() : NumPublicConnections(0), NumPrivateConnections(0), bShouldAdvertise(false), bAllowJoinInProgress(false), bIsLANMatch(false), bIsDedicated(false), bAllowInvites(false) {}
+	
+};
+
+// Struct to update session parameters from an existing session.
+USTRUCT(BlueprintType)
+struct FUpdateSessionParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "The number of publicly available connections advertised."))
+	int32 NumPublicConnections;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "The number of connections that are private (invite/password) only."))
+	int32 NumPrivateConnections;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether this match is publicly advertised on the online service."))
+	bool bShouldAdvertise;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether joining in progress is allowed or not."))
+	bool bAllowJoinInProgress;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "This game will be lan only and not be visible to external players."))
+	bool bIsLANMatch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether the server is dedicated or player hosted."))
+	bool bIsDedicated;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SessionParameters", meta = (ToolTip = "Whether the match allows invitations for this session or not."))
+	bool bAllowInvites;
+
+	FUpdateSessionParameters() : NumPublicConnections(0), NumPrivateConnections(0), bShouldAdvertise(false), bAllowJoinInProgress(false), bIsLANMatch(false), bIsDedicated(false), bAllowInvites(false) {}
+	
+};
+
 USTRUCT(BlueprintType)
 struct FSessionCreationParameters
 {
