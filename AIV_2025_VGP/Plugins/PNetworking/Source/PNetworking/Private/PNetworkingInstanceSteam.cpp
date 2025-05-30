@@ -404,7 +404,7 @@ bool UPNetworkingInstanceSteam::UpdateSessionParameters_AuthorityOnly(const FUpd
 	SessionSettings->bIsDedicated = SessionParameters.bIsDedicated;
 	SessionSettings->bAllowInvites = SessionParameters.bAllowInvites;
 
-	OnlineSession->AddOnUpdateSessionCompleteDelegate_Handle(FOnUpdateSessionCompleteDelegate::CreateLambda([Callback, OnlineSession](FName SessionName, bool bWasSuccessful) mutable
+	OnSessionParametersUpdateReadyDelegateHandle = OnlineSession->AddOnUpdateSessionCompleteDelegate_Handle(FOnUpdateSessionCompleteDelegate::CreateLambda([this, Callback, OnlineSession](FName SessionName, bool bWasSuccessful) mutable
 	{
 		if (!bWasSuccessful)
 		{
@@ -418,12 +418,32 @@ bool UPNetworkingInstanceSteam::UpdateSessionParameters_AuthorityOnly(const FUpd
 			return;
 		}
 
-		OnlineSession->ClearOnUpdateSessionCompleteDelegates(GetUniqueInstance());
+		if (OnSessionParametersUpdateReadyDelegateHandle.IsValid())
+		{
+			OnlineSession->ClearOnUpdateSessionCompleteDelegate_Handle(OnSessionParametersUpdateReadyDelegateHandle);
+			OnSessionParametersUpdateReadyDelegateHandle.Reset();
+		}
+		
 	}));
 	
 	OnlineSession->UpdateSession(FPNetworkingModule::GetSessionName(), *SessionSettings);
 
 	return true;
+}
+
+bool UPNetworkingInstanceSteam::IsSessionJoinable() const
+{
+	FGetSessionParameters GotSessionParameters;
+	
+	if (!GetSessionParameters(GotSessionParameters))
+	{
+		return false;
+	}
+	
+	return FPNetworkingModule::GetLocalSessionCurrentState() == ELocalSessionState::SESSION_VALID &&
+		GotSessionParameters.bShouldAdvertise &&
+		GotSessionParameters.bAllowJoinInProgress &&
+		GotSessionParameters.bAllowInvites /* ... */ ;
 }
 
 #pragma endregion SessionManagement

@@ -185,11 +185,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	void QuitSession(const FString& TravelBackMapPath);
 
+	/// <summary>
+	/// Get current session parameters.
+	/// </summary>
+	/// <param name="SessionParameters"> Session parameters retreived. </param>
+	/// <returns> Returns True if retreiving parameters was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool GetSessionParameters(FGetSessionParameters& SessionParameters) const;
 
+	/// <summary>
+	/// Update current session parameters. Ensure to be Authority.
+	/// </summary>
+	/// <param name="SessionParameters"> Session parameters. </param>
+	/// <param name="Callback"> Callback invoked when update is finished. </param>
+	/// <returns> Returns True if parameters request was successfull. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool UpdateSessionParameters_AuthorityOnly(const FUpdateSessionParameters& SessionParameters, const FOnSessionParametersUpdateReady& Callback);
+	
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool IsSessionJoinable() const;
 
 #pragma endregion SessionManagement
 
@@ -236,6 +250,7 @@ private:
 	FDelegateHandle OnDestroySessionCompleteFromNewHostingUserHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientNewInviteAcceptionDestroySessionCompleteHandle;
+	FDelegateHandle OnSessionParametersUpdateReadyDelegateHandle;
 
 #pragma endregion DelegatesHandle
 
