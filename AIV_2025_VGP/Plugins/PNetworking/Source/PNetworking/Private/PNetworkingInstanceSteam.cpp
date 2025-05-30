@@ -437,13 +437,14 @@ bool UPNetworkingInstanceSteam::IsSessionJoinable() const
 	
 	if (!GetSessionParameters(GotSessionParameters))
 	{
+		UE_LOG(LogSteamNetworkingPlugin, Error, TEXT("IsSessionJoinable: Cannot retreive parameters!"));
 		return false;
 	}
 	
 	return FPNetworkingModule::GetLocalSessionCurrentState() == ELocalSessionState::SESSION_VALID &&
 		GotSessionParameters.bShouldAdvertise &&
 		GotSessionParameters.bAllowJoinInProgress &&
-		GotSessionParameters.bAllowInvites /* ... */ ;
+		GotSessionParameters.bAllowInvites;
 }
 
 #pragma endregion SessionManagement

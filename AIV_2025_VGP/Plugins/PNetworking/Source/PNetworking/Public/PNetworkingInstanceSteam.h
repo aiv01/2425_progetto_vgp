@@ -202,6 +202,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool UpdateSessionParameters_AuthorityOnly(const FUpdateSessionParameters& SessionParameters, const FOnSessionParametersUpdateReady& Callback);
 	
+	/// <summary>
+	/// Check is session is valid and joinable. 
+	/// Does not check current number of players (if session is full, joins are not permitted by default).
+	/// </summary>
+	/// <returns> Returns True if session is valid and joinable using invites/presence. </returns>
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	bool IsSessionJoinable() const;
 
@@ -293,13 +298,13 @@ private:
 	
 	/* Fired when User wants to create a new Session (becoming host).
 	Old session, if existing, has been deleted in order to prevent errors. */
-	void OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull);
+	void OnDestroySessionCompleteFromNewHostingUser(FName SessionName, bool bWasSuccessfull);
 
 	// Fired when client needs to destroy and unregister local session datas, due to crash or quit.
-	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void OnClientDestroySessionComplete(FName SessionName, bool bWasSuccessfull);
 
 	// Fired when client needs to destroy and unregister local session datas, due to invite acception to another session.
-	void OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void OnClientNewInviteAcceptionDestroySessionComplete(FName SessionName, bool bWasSuccessfull);
 
 #pragma endregion CallbackFunctions
 
