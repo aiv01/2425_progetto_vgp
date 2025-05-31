@@ -11,6 +11,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Interfaces/OnlineFriendsInterface.h"
 #include "OnlineSessionSettings.h"
+#include "SessionCreationParameters.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "PNetworkingInstanceSteam.generated.h"
 
@@ -31,6 +32,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsListReady, const TArray<FString>&, F
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsAvatarReady, const TArray<UTexture2D*>&, FriendsListAvatars);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnRequestedFriendAvatarReady, const UTexture2D*, RequestedFriendAvatar);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFriendsDataReady, const TArray<FUserSteamData>&, FriendsListDatas);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSessionParametersUpdateReady, FName, SessionName, bool, bWasSuccessfull);
 
 #pragma endregion
 
@@ -183,6 +185,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
 	void QuitSession(const FString& TravelBackMapPath);
 
+	/// <summary>
+	/// Get current session parameters.
+	/// </summary>
+	/// <param name="SessionParameters"> Session parameters retreived. </param>
+	/// <returns> Returns True if retreiving parameters was successfull. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool GetSessionParameters(FGetSessionParameters& SessionParameters) const;
+
+	/// <summary>
+	/// Update current session parameters. Ensure to be Authority.
+	/// </summary>
+	/// <param name="SessionParameters"> Session parameters. </param>
+	/// <param name="Callback"> Callback invoked when update is finished. </param>
+	/// <returns> Returns True if parameters request was successfull. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool UpdateSessionParameters_AuthorityOnly(const FUpdateSessionParameters& SessionParameters, const FOnSessionParametersUpdateReady& Callback);
+	
+	/// <summary>
+	/// Check is session is valid and joinable. 
+	/// Does not check current number of players (if session is full, joins are not permitted by default).
+	/// </summary>
+	/// <returns> Returns True if session is valid and joinable using invites/presence. </returns>
+	UFUNCTION(BlueprintCallable, Category = "Online Subsystem Session functions")
+	bool IsSessionJoinable() const;
+
 #pragma endregion SessionManagement
 
 private:
@@ -196,8 +223,9 @@ private:
 	// Unique instance of this class.
 	static UPNetworkingInstanceSteam* NetInstanceSteamPtr;
 
-	// Settings established of current session.
-	FOnlineSessionSettings CurrentSessionSettings;
+	// Settings established of current session, accessible by the host, set during creation.
+	// They're not updated. Use "GetSessionParameters()" to get them.
+	FOnlineSessionSettings TempCreationSessionSettings;
 
 	// Datas communicated by last invite acception.
 	FOnlineSessionSearchResult LastInviteResult;
@@ -227,6 +255,7 @@ private:
 	FDelegateHandle OnDestroySessionCompleteFromNewHostingUserHandle; 
 	FDelegateHandle OnClientDestroySessionCompleteHandle;
 	FDelegateHandle OnClientNewInviteAcceptionDestroySessionCompleteHandle;
+	FDelegateHandle OnSessionParametersUpdateReadyDelegateHandle;
 
 #pragma endregion DelegatesHandle
 
@@ -269,13 +298,13 @@ private:
 	
 	/* Fired when User wants to create a new Session (becoming host).
 	Old session, if existing, has been deleted in order to prevent errors. */
-	void OnDestroySessionCompleteFromNewHostingUser(FName sessionName, bool bWasSuccessfull);
+	void OnDestroySessionCompleteFromNewHostingUser(FName SessionName, bool bWasSuccessfull);
 
 	// Fired when client needs to destroy and unregister local session datas, due to crash or quit.
-	void OnClientDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void OnClientDestroySessionComplete(FName SessionName, bool bWasSuccessfull);
 
 	// Fired when client needs to destroy and unregister local session datas, due to invite acception to another session.
-	void OnClientNewInviteAcceptionDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void OnClientNewInviteAcceptionDestroySessionComplete(FName SessionName, bool bWasSuccessfull);
 
 #pragma endregion CallbackFunctions
 
