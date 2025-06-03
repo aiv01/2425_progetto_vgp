@@ -36,4 +36,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Formation")
 	TArray<FEnemyFormationEntry> FormationEntries;
+
+	virtual void BeginDestroy() override;
 };

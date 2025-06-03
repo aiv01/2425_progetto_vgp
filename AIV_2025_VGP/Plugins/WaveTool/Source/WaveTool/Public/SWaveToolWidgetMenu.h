@@ -5,11 +5,22 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "PDataWaveContainer.h"
+#include "IDetailsView.h"
 #include "PWaveManager.h"
+#include "SwaveToolWidgetMenu.generated.h"
 
 enum EWidgetTab {
 	WaveContainers,
 	WaveManagers
+};
+
+UCLASS()
+class UFormationAssetListObject : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Formations")
+		TArray<UFormationDataAsset*> FormationAssets;
 };
 
 class WAVETOOL_API SWaveToolWidgetMenu : public SCompoundWidget
@@ -120,9 +131,11 @@ private:
 		TArray<AWaveSpawner*> Spawners;
 		TArray<TSharedPtr<FString>> SpawnerNames;
 		TMap<FString, AWaveSpawner*> NameToSpawnerMap;
-		TSharedPtr<FString> CurrentSelection;
+		TSharedPtr<FString> CurrentSpawnerSelection;
 
-		TArray<UFormationDataAsset*> FormationDataAssets;
+		TArray<UFormationDataAsset*> SelectedFormations;
+		TSharedPtr<SVerticalBox> ListContainer;
+
 		ECheckBoxState UseFormation;
 
 		WaveManagerData() :
@@ -134,14 +147,16 @@ private:
 			Spawners(TArray<AWaveSpawner*>()),
 			SpawnerNames(TArray<TSharedPtr<FString>>()),
 			NameToSpawnerMap(TMap<FString, AWaveSpawner*>()),
-			CurrentSelection(nullptr),
-			FormationDataAssets(TArray<UFormationDataAsset*>()),
+			CurrentSpawnerSelection(nullptr),
 			UseFormation(ECheckBoxState::Unchecked)
 		{ }
 	};
 	WaveManagerData WaveManagerData_Instance;
-	bool SaveWaveManagerAsset();
-
+	void RefreshFormationList();
+	TSharedRef<SWidget> GenerateEntryWidget(int32 Index);
+	bool SaveWaveManagerAsset() const;
+	void GetFormationAssets();
+	TSharedRef<ITableRow> GenerateFormationListRow(TSharedPtr<UFormationDataAsset> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;
