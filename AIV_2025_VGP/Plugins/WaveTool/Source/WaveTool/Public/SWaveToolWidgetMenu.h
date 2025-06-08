@@ -128,13 +128,14 @@ private:
 		float SpawnFrequency;
 		ECheckBoxState AutoStartWaveSystem;
 
-		TArray<AWaveSpawner*> Spawners;
 		TArray<TSharedPtr<FString>> SpawnerNames;
+		TArray<TSharedPtr<FString>> CurrentSpawnerSelections;
+		TSharedPtr<SVerticalBox> SpawnerListContainer;
+		TArray<AWaveSpawner*> SelectedSpawners;
 		TMap<FString, AWaveSpawner*> NameToSpawnerMap;
-		TSharedPtr<FString> CurrentSpawnerSelection;
 
 		TArray<UFormationDataAsset*> SelectedFormations;
-		TSharedPtr<SVerticalBox> ListContainer;
+		TSharedPtr<SVerticalBox> FormationListContainer;
 
 		ECheckBoxState UseFormation;
 
@@ -144,19 +145,16 @@ private:
 			FormationSpawnFrequency(0.0f),
 			SpawnFrequency(0.0f),
 			AutoStartWaveSystem(ECheckBoxState::Unchecked),
-			Spawners(TArray<AWaveSpawner*>()),
 			SpawnerNames(TArray<TSharedPtr<FString>>()),
-			NameToSpawnerMap(TMap<FString, AWaveSpawner*>()),
-			CurrentSpawnerSelection(nullptr),
 			UseFormation(ECheckBoxState::Unchecked)
 		{ }
 	};
 	WaveManagerData WaveManagerData_Instance;
+	void RefreshSpawnerList();
+	TSharedRef<SWidget> GenerateSpawnerWidget(int32 Index);
 	void RefreshFormationList();
-	TSharedRef<SWidget> GenerateEntryWidget(int32 Index);
+	TSharedRef<SWidget> GenerateFormationWidget(int32 Index);
 	bool SaveWaveManagerAsset() const;
-	void GetFormationAssets();
-	TSharedRef<ITableRow> GenerateFormationListRow(TSharedPtr<UFormationDataAsset> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;

@@ -40,7 +40,6 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 	//populate in-scene spawners
 	for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
 	{
-		WaveManagerData_Instance.Spawners.Add(*It);
 		FString Name = It->GetName();
 		WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
 		WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
@@ -167,6 +166,8 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 													SpawnBPInstance("/Game/Custom/WaveSystem/BP_WaveManager.BP_WaveManager_C");
 													return FReply::Handled();
 												})
+											.VAlign(EVerticalAlignment::VAlign_Center)
+											.HAlign(EHorizontalAlignment::HAlign_Center)
 									]
 #pragma endregion
 #pragma region SelectEnemyClass
@@ -286,73 +287,75 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 									]
 #pragma endregion
 #pragma region Spawners
-										+ SVerticalBox::Slot()
+										+ SVerticalBox::Slot().AutoHeight()
 										[
 											SNew(SHorizontalBox)
-												+ SHorizontalBox::Slot()
+												+ SHorizontalBox::Slot().FillWidth(0.25f)
 												[
 													SNew(STextBlock).Text(FText::FromString(TEXT("Spawners")))
 												]
-												+ SHorizontalBox::Slot()
+												+ SHorizontalBox::Slot().FillWidth(0.5f)
 												[
-													SNew(SComboBox<TSharedPtr<FString>>)
-														.OptionsSource(&WaveManagerData_Instance.SpawnerNames)
-														.OnGenerateWidget_Lambda([this](TSharedPtr<FString> InItem)
-															{
-																return SNew(STextBlock).Text(FText::FromString(*InItem));
-															})
-														.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
-															{
-																if (NewSelection.IsValid())
-																{
-																	WaveManagerData_Instance.CurrentSpawnerSelection = NewSelection;
-																	AWaveSpawner* SelectedSpawner = WaveManagerData_Instance.NameToSpawnerMap[*NewSelection];
-																}
-															})
+													SAssignNew(WaveManagerData_Instance.SpawnerListContainer, SVerticalBox)
+														+ SVerticalBox::Slot().AutoHeight()
 														[
-															SNew(STextBlock)
-																.Text_Lambda([this]
+															SNew(SButton)
+																.Text(FText::FromString("Add Entry"))
+																.OnClicked_Lambda([this]()
 																	{
-																		return WaveManagerData_Instance.CurrentSpawnerSelection.IsValid()
-																			? FText::FromString(*WaveManagerData_Instance.CurrentSpawnerSelection)
-																			: FText::FromString(TEXT("Select Spawner"));
+																		WaveManagerData_Instance.CurrentSpawnerSelections.Add(nullptr);
+																		RefreshSpawnerList();
+																		return FReply::Handled();
 																	})
 														]
 												]
-												+ SHorizontalBox::Slot()
+												+ SHorizontalBox::Slot().FillWidth(0.25f)
 												[
-													SNew(SButton).Text(FText::FromString(TEXT("Spawn Spawner")))
-														.OnClicked_Lambda([this]
-															{
-																SpawnBPInstance("/Game/Custom/WaveSystem/BP_WaveSpawner.BP_WaveSpawner_C");
-																for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
-																{
-																	if (WaveManagerData_Instance.Spawners.Contains(*It)) continue;
-																	WaveManagerData_Instance.Spawners.Add(*It);
-																	FString Name = It->GetName();
-																	WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
-																	WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
-																}
-																return FReply::Handled();
-															})
+													SNew(SBox)
+														.HAlign(EHorizontalAlignment::HAlign_Center)
+														.VAlign(EVerticalAlignment::VAlign_Center)
+														[
+															SNew(SButton)
+																
+																.OnClicked_Lambda([this]
+																	{
+																		SpawnBPInstance("/Game/Custom/WaveSystem/BP_WaveSpawner.BP_WaveSpawner_C");
+																		WaveManagerData_Instance.SpawnerNames.Empty();
+																		WaveManagerData_Instance.NameToSpawnerMap.Empty();
+																		for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
+																		{
+																			//if (WaveManagerData_Instance.SpawnerNames.Contains(MakeShared<FString>(It->GetName()))) continue;
+																			FString Name = It->GetName();
+																			WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
+																			WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
+																		}
+																		return FReply::Handled();
+																	})
+																[
+																	SNew(STextBlock)
+																		.Text(FText::FromString(TEXT("Spawn Spawner")))
+																		.AutoWrapText(true)
+																]
+														]
 												]
 										]
 #pragma endregion
-									+ SVerticalBox::Slot().HAlign(EHorizontalAlignment::HAlign_Center)
-									[
-										SNew(STextBlock).Text(FText::FromString(TEXT("Formations")))
-									]
 #pragma region Formations
-									+ SVerticalBox::Slot()
+									+ SVerticalBox::Slot().AutoHeight()
 									[
 										SNew(SHorizontalBox)
-											+ SHorizontalBox::Slot()
+											+ SHorizontalBox::Slot().FillWidth(0.25f)
 											[
-												SNew(STextBlock).Text(FText::FromString(TEXT("Formation Data Assets")))
+												SNew(SBox)
+													[
+														SNew(STextBlock)
+															.Text(FText::FromString(TEXT("Formation Data Assets")))
+															.AutoWrapText(true)
+													]
 											]
-											+ SHorizontalBox::Slot()
+											+ SHorizontalBox::Slot().FillWidth(0.75f)
 											[
-												SAssignNew(WaveManagerData_Instance.ListContainer, SVerticalBox)
+												SAssignNew(WaveManagerData_Instance.FormationListContainer, SVerticalBox)
 													+ SVerticalBox::Slot().AutoHeight()
 													[
 														SNew(SButton)
@@ -364,6 +367,26 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 																	return FReply::Handled();
 																})
 													]
+											]
+									]
+#pragma endregion
+#pragma region UseFormation
+									+ SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+											+ SHorizontalBox::Slot()
+											[
+												SNew(STextBlock)
+													.Text(FText::FromString(TEXT("Use Formation")))
+											]
+											+ SHorizontalBox::Slot()
+											[
+												SNew(SCheckBox)
+													.IsChecked(WaveManagerData_Instance.UseFormation)
+													.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState)
+														{
+															WaveManagerData_Instance.UseFormation = NewState;
+														})
 											]
 									]
 #pragma endregion
@@ -390,17 +413,91 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 	SpawnOrders.Add(MakeShared<ESpawnOrder>(ESpawnOrder::Order10));
 	SelectedSpawnOrder = SpawnOrders[0];
 #pragma endregion
+	RefreshSpawnerList();
 	RefreshFormationList();
+}
+
+void SWaveToolWidgetMenu::RefreshSpawnerList()
+{
+	if (!WaveManagerData_Instance.SpawnerListContainer.IsValid()) return;
+
+	WaveManagerData_Instance.SpawnerListContainer->ClearChildren();
+
+	//readding the Add button 
+	WaveManagerData_Instance.SpawnerListContainer->AddSlot().AutoHeight()
+		[
+			SNew(SButton)
+				.Text(FText::FromString("Add Entry"))
+				.OnClicked_Lambda([this]()
+					{
+						WaveManagerData_Instance.CurrentSpawnerSelections.Add(nullptr);
+						RefreshSpawnerList();
+						return FReply::Handled();
+					})
+		];
+
+	for (int32 Index = 0; Index < WaveManagerData_Instance.CurrentSpawnerSelections.Num(); Index++)
+	{
+		WaveManagerData_Instance.SpawnerListContainer->AddSlot().AutoHeight()
+			[
+				GenerateSpawnerWidget(Index)
+			];
+	}
+}
+
+TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateSpawnerWidget(int32 Index)
+{
+	return SNew(SHorizontalBox)
+
+		+ SHorizontalBox::Slot().FillWidth(0.65f)
+		[
+			SNew(SComboBox<TSharedPtr<FString>>)
+				.OptionsSource(&WaveManagerData_Instance.SpawnerNames)
+				.OnGenerateWidget_Lambda([this](TSharedPtr<FString> InItem)
+					{
+						return SNew(STextBlock).Text(FText::FromString(*InItem));
+					})
+				.OnSelectionChanged_Lambda([this, Index](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
+					{
+						if (NewSelection.IsValid())
+						{
+							WaveManagerData_Instance.CurrentSpawnerSelections[Index] = NewSelection;
+							WaveManagerData_Instance.SelectedSpawners.Add(WaveManagerData_Instance.NameToSpawnerMap[*NewSelection.Get()]);
+						}
+					})
+				[
+					SNew(STextBlock)
+						.Text_Lambda([this, Index]
+							{
+								return WaveManagerData_Instance.CurrentSpawnerSelections[Index].IsValid()
+									? FText::FromString(*WaveManagerData_Instance.CurrentSpawnerSelections[Index])
+									: FText::FromString(TEXT("Select Spawner"));
+							})
+				]
+		]
+		+ SHorizontalBox::Slot().Padding(5, 0).FillWidth(0.35f)
+		[
+			SNew(SButton)
+				.Text(FText::FromString("Remove"))
+				.OnClicked_Lambda([this, Index]()
+					{
+						if (WaveManagerData_Instance.CurrentSpawnerSelections.IsValidIndex(Index))
+						{
+							WaveManagerData_Instance.CurrentSpawnerSelections.RemoveAt(Index);
+							RefreshSpawnerList();
+						}
+						return FReply::Handled();
+					})
+		];
 }
 
 void SWaveToolWidgetMenu::RefreshFormationList()
 {
-	if (!WaveManagerData_Instance.ListContainer.IsValid()) return;
+	if (!WaveManagerData_Instance.FormationListContainer.IsValid()) return;
 
-	WaveManagerData_Instance.ListContainer->ClearChildren();
+	WaveManagerData_Instance.FormationListContainer->ClearChildren();
 
-	// Add "Add" button again
-	WaveManagerData_Instance.ListContainer->AddSlot().AutoHeight()
+	WaveManagerData_Instance.FormationListContainer->AddSlot().AutoHeight()
 		[
 			SNew(SButton)
 				.Text(FText::FromString("Add Entry"))
@@ -414,18 +511,18 @@ void SWaveToolWidgetMenu::RefreshFormationList()
 
 	for (int32 Index = 0; Index < WaveManagerData_Instance.SelectedFormations.Num(); ++Index)
 	{
-		WaveManagerData_Instance.ListContainer->AddSlot().AutoHeight()
+		WaveManagerData_Instance.FormationListContainer->AddSlot().AutoHeight()
 			[
-				GenerateEntryWidget(Index)
+				GenerateFormationWidget(Index)
 			];
 	}
 }
 
-TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateEntryWidget(int32 Index)
+TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateFormationWidget(int32 Index)
 {
 	return SNew(SHorizontalBox)
 
-		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		+ SHorizontalBox::Slot()
 		[
 			SNew(SObjectPropertyEntryBox)
 				.ObjectPath_Lambda([this, Index]() -> FString
@@ -440,7 +537,6 @@ TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateEntryWidget(int32 Index)
 				.AllowedClass(UFormationDataAsset::StaticClass())
 				.AllowClear(true)
 		]
-
 		+ SHorizontalBox::Slot().AutoWidth().Padding(5, 0)
 		[
 			SNew(SButton)
@@ -455,6 +551,26 @@ TSharedRef<SWidget> SWaveToolWidgetMenu::GenerateEntryWidget(int32 Index)
 						return FReply::Handled();
 					})
 		];
+}
+
+void SWaveToolWidgetMenu::SpawnBPInstance(FString BPPath)
+{
+    UWorld* World = GEditor->GetEditorWorldContext().World();
+    if (!World) return;
+
+    FStringAssetReference BPRef(BPPath);
+    UClass* BPClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, *BPRef.ToString()));
+
+    if (BPClass)
+    {
+		FActorSpawnParameters SpawnParams;
+		World->SpawnActor<AActor>(BPClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Spawned BP Instance"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Could not find Blueprint class!"));
+    }
 }
 
 bool SWaveToolWidgetMenu::SaveWaveManagerAsset() const
@@ -472,7 +588,7 @@ bool SWaveToolWidgetMenu::SaveWaveManagerAsset() const
 			waveManager->FormationSpawnFrequency = WaveManagerData_Instance.FormationSpawnFrequency;
 			waveManager->SpawnFrequency = WaveManagerData_Instance.SpawnFrequency;
 			waveManager->bAutoStartWaveSystem = WaveManagerData_Instance.AutoStartWaveSystem == ECheckBoxState::Checked ? true : false;
-			waveManager->Spawners = WaveManagerData_Instance.Spawners;
+			waveManager->Spawners = WaveManagerData_Instance.SelectedSpawners;
 			waveManager->FormationDataAssets = WaveManagerData_Instance.SelectedFormations;
 			waveManager->bUseFormation = WaveManagerData_Instance.UseFormation == ECheckBoxState::Checked ? true : false;
 
@@ -513,59 +629,6 @@ bool SWaveToolWidgetMenu::SaveWaveManagerAsset() const
 		}
 	}
 	return false;
-}
-
-TSharedRef<ITableRow> SWaveToolWidgetMenu::GenerateFormationListRow(TSharedPtr<UFormationDataAsset> InItem, const TSharedRef<STableViewBase>& OwnerTable)
-{
-	return SNew(STableRow<TSharedPtr<UFormationDataAsset>>, OwnerTable)
-		[
-			SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().AutoWidth()
-				[
-					SNew(SObjectPropertyEntryBox)
-						.AllowedClass(UFormationDataAsset::StaticClass())
-						//.ObjectPath(InItem.IsValid() && InItem.Get() ? InItem->GetPathName() : FString())
-						//.OnObjectChanged_Lambda([InItem](const FAssetData& NewAssetData) {
-						//	UFormationDataAsset* dummy = nullptr;
-						//	dummy = Cast<UFormationDataAsset>(NewAssetData.GetAsset());
-						//	//make 2 arrays one with all the formations one with all the selected formations
-						//	//make the sharedptr one temporary
-						//})
-						.ObjectPath_Lambda([this]() -> FString
-							{
-								return (WaveManagerData_Instance.SelectedWaveContainerAsset ? WaveManagerData_Instance.SelectedWaveContainerAsset->GetPathName() : FString());
-							})
-						.OnObjectChanged_Lambda([this](const FAssetData& AssetData)
-							{
-								WaveManagerData_Instance.SelectedWaveContainerAsset = Cast<UPDataWaveContainer>(AssetData.GetAsset());
-							})
-						.AllowClear(true)
-				]
-				+ SHorizontalBox::Slot().AutoWidth().Padding(5, 0)
-				[
-					SNew(SButton).Text(FText::FromString(TEXT("-")))
-				]
-		];
-}
-
-void SWaveToolWidgetMenu::SpawnBPInstance(FString BPPath)
-{
-    UWorld* World = GEditor->GetEditorWorldContext().World();
-    if (!World) return;
-
-    FStringAssetReference BPRef(BPPath);
-    UClass* BPClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, *BPRef.ToString()));
-
-    if (BPClass)
-    {
-		FActorSpawnParameters SpawnParams;
-		World->SpawnActor<AActor>(BPClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Spawned BP Instance"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Log, TEXT("WAVETOOL || Could not find Blueprint class!"));
-    }
 }
 
 // Show properties, detached from the construct function
@@ -1359,6 +1422,7 @@ bool SWaveToolWidgetMenu::DeleteDataAsset(FString assetName)
 
 //END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 /*
+* STORE ACTUAL SPAWNERS REFERENCE NOT JUST NAMES, also error idfk
 * longpackagename warning fix
 * add the remaining 2 fields missing
 */
