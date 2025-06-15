@@ -19,5 +19,6 @@ class AIV_2025_VGP_API II_FunctionStrategy
 {
 	GENERATED_BODY()
 public:
+	virtual void Execute(AActor* Executor) = 0;
 	virtual void Execute() = 0;
 };

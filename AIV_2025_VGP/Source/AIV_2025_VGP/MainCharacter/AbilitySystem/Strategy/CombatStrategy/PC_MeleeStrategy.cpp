@@ -8,7 +8,7 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
-void UPC_MeleeStrategy::Execute()
+void UPC_MeleeStrategy::Execute(AActor* Executor)
 {
 	if (CanAttack())
 	{ 
@@ -19,7 +19,7 @@ void UPC_MeleeStrategy::Execute()
 
 		if (MontageToPlay)
 		{
-			ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			ACharacter* PlayerCharacter = Cast<ACharacter>(Executor);
 			if(PlayerCharacter)
 			{
 				PlayerCharacter->PlayAnimMontage(MontageToPlay);				

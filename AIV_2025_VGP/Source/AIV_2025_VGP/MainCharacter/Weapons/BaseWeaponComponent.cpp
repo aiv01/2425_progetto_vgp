@@ -5,6 +5,8 @@
 
 #include "BaseWeaponComponent.h"
 
+#include "EntitySystem/MovieSceneEntitySystemRunner.h"
+
 UBaseWeaponComponent::UBaseWeaponComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -96,7 +98,15 @@ void UBaseWeaponComponent::AddNewWeapon(TSubclassOf<ABaseWeapon> NewWeapon)
 	if (SpawnedWeapon && PlayerMesh)
 	{
 		Weapons.Add(SpawnedWeapon);
-		SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+		if (SpawnedWeapon->WeaponName == "Rifle")
+		{
+			SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("hand_l"));
+		}
+		else
+		{
+			SpawnedWeapon->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+		}
+		SpawnedWeapon->SetOwner(GetOwner());
 		SpawnedWeapon->SetActorHiddenInGame(true);
 	}
 }
