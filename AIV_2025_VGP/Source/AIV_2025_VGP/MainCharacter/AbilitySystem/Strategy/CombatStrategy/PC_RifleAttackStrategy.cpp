@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 
 
-void UPC_RifleAttackStrategy::Execute()
+void UPC_RifleAttackStrategy::Execute(AActor* Executor)
 {
 	if (CanAttack())
 	{ 
@@ -19,7 +19,8 @@ void UPC_RifleAttackStrategy::Execute()
 
 		if (MontageToPlay)
 		{
-			ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			// ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			ACharacter* PlayerCharacter = Cast<ACharacter>(Executor);
 			if(PlayerCharacter)
 			{
 				PlayerCharacter->PlayAnimMontage(MontageToPlay);				

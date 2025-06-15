@@ -20,6 +20,7 @@ class AIV_2025_VGP_API UBaseStrategy : public UObject, public II_FunctionStrateg
 	GENERATED_BODY()
 
 public:
+	virtual void Execute(AActor* Executor) override;
 	virtual void Execute() override;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Params")

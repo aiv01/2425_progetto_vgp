@@ -94,7 +94,7 @@ void ABasePlayer::Look_Implementation(const FVector2D& Value)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		SetActorRotation(YawRotation);
+		// SetActorRotation(YawRotation);
 		// add yaw and pitch input to controller
 		AddControllerYawInput(Value.X);
 		AddControllerPitchInput(Value.Y);

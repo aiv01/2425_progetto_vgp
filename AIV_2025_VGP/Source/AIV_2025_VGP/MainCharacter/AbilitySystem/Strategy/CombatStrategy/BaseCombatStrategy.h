@@ -23,5 +23,5 @@ public:
 protected:
 	float LastTimeUse = -FLT_MAX;
 	bool CanAttack();
-	virtual void Execute() override;
+	virtual void Execute(AActor* Executor) override;
 };
