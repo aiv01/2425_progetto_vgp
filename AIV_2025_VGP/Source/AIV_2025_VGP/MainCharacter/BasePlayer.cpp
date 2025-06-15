@@ -133,5 +133,13 @@ void ABasePlayer::Revive_Implementation()
 	}
 }
 
+void ABasePlayer::ToggleTrapMode_Implementation()
+{	
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_ToggleTrapMode(this);
+	}
+}
+
 
 

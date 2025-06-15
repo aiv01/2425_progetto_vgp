@@ -43,4 +43,13 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
 	void Revive();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void ToggleTrapMode();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Player Input")
+	void PlaceTrap();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "PlayerInput")
+	void SwapTrap(bool bForward);
 };

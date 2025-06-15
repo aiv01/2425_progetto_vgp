@@ -40,6 +40,7 @@ public:
 	virtual void SecondaryAttack_Implementation() override;
 	virtual void ChangeWeapon_Implementation(bool bForward) override;
 	virtual void Revive_Implementation() override;
+	virtual void ToggleTrapMode_Implementation() override;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
