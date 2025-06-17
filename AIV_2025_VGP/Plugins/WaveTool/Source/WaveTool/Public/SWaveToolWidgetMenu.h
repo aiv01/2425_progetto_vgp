@@ -98,14 +98,12 @@ private:
 	TArray<TSharedPtr<FBaseTreeNode>> RootNodes;
 	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FBaseTreeNode> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 	void OnGetChildren(TSharedPtr<FBaseTreeNode> InItem, TArray<TSharedPtr<FBaseTreeNode>>& OutChildren);
-
+	TSharedPtr<STreeView<TSharedPtr<FBaseTreeNode>>> STreeviewWidget;
 
 	bool bIsTestBoxChecked;
 	const FString WaveContainerPath = TEXT("/Game/Custom/WaveSystem/WaveContainers/");
 	TArray<UPDataWaveContainer*> DataWaveContainersArray;
-	TSharedPtr<SVerticalBox> PropertyList;
 	void GenerateDataTableWidget();
-	FReply OnSetWaveDataButtonClicked();
 	bool DeleteDataAsset(FString assetName);
 	void RefreshDisplayedDataAssets();
 	FReply SaveWaveDataAsset(UPDataWaveContainer* container);

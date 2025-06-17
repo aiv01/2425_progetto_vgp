@@ -11,6 +11,10 @@
 #include "UObject/Class.h"
 #include "PackageTools.h"
 #include "EngineUtils.h"
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+#include "ObjectTools.h"
+
 
 //BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
@@ -114,7 +118,8 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 														{
 															auto container = NewObject<UPDataWaveContainer>();
 															SaveWaveDataAsset(container);
-															RefreshDisplayedDataAssets();
+															//RefreshDisplayedDataAssets();
+															STreeviewWidget->RequestTreeRefresh();
 
 															return FReply::Handled();
 														})
@@ -123,7 +128,7 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 							]
 							+ SVerticalBox::Slot()
 							[
-								SNew(STreeView<TSharedPtr<FBaseTreeNode>>)
+								SAssignNew(STreeviewWidget, STreeView<TSharedPtr<FBaseTreeNode>>)
 									.TreeItemsSource(&RootNodes)
 									.OnGenerateRow(this, &SWaveToolWidgetMenu::OnGenerateRow)
 									.OnGetChildren(this, &SWaveToolWidgetMenu::OnGetChildren)
@@ -324,7 +329,6 @@ void SWaveToolWidgetMenu::Construct(const FArguments& InArgs)
 																		WaveManagerData_Instance.NameToSpawnerMap.Empty();
 																		for (TActorIterator<AWaveSpawner> It(GWorld); It; ++It)
 																		{
-																			//if (WaveManagerData_Instance.SpawnerNames.Contains(MakeShared<FString>(It->GetName()))) continue;
 																			FString Name = It->GetName();
 																			WaveManagerData_Instance.SpawnerNames.Add(MakeShared<FString>(Name));
 																			WaveManagerData_Instance.NameToSpawnerMap.Add(Name, *It);
@@ -631,13 +635,11 @@ bool SWaveToolWidgetMenu::SaveWaveManagerAsset() const
 	return false;
 }
 
-// Show properties, detached from the construct function
 void SWaveToolWidgetMenu::GenerateDataTableWidget()
 {
 	DataWaveContainersArray = GetDataWaveContainersFromPaths();
 	int32 l = 0;
 	// Transfer data from the array of AssetDataWaveContainers to my custom struct
-	TArray<TArray<TSharedPtr<FWaveContainerNode>>> RootNodesContainer;
 	for (UPDataWaveContainer* DataWaveContainer : DataWaveContainersArray)
 	{
 		TSharedPtr<FWaveContainerNode> waveContainerNode = MakeShared<FWaveContainerNode>();
@@ -683,10 +685,6 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 	case ETreeNodeType::WaveContainer:
 	{
 		TSharedPtr<FWaveContainerNode> ContainerNode = StaticCastSharedPtr<FWaveContainerNode>(InItem);
-		int32 containerIndex = WaveContainerNodes.IndexOfByKey(ContainerNode);
-		int32 containerArrayIndex = DataWaveContainersArray.IndexOfByPredicate([&](const UPDataWaveContainer* container) {
-			return container->GetName() == WaveContainerNodes[containerIndex]->WaveContainerName;
-		});
 		return SNew(STableRow<TSharedPtr<FBaseTreeNode>>, OwnerTable)
 		[
 			SNew(SVerticalBox)
@@ -701,14 +699,14 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 								+ SHorizontalBox::Slot().AutoWidth().Padding(FMargin(10, 0))
 							[
 								SNew(SEditableTextBox)
-									.OnTextChanged_Lambda([this, containerIndex](const FText& NewText)
+									.OnTextChanged_Lambda([this, ContainerNode](const FText& NewText)
 										{
 											FString name = PackageTools::SanitizePackageName(NewText.ToString());
-											WaveContainerNodes[containerIndex]->WaveContainerName = name;
+											WaveContainerNodes[ContainerNode->WaveContainerID]->WaveContainerName = name;
 										})
-									.Text_Lambda([this, containerIndex]()
+									.Text_Lambda([this, ContainerNode]()
 										{
-											return FText::FromString(WaveContainerNodes[containerIndex]->WaveContainerName);
+											return FText::FromString(WaveContainerNodes[ContainerNode->WaveContainerID]->WaveContainerName);
 										})
 							]
 						]
@@ -723,14 +721,7 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 
 										RefreshDisplayedDataAssets();
 
-										if (bDeleted)
-										{
-											return FReply::Handled();
-										}
-										else
-										{
-											return FReply::Unhandled();
-										}
+										return (bDeleted) ? FReply::Handled() : FReply::Unhandled();
 									})
 						]
 				]
@@ -743,13 +734,13 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 					+ SHorizontalBox::Slot().AutoWidth().Padding(10, 0)
 					[
 						SNew(SEditableTextBox)
-							.OnTextChanged_Lambda([this, containerIndex](const FText& NewText)
+							.OnTextChanged_Lambda([this, ContainerNode](const FText& NewText)
 								{
-									WaveContainerNodes[containerIndex]->ContainerDescription = NewText.ToString();
+									WaveContainerNodes[ContainerNode->WaveContainerID]->ContainerDescription = NewText.ToString();
 								})
-							.Text_Lambda([this, containerIndex]()
+							.Text_Lambda([this, ContainerNode]()
 								{
-									return FText::FromString(WaveContainerNodes[containerIndex]->ContainerDescription);
+									return FText::FromString(WaveContainerNodes[ContainerNode->WaveContainerID]->ContainerDescription);
 								})
 					]
 				]
@@ -768,10 +759,10 @@ TSharedRef<ITableRow> SWaveToolWidgetMenu::OnGenerateRow(TSharedPtr<FBaseTreeNod
 						SNew(SButton)
 							.Text(FText::FromString(TEXT("+"))).ToolTipText(FText::FromString(TEXT("Add new Wave")))
 							.HAlign(EHorizontalAlignment::HAlign_Center)
-							.OnClicked_Lambda([this, containerArrayIndex]()
+							.OnClicked_Lambda([this, ContainerNode]()
 								{
 									FWaveOrder* wave = new FWaveOrder();
-									DataWaveContainersArray[containerArrayIndex]->WavesArray.Add(*wave);
+									DataWaveContainersArray[ContainerNode->WaveContainerID]->WavesArray.Add(*wave);
 									RefreshDisplayedDataAssets();
 									return FReply::Handled();
 								})
@@ -1147,19 +1138,11 @@ void SWaveToolWidgetMenu::RefreshDisplayedDataAssets()
 {
 	DataWaveContainersArray.Empty();
 	WaveContainerNodes.Empty();
-	PropertyList->ClearChildren();
 	RootNodes.Empty();
 
 	GenerateDataTableWidget();
-}
 
-FReply SWaveToolWidgetMenu::OnSetWaveDataButtonClicked()
-{
-#if UE_BUILD_DEVELOPMENT
-	UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Set Wave Data"));
-#endif
-	//APWaveManager::Instance->SetWaveData(DataWaveContainer, false);
-	return FReply::Handled();
+	STreeviewWidget->RequestTreeRefresh();
 }
 
 TArray<FString> SWaveToolWidgetMenu::GetAllWaveDataAssetPaths()
@@ -1353,25 +1336,37 @@ FReply SWaveToolWidgetMenu::SaveWaveDataAsset(UPDataWaveContainer* container)
 	FString containerName = container->GetName();
 	// Create the package
 	FString FullPackageName = WaveContainerPath + containerName;
-	UPackage* Package = container->GetOutermost();
-	FName::IsValidXName(FullPackageName, INVALID_OBJECTNAME_CHARACTERS);
-	if (!Package || Package->GetName() != FullPackageName)
+
+	if (!FName::IsValidXName(containerName, INVALID_OBJECTNAME_CHARACTERS))
 	{
-		Package = CreatePackage(*FullPackageName);
-		if (!Package)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Failed to create package"));
-			return FReply::Unhandled();
-		}
-		container->Rename(*containerName, Package, REN_DontCreateRedirectors);
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Invalid container name"));
+		return FReply::Unhandled();
 	}
+
+	// Create unique asset name
+	FString UniquePackageName;
+	FString UniqueAssetName;
+
+	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().CreateUniqueAssetName(FullPackageName, TEXT(""), UniquePackageName, UniqueAssetName);
+
+	// Create or get the package
+	UPackage* Package = CreatePackage(*UniquePackageName);
+	if (!Package)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WAVETOOL || Failed to create package"));
+		return FReply::Unhandled();
+	}
+
+	// Rename the container into the package
+	container->Rename(*UniqueAssetName, Package, REN_DontCreateRedirectors);
 
 	container->SetFlags(RF_Public | RF_Standalone);
 	container->MarkPackageDirty();
 	
 	FAssetRegistryModule::AssetCreated(container);
 
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(FullPackageName, FPackageName::GetAssetPackageExtension());
+	FString PackageFileName = FPackageName::LongPackageNameToFilename(UniquePackageName, FPackageName::GetAssetPackageExtension());
 
 	bool bSaved = UPackage::SavePackage(
 		Package, 
@@ -1422,7 +1417,6 @@ bool SWaveToolWidgetMenu::DeleteDataAsset(FString assetName)
 
 //END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 /*
-* STORE ACTUAL SPAWNERS REFERENCE NOT JUST NAMES, also error idfk
 * longpackagename warning fix
-* add the remaining 2 fields missing
+* add/remove single entry instead of redoing the whole thing while refreshing
 */
