@@ -149,11 +149,11 @@ void ABasePlayer::PlaceTrap_Implementation()
 	}
 }
 
-void ABasePlayer::SwapTrap_Implementation(bool bForward)
+void ABasePlayer::SwapTrap_Implementation(int Sign)
 {
 	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
 	{
-		Execute_SwapTrap(this, bForward);
+		Execute_SwapTrap(this, Sign);
 	}
 }
 

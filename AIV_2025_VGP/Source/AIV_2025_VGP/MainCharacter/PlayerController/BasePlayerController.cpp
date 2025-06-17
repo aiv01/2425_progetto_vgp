@@ -275,11 +275,10 @@ void ABasePlayerController::PlaceTrap()
 void ABasePlayerController::SwapTrap(const FInputActionValue& Value)
 {
 	float result = Value.Get<float>();
-	bool bForward = result > 0;
 
 	if (II_PlayerInput* ControlledPawn = Cast<II_PlayerInput>(GetPawn()))
 	{
-		ControlledPawn->SwapTrap_Implementation(bForward);
+		ControlledPawn->SwapTrap_Implementation(result);
 	}
 }
 

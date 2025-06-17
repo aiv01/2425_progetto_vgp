@@ -11,6 +11,11 @@
 #include "GridSystem/GridPreviewComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+void UGridInteractComponent::BeginPlay()
+{
+	CurrentTrap = AvailableTraps[0];
+}
+
 /**
  * this method does a line trace to a wall or floor. if there is a collision, it checks if there is an AGridGeneratorVolume and returns it (if there are more, it returns one)
  * @param CameraForward FVector (look direction)
@@ -68,11 +73,7 @@ void UGridInteractComponent::GridRayCast (FVector CameraForward, FHitResult& res
 				UE_LOG(LogTemp, Warning, TEXT("NO GridGeneratorVolume FOUND"));
 			}
 			// Clear the preview mesh on the last volume
-			UGridPreviewComponent* UGridPreviewComp = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
-			if(UGridPreviewComp)
-			{
-				UGridPreviewComp->ClearPreviewMesh();
-			}
+			StopPreview();
 
 			// Reset references
 			LastGridVolume = nullptr;
@@ -191,5 +192,44 @@ void UGridInteractComponent::PlaceTrap (FVector CameraForward, bool& HitSurface,
 	}else if(bDebug)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NO VOLUME FOUND"));
+	}
+}
+
+FName UGridInteractComponent::GetCurrentTrapName() const
+{
+	return CurrentTrap;
+}
+
+void UGridInteractComponent::SwapTrap(int Sign)
+{
+	int PrevTrapIndexer = TrapIndexer;
+	TrapIndexer += Sign;
+
+	if (TrapIndexer >= AvailableTraps.Num())
+	{
+		TrapIndexer = 0;
+	}
+	else if (TrapIndexer < 0)
+	{
+		TrapIndexer = AvailableTraps.Num() - 1;
+	}
+
+	if (PrevTrapIndexer != TrapIndexer)
+	{
+		CurrentTrap = AvailableTraps[TrapIndexer];
+		LastGridSurface = nullptr;
+		StopPreview();
+	}
+}
+
+void UGridInteractComponent::StopPreview()
+{
+	if (LastGridVolume)
+	{
+		UGridPreviewComponent* UGridPreviewComp = LastGridVolume->FindComponentByClass<UGridPreviewComponent>();
+		if (UGridPreviewComp)
+		{
+			UGridPreviewComp->ClearPreviewMesh();
+		}
 	}
 }

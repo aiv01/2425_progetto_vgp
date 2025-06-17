@@ -51,5 +51,5 @@ public:
 	void PlaceTrap();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "PlayerInput")
-	void SwapTrap(bool bForward);
+	void SwapTrap(int Sign);
 };

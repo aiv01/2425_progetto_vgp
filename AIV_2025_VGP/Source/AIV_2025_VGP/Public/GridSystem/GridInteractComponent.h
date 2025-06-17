@@ -19,8 +19,14 @@ class AIV_2025_VGP_API UGridInteractComponent : public UActorComponent
 private:
 	FGridSurface* LastGridSurface;
 	AGridGeneratorVolume* LastGridVolume;
-	//UStruct  ;
-	
+	int TrapIndexer = 0;
+	FName CurrentTrap;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FName> AvailableTraps;
+
+private:
+	virtual void BeginPlay() override;
 	
 public:
 	UPROPERTY(EditAnywhere, Category="GridGenerator|Preview")
@@ -60,5 +66,13 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void PlaceTrap(FVector CameraForward, bool& HitSurface, const FName TrapRowName);
-		
+
+	UFUNCTION(BlueprintCallable)
+	FName GetCurrentTrapName() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SwapTrap(int Sign);
+
+	UFUNCTION(BlueprintCallable)
+	void StopPreview();
 };

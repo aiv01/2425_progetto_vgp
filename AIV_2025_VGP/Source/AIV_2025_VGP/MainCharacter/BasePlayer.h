@@ -42,7 +42,7 @@ public:
 	virtual void Revive_Implementation() override;
 	virtual void ToggleTrapMode_Implementation() override;
 	virtual void PlaceTrap_Implementation() override;
-	virtual void SwapTrap_Implementation(bool bForward) override;
+	virtual void SwapTrap_Implementation(int Sign) override;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (AllowPrivateAccess = "true"))
