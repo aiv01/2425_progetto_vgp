@@ -24,10 +24,10 @@ class AIV_2025_VGP_API II_MappingsInterface
 public:
 	// function to go from combat to trap mode
 	UFUNCTION(BlueprintCallable)
-	virtual bool SwitchToTrapMode() = 0;
+	virtual bool SwitchToTrapMode();
 
 	// function to go from trap to combat mode
 	UFUNCTION(BlueprintCallable)
-	virtual bool SwitchToCombatMode() = 0;
+	virtual bool SwitchToCombatMode();
 };
 

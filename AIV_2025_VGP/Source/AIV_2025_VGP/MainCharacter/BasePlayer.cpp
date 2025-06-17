@@ -141,5 +141,21 @@ void ABasePlayer::ToggleTrapMode_Implementation()
 	}
 }
 
+void ABasePlayer::PlaceTrap_Implementation()
+{
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_PlaceTrap(this);
+	}
+}
+
+void ABasePlayer::SwapTrap_Implementation(bool bForward)
+{
+	if (GetClass()->ImplementsInterface(UI_PlayerInput::StaticClass()))
+	{
+		Execute_SwapTrap(this, bForward);
+	}
+}
+
 
 

@@ -75,7 +75,7 @@ private:
 	void ChangeWeapon(const FInputActionValue& Value);
 	void Revive();
 	void ToggleTrapMode();
-	void PlaceTrap();
+	void PlaceTrap(); 
 	void SwapTrap(const FInputActionValue& Value);
 
 	//Init function

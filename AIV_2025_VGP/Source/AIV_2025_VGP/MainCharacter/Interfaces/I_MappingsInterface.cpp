@@ -4,3 +4,13 @@
 #include "../MainCharacter/Interfaces/I_MappingsInterface.h"
 
 // Add default functionality here for any II_MappingsInterface functions that are not pure virtual.
+
+bool II_MappingsInterface::SwitchToTrapMode()
+{
+    return false;
+}
+
+bool II_MappingsInterface::SwitchToCombatMode()
+{
+    return false;
+}
