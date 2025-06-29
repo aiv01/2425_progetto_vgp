@@ -22,8 +22,27 @@ void UPC_MeleeStrategy::Execute(AActor* Executor)
 			ACharacter* PlayerCharacter = Cast<ACharacter>(Executor);
 			if(PlayerCharacter)
 			{
-				PlayerCharacter->PlayAnimMontage(MontageToPlay);				
+				if (PlayerCharacter->HasAuthority())
+				{
+					Multicast_SyncAnim_Implementation(PlayerCharacter);
+				}
+				else
+				{
+					Server_SyncAnim_Implementation(PlayerCharacter);
+				}
+								
+			
 			}
 		}
 	}
+}
+
+void UPC_MeleeStrategy::Server_SyncAnim_Implementation(ACharacter* owner)
+{
+	Multicast_SyncAnim_Implementation(owner);
+}
+
+void UPC_MeleeStrategy::Multicast_SyncAnim_Implementation(ACharacter* owner)
+{
+	owner->PlayAnimMontage(MontageToPlay);
 }

@@ -5,22 +5,3 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "AIV_2025_VGP/MainCharacter/AbilitySystem/AbilitySystemComponent.h"
-
-void UGOAPGreatSwordStrategy::Execute()
-{
-	if (CanAttack())
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, "MeleeStrategy");
-		}
-
-		if (AnimationToPlay)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "Melee atk!!!");
-
-			StrategyOwner->PlayAnimMontage(AnimationToPlay);
-			
-		}
-	}
-}

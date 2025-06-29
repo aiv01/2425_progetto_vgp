@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "../../Interfaces/I_FunctionStrategy.h"
+#include "GameFramework/Character.h"
 #include "BaseStrategy.generated.h"
 
 /**

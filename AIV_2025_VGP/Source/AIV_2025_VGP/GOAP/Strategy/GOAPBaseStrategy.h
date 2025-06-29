@@ -16,6 +16,7 @@ class AIV_2025_VGP_API UGOAPBaseStrategy : public UBaseStrategy
 	GENERATED_BODY()
 
 public:
+	
 	virtual void Execute() override;
 
 	

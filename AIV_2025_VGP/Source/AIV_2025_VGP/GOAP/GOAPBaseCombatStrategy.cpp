@@ -16,4 +16,22 @@ bool UGOAPBaseCombatStrategy::CanAttack()
 
 void UGOAPBaseCombatStrategy::Execute()
 {
+	if (CanAttack())
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, "MeleeStrategy");
+		}
+
+		if (MontageToPlay)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, "Melee atk!!!");
+
+			if (StrategyOwner)
+			{
+				StrategyOwner->PlayAnimMontage(MontageToPlay);
+			}
+
+		}
+	}
 }

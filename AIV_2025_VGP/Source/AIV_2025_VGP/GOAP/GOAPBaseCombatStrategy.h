@@ -19,6 +19,9 @@ public:
 	float Cooldown = 0.0f;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Params")
+	UAnimMontage* MontageToPlay;
+
 	float LastTimeUse = -FLT_MAX;
 	bool CanAttack();
 	virtual void Execute() override;
