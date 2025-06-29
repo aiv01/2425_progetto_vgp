@@ -5,7 +5,23 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "PDataWaveContainer.h"
+#include "IDetailsView.h"
 #include "PWaveManager.h"
+#include "SwaveToolWidgetMenu.generated.h"
+
+enum EWidgetTab {
+	WaveContainers,
+	WaveManagers
+};
+
+UCLASS()
+class UFormationAssetListObject : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "Formations")
+		TArray<UFormationDataAsset*> FormationAssets;
+};
 
 class WAVETOOL_API SWaveToolWidgetMenu : public SCompoundWidget
 {
@@ -82,74 +98,74 @@ private:
 	TArray<TSharedPtr<FBaseTreeNode>> RootNodes;
 	TSharedRef<ITableRow> OnGenerateRow(TSharedPtr<FBaseTreeNode> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 	void OnGetChildren(TSharedPtr<FBaseTreeNode> InItem, TArray<TSharedPtr<FBaseTreeNode>>& OutChildren);
-
+	TSharedPtr<STreeView<TSharedPtr<FBaseTreeNode>>> STreeviewWidget;
 
 	bool bIsTestBoxChecked;
 	const FString WaveContainerPath = TEXT("/Game/Custom/WaveSystem/WaveContainers/");
 	TArray<UPDataWaveContainer*> DataWaveContainersArray;
-	TSharedPtr<SVerticalBox> PropertyList;
 	void GenerateDataTableWidget();
-	FReply OnSetWaveDataButtonClicked();
-	FReply OnMinusButtonPressed(FString assetName);
 	bool DeleteDataAsset(FString assetName);
 	void RefreshDisplayedDataAssets();
 	FReply SaveWaveDataAsset(UPDataWaveContainer* container);
 	TArray<FString> GetAllWaveDataAssetPaths();
 	TArray<UPDataWaveContainer*> GetDataWaveContainersFromPaths();
 	FReply OnWaveContainerSaveButtonClicked(TSharedPtr<FWaveContainerNode> ContainerNode);
-	FReply OnWaveContainerPlusButtonClicked();
-	FReply OnWavesArrayPlusButtonClicked(int32 containerIndex);
-	FReply OnWavesArrayMinusButtonClicked(int32 containerIndex, int32 waveIndex);
-	FReply OnEnemyTypesPlusButtonClicked(int32 containerIndex, int32 waveIndex);
-	FReply OnEnemyTypesMinusButtonClicked(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 
-	//runtime//
-	APWaveManager* WaveManager;
+	EWidgetTab WidgetTab;
+
+	//Second Tab//
+	APWaveManager* WaveManagerInstance;
 	UClass* WManagerDataWaveContainer;
-	void FindOrCreateManager();
+	void FindWaveManager();
+	void SpawnBPInstance(FString BPPath);
+	struct WaveManagerData
+	{
+		UPDataWaveContainer* SelectedWaveContainerAsset;
+		float WaveInterval;
+		float FormationSpawnFrequency;
+		float SpawnFrequency;
+		ECheckBoxState AutoStartWaveSystem;
+
+		TArray<TSharedPtr<FString>> SpawnerNames;
+		TArray<TSharedPtr<FString>> CurrentSpawnerSelections;
+		TSharedPtr<SVerticalBox> SpawnerListContainer;
+		TArray<AWaveSpawner*> SelectedSpawners;
+		TMap<FString, AWaveSpawner*> NameToSpawnerMap;
+
+		TArray<UFormationDataAsset*> SelectedFormations;
+		TSharedPtr<SVerticalBox> FormationListContainer;
+
+		ECheckBoxState UseFormation;
+
+		WaveManagerData() :
+			SelectedWaveContainerAsset(nullptr),
+			WaveInterval(0.0f),
+			FormationSpawnFrequency(0.0f),
+			SpawnFrequency(0.0f),
+			AutoStartWaveSystem(ECheckBoxState::Unchecked),
+			SpawnerNames(TArray<TSharedPtr<FString>>()),
+			UseFormation(ECheckBoxState::Unchecked)
+		{ }
+	};
+	WaveManagerData WaveManagerData_Instance;
+	void RefreshSpawnerList();
+	TSharedRef<SWidget> GenerateSpawnerWidget(int32 Index);
+	void RefreshFormationList();
+	TSharedRef<SWidget> GenerateFormationWidget(int32 Index);
+	bool SaveWaveManagerAsset() const;
 
 	// Enum drop down menu //
 	TArray<TSharedPtr<EEnemyTypes>> EnemyTypes;
 	TSharedPtr<EEnemyTypes> SelectedEnemyType;
-	void OnEnemyTypeSelectionChanged(TSharedPtr<EEnemyTypes> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
-	TSharedRef<SWidget> GenerateComboItem(TSharedPtr<EEnemyTypes> Item);
-	FText GetCurrentItemLabel(int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex) const;
 	FText EnumToText(EEnemyTypes EnumValue) const;
 
 	// Spawn Order Drop Down Menu //
 	TArray<TSharedPtr<ESpawnOrder>> SpawnOrders;
 	TSharedPtr<ESpawnOrder> SelectedSpawnOrder;
-	void OnSpawnOrderSelectionChanged(TSharedPtr<ESpawnOrder> NewValue, ESelectInfo::Type SelectInfo, int32 containerIndex, int32 waveIndex);
-	TSharedRef<SWidget> GenerateSpawnOrderComboItem(TSharedPtr<ESpawnOrder> Item);
-	FText GetCurrentSpawnOrderLabel(int32 containerIndex, int32 waveIndex) const;
 	FText EnumToText(ESpawnOrder EnumValue) const;
 
 	// Class Selection Menu //
-	void OnClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
-	const UClass* GetSelectedClass(int32 containerIndex, int32 arrayWaveIndex, int32 enemyTypeIndex) const;
+	void OnEnemyClassSelected(const UClass* selectedClass, int32 containerIndex, int32 waveIndex, int32 enemyTypeIndex);
 	
-	// Editables Texts //
-	//wave container
-	FText GetWaveContainerNameEditableText(const int32 containerIndex) const;
-	void OnWaveContainerNameChanged(const FText& NewText, int32 containerIndex);
-	FText GetWaveContainerDescriptionEditableText(const int32 containerIndex) const;
-	void OnWaveContainerDescriptionChanged(const FText& NewText, int32 containerIndex);
-	//wave
-	FText GetWaveDescriptionEditableText(const int32 containerIndex, const int32 waveIndex) const;
-	void OnWaveDecriptionTextChanged(const FText& NewText, const int32 containerIndex, const int32 waveIndex);
-	int32 GetWaveTotalPointsEditableText(const int32 containerIndex, const int32 waveIndex) const;
-	void OnWaveTotalPointsTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex);
-	FText GetWaveSpawnOrderEditableText(int32 containerIndex, const int32 waveIndex) const;
-	void OnWaveSpawnOrdertextChanged(const ESpawnOrder NewValue, const int32 containerIndex, const int32 waveIndex); 
-	//enemy type
 	ECheckBoxState GetWaveEnemyUseEnemyCostState(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
-	void OnWaveEnemyUseEnemyCostStateChanged(const ECheckBoxState NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
-	int32 GetWaveEnemyMinEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
-	void OnWaveEnemyMinEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
-	int32 GetWaveEnemyMaxEnemiesEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
-	void OnWaveEnemyMaxEnemiesTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
-	int32 GetWaveEnemyCostEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
-	void OnWaveEnemyCostTextChanged(const int32 NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
-	FText GetWaveEnemyTypeEditableText(const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex) const;
-	void OnWaveEnemyTypeTextChanged(const EEnemyTypes NewValue, const int32 containerIndex, const int32 waveIndex, const int32 enemyTypeIndex);
 };

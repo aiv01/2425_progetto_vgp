@@ -3,3 +3,7 @@
 
 #include "FormationDataAsset.h"
 
+void UFormationDataAsset::BeginDestroy()
+{
+	Super::BeginDestroy();
+}
